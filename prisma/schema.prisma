@@ -9,98 +9,106 @@ datasource db {
 }
 
 model Attachment {
-  id    Int    @id @default(autoincrement())
-  fileName String @db.VarChar(100)
-  directory String @db.VarChar(100)
-  length Int @default(0)
-  mediaType @db.VarChar(50)
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  fileName  String    @db.VarChar(100)
+  directory String    @db.VarChar(100)
+  length    Int       @default(0)
+  mediaType String    @db.VarChar(50)
+  createdAt DateTime  @default(now())
+  Account   Account[]
 }
 
 model Role {
-  id    Int    @id @default(autoincrement())
-  name String @db.VarChar(50)
-  description String? @db.VarChar(50)
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(50)
+  description String?   @db.VarChar(50)
+  accounts    Account[]
 }
 
 model Account {
-  id    Int    @id @default(autoincrement())
-  roleId Int
-  role Role @relation(fields: [roleId], references: [id])
-  avatarId Int?
-  avatar Attachment? @relation(fields: [avatarId], references: [id])
-  username String @db.VarChar(50)
-  password String @db.VarChar(50)
-  email String @unique
-  phoneNumber String? @db.VarChar(50) @unique
-  firstname String @db.VarChar(50)
-  lastname String @db.VarChar(50)
-  walletAddress String? @db.VarChar(50)
+  id            Int         @id @default(autoincrement())
+  roleId        Int
+  role          Role        @relation(fields: [roleId], references: [id])
+  avatarId      Int?
+  avatar        Attachment? @relation(fields: [avatarId], references: [id])
+  username      String      @db.VarChar(50)
+  password      String      @db.VarChar(50)
+  email         String      @unique
+  phoneNumber   String?     @unique @db.VarChar(50)
+  firstname     String      @db.VarChar(50)
+  lastname      String      @db.VarChar(50)
+  walletAddress String?     @db.VarChar(50)
+  Staff         Staff[]
+  User          User[]
 }
 
 model Position {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(50)
+  id     Int     @id @default(autoincrement())
+  name   String  @db.VarChar(50)
   staffs Staff[]
 }
 
 model Department {
-  id Int @id @default(autoincrement())
-  name String @db.VarChar(50)
-  symbol String @db.VarChar(50)
-  floor Int @default(0)
-  name String @db.VarChar(50)
-  staffs Staff[]
+  id          Int           @id @default(autoincrement())
+  symbol      String        @db.VarChar(50)
+  floor       Int           @default(0)
+  name        String        @db.VarChar(50)
+  staffs      Staff[]
+  MedicalRoom MedicalRoom[]
 }
 
 model MedicalRoom {
-  id Int @id @default(autoincrement())
+  id           Int            @id @default(autoincrement())
   departmentId Int
-  department Department @relation(fields: [departmentId], references: [id])
-  floor Int @default(0)
-  name String @db.VarChar(50)
+  department   Department     @relation(fields: [departmentId], references: [id])
+  floor        Int            @default(0)
+  name         String         @db.VarChar(50)
+  ShiftWorking ShiftWorking[]
+  Appointment  Appointment[]
 }
 
 model Staff {
-  id Int @id @default(autoincrement())
-  accountId Int
-  account Account @relation(fields: [accountId], references: [id])
-  positions Position[]
-  departments Department[]
-  firstname String @db.VarChar(50)
-  lastname String @db.VarChar(50)
-  phoneNumber String @db.VarChar(50)
+  id             Int            @id @default(autoincrement())
+  accountId      Int
+  account        Account        @relation(fields: [accountId], references: [id])
+  positions      Position[]
+  departments    Department[]
+  firstname      String         @db.VarChar(50)
+  lastname       String         @db.VarChar(50)
+  phoneNumber    String         @db.VarChar(50)
   educationLevel EDUCATIONLEVEL @default(DIPLOMA)
+  ShiftWorking   ShiftWorking[]
 }
 
 model User {
-  id Int @id @default(autoincrement())
-  accountId Int
-  account Account @relation(fields: [accountId], references: [id])
-  firstname String @db.VarChar(50)
-  lastname String @db.VarChar(50)
-  phoneNumber String @db.VarChar(50)
+  id          Int           @id @default(autoincrement())
+  accountId   Int
+  account     Account       @relation(fields: [accountId], references: [id])
+  firstname   String        @db.VarChar(50)
+  lastname    String        @db.VarChar(50)
+  phoneNumber String        @db.VarChar(50)
+  Appointment Appointment[]
 }
 
 model ShiftWorking {
-  id Int @id @default(autoincrement())
+  id       Int         @id @default(autoincrement())
   doctorId Int?
-  doctor Doctor? @relation(fields: [doctorId], references: [id])
-  roomId Int
-  room MedicalRoom @relation(fields: [roomId], references: [id])
+  doctor   Staff?      @relation(fields: [doctorId], references: [id])
+  roomId   Int
+  room     MedicalRoom @relation(fields: [roomId], references: [id])
   fromTime DateTime
-  toTime DateTime
+  toTime   DateTime
 }
 
 model Appointment {
-  id Int @id @default(autoincrement())
-  roomId Int
-  room MedicalRoom @relation(fields: [roomId], references: [id])
-  userId Int
-  user User @relation(fields: [userId], references: [id])
-  patientId String @db.VarChar(50)
-  fromTime DateTime?
-  toTime DateTime?
+  id        Int         @id @default(autoincrement())
+  roomId    Int
+  room      MedicalRoom @relation(fields: [roomId], references: [id])
+  userId    Int
+  user      User        @relation(fields: [userId], references: [id])
+  patientId String      @db.VarChar(50)
+  fromTime  DateTime?
+  toTime    DateTime?
 }
 
 enum EDUCATIONLEVEL {
