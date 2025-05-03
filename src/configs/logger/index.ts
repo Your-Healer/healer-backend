@@ -15,7 +15,8 @@ export const logger = winston.createLogger({
       format: winston.format.printf((info) => {
         return `${info.timestamp}:${info.label}:${info.message}`
       }),
-      filename: 'info.log',
+      filename: `${new Date().getTime()}-info.log`,
+      dirname: 'logs',
       maxsize: 1
     })
   ]
