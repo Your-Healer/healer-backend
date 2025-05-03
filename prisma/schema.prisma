@@ -1,9 +1,112 @@
 generator client {
   provider = "prisma-client-js"
-  output = "../../node_modules/.prisma/client"
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Attachment {
+  id    Int    @id @default(autoincrement())
+  fileName String @db.VarChar(100)
+  directory String @db.VarChar(100)
+  length Int @default(0)
+  mediaType @db.VarChar(50)
+  createdAt DateTime @default(now())
+}
+
+model Role {
+  id    Int    @id @default(autoincrement())
+  name String @db.VarChar(50)
+  description String? @db.VarChar(50)
+}
+
+model Account {
+  id    Int    @id @default(autoincrement())
+  roleId Int
+  role Role @relation(fields: [roleId], references: [id])
+  avatarId Int?
+  avatar Attachment? @relation(fields: [avatarId], references: [id])
+  username String @db.VarChar(50)
+  password String @db.VarChar(50)
+  email String @unique
+  phoneNumber String? @db.VarChar(50) @unique
+  firstname String @db.VarChar(50)
+  lastname String @db.VarChar(50)
+  walletAddress String? @db.VarChar(50)
+}
+
+model Position {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(50)
+  staffs Staff[]
+}
+
+model Department {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(50)
+  symbol String @db.VarChar(50)
+  floor Int @default(0)
+  name String @db.VarChar(50)
+  staffs Staff[]
+}
+
+model MedicalRoom {
+  id Int @id @default(autoincrement())
+  departmentId Int
+  department Department @relation(fields: [departmentId], references: [id])
+  floor Int @default(0)
+  name String @db.VarChar(50)
+}
+
+model Staff {
+  id Int @id @default(autoincrement())
+  accountId Int
+  account Account @relation(fields: [accountId], references: [id])
+  positions Position[]
+  departments Department[]
+  firstname String @db.VarChar(50)
+  lastname String @db.VarChar(50)
+  phoneNumber String @db.VarChar(50)
+  educationLevel EDUCATIONLEVEL @default(DIPLOMA)
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  accountId Int
+  account Account @relation(fields: [accountId], references: [id])
+  firstname String @db.VarChar(50)
+  lastname String @db.VarChar(50)
+  phoneNumber String @db.VarChar(50)
+}
+
+model ShiftWorking {
+  id Int @id @default(autoincrement())
+  doctorId Int?
+  doctor Doctor? @relation(fields: [doctorId], references: [id])
+  roomId Int
+  room MedicalRoom @relation(fields: [roomId], references: [id])
+  fromTime DateTime
+  toTime DateTime
+}
+
+model Appointment {
+  id Int @id @default(autoincrement())
+  roomId Int
+  room MedicalRoom @relation(fields: [roomId], references: [id])
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  patientId String @db.VarChar(50)
+  fromTime DateTime?
+  toTime DateTime?
+}
+
+enum EDUCATIONLEVEL {
+  DIPLOMA
+  ASSOCIATE
+  BACHELOR
+  MASTER
+  PROFESSIONAL
 }
