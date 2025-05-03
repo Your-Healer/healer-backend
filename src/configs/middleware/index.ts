@@ -1,0 +1,27 @@
+import express from 'express'
+import cors from 'cors'
+import helmet from 'helmet'
+import morgan from 'morgan'
+import bodyParser from 'body-parser'
+import { apiLimiter } from '../../middlewares/validation/rateLimiter'
+import config from '../../configs/env'
+import session from 'express-session'
+
+const sessionMiddleware = session({
+  secret: config.secrets.jwt,
+  resave: false,
+  // store:
+  saveUninitialized: false
+})
+
+const configMiddleware = (app: any) => {
+  app.use(sessionMiddleware)
+  app.use(cors())
+  app.use(helmet())
+  app.use(morgan('combined'))
+  app.use(bodyParser.json())
+  app.use(express.urlencoded({ extended: true }))
+  app.use(apiLimiter)
+}
+
+export default configMiddleware

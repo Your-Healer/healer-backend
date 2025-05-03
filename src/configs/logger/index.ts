@@ -9,15 +9,15 @@ export const logger = winston.createLogger({
     })
   ),
   transports: [
-    new winston.transports.Console(),
-    new winston.transports.File({
-      level: 'info',
-      format: winston.format.printf((info) => {
-        return `${info.timestamp}:${info.label}:${info.message}`
-      }),
-      filename: `${new Date().getTime()}-info.log`,
-      dirname: 'logs',
-      maxsize: 1
-    })
+    new winston.transports.Console()
+    // new winston.transports.File({
+    //   level: 'info',
+    //   format: winston.format.printf((info) => {
+    //     return `${info.timestamp}:${info.label}:${info.message}`
+    //   }),
+    //   filename: `${new Date().getTime()}-info.log`,
+    //   dirname: 'logs',
+    //   maxsize: 1
+    // })
   ]
 })

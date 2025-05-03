@@ -42,11 +42,14 @@
     "typescript-eslint": "^8.31.0"
   },
   "dependencies": {
+    "@polkadot/api": "^15.9.2",
+    "@polkadot/util-crypto": "^13.4.4",
     "@prisma/client": "^6.6.0",
     "bcrypt": "^5.1.1",
     "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
+    "dedot": "^0.9.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
     "express-rate-limit": "^7.5.0",
