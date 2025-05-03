@@ -26,20 +26,21 @@ model Role {
 }
 
 model Account {
-  id            Int         @id @default(autoincrement())
-  roleId        Int
-  role          Role        @relation(fields: [roleId], references: [id])
-  avatarId      Int?
-  avatar        Attachment? @relation(fields: [avatarId], references: [id])
-  username      String      @db.VarChar(50)
-  password      String      @db.VarChar(50)
-  email         String      @unique
-  phoneNumber   String?     @unique @db.VarChar(50)
-  firstname     String      @db.VarChar(50)
-  lastname      String      @db.VarChar(50)
-  walletAddress String?     @db.VarChar(50)
-  Staff         Staff[]
-  User          User[]
+  id               Int         @id @default(autoincrement())
+  roleId           Int
+  role             Role        @relation(fields: [roleId], references: [id])
+  avatarId         Int?
+  avatar           Attachment? @relation(fields: [avatarId], references: [id])
+  username         String      @db.VarChar(50)
+  password         String      @db.VarChar(50)
+  email            String      @unique
+  phoneNumber      String?     @unique @db.VarChar(50)
+  firstname        String      @db.VarChar(50)
+  lastname         String      @db.VarChar(50)
+  walletAddress    String?     @db.VarChar(50)
+  walletPrivateKey String?     @db.VarChar(200)
+  Staff            Staff[]
+  User             User[]
 }
 
 model Position {
