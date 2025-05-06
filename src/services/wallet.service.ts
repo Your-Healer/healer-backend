@@ -1,6 +1,12 @@
 import { Keyring } from '@polkadot/api'
-import { cryptoWaitReady, randomAsU8a } from '@polkadot/util-crypto'
-
+import {
+  cryptoWaitReady,
+  ed25519PairFromSeed,
+  mnemonicGenerate,
+  mnemonicToMiniSecret,
+  mnemonicValidate,
+  randomAsU8a
+} from '@polkadot/util-crypto'
 export default class WalletService {
   private static instance: WalletService
 
@@ -15,10 +21,12 @@ export default class WalletService {
 
   async createNewWallet() {
     await cryptoWaitReady()
-    const keyring = new Keyring({ type: 'sr25519' })
-    const seed = randomAsU8a(32)
-    const pair = keyring.addFromSeed(seed)
+    const mnemonic = mnemonicGenerate(12)
+    const isValidMnemonic = mnemonicValidate(mnemonic)
 
-    return pair
+    const keyring = new Keyring({ ss58Format: 42, type: 'sr25519' })
+    const pair = keyring.addFromMnemonic(mnemonic)
+
+    return { mnemonic, isValidMnemonic, keyring, pair }
   }
 }

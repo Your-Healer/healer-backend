@@ -8,7 +8,7 @@ import config from '../../configs/env'
 import session from 'express-session'
 
 const sessionMiddleware = session({
-  secret: config.secrets.jwt,
+  secret: config.secrets.secretKey,
   resave: false,
   // store:
   saveUninitialized: false
