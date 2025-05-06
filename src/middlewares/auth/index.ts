@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import { Request, Response, NextFunction } from 'express'
 import { logger } from '~/configs/logger'
+import prisma from '~/libs/prisma/init'
+import { Role } from '~/generated/prisma/client'
 
 export const createHashedPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(10)
@@ -12,10 +14,11 @@ export const compareHashedPassword = async (password: string, hashedPassword: st
   return await bcrypt.compare(password, hashedPassword)
 }
 
-export const createJWT = (user: { id: string; userName: string; verified: boolean }): string => {
+export const createJWT = (user: { id: number; accountId: number; userName: string; verified: boolean }): string => {
   const token = jwt.sign(
     {
       id: user.id,
+      accountId: user.accountId,
       userName: user.userName,
       verified: user.verified
     },
@@ -84,4 +87,16 @@ export const checkVerified = (req: any, res: Response, next: NextFunction): any 
     return res.status(401).json({ message: 'User not verified' })
   }
   next()
+}
+
+export const checkRole = (roles: Array<number>) => {
+  return async (req: any, res: Response, next: NextFunction): Promise<any> => {
+    const { accountId } = req.user
+    const account = await prisma.account.findUnique({ where: { id: accountId } })
+    if (!account) {
+      return res.status(401).send()
+    }
+    if (roles.indexOf(account.roleId) > -1) next()
+    return res.status(401).send()
+  }
 }

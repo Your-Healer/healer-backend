@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma/client"
 }
 
 datasource db {
@@ -26,20 +27,22 @@ model Role {
 }
 
 model Account {
-  id            Int         @id @default(autoincrement())
-  roleId        Int
-  role          Role        @relation(fields: [roleId], references: [id])
-  avatarId      Int?
-  avatar        Attachment? @relation(fields: [avatarId], references: [id])
-  username      String      @db.VarChar(50)
-  password      String      @db.VarChar(50)
-  email         String      @unique
-  phoneNumber   String?     @unique @db.VarChar(50)
-  firstname     String      @db.VarChar(50)
-  lastname      String      @db.VarChar(50)
-  walletAddress String?     @db.VarChar(50)
-  Staff         Staff[]
-  User          User[]
+  id              Int         @id @default(autoincrement())
+  roleId          Int
+  role            Role        @relation(fields: [roleId], references: [id])
+  avatarId        Int?
+  avatar          Attachment? @relation(fields: [avatarId], references: [id])
+  username        String      @unique @db.VarChar(50)
+  password        String      @db.VarChar(200)
+  email           String      @unique @db.VarChar(300)
+  emailIsVerified Boolean     @default(false)
+  phoneNumber     String?     @unique @db.VarChar(50)
+  firstname       String      @db.VarChar(50)
+  lastname        String      @db.VarChar(50)
+  walletAddress   String?     @db.VarChar(50)
+  walletMnemonic  String?     @db.VarChar(500)
+  Staff           Staff?
+  User            User?
 }
 
 model Position {
@@ -69,7 +72,7 @@ model MedicalRoom {
 
 model Staff {
   id             Int            @id @default(autoincrement())
-  accountId      Int
+  accountId      Int            @unique
   account        Account        @relation(fields: [accountId], references: [id])
   positions      Position[]
   departments    Department[]
@@ -82,11 +85,11 @@ model Staff {
 
 model User {
   id          Int           @id @default(autoincrement())
-  accountId   Int
+  accountId   Int           @unique
   account     Account       @relation(fields: [accountId], references: [id])
   firstname   String        @db.VarChar(50)
   lastname    String        @db.VarChar(50)
-  phoneNumber String        @db.VarChar(50)
+  phoneNumber String?       @db.VarChar(50)
   Appointment Appointment[]
 }
 
