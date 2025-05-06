@@ -7,6 +7,4 @@ dist/
 
 logs/
 
-./src/generated/*
-
-prisma/
+**/generated/
