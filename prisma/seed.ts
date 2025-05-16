@@ -4,6 +4,8 @@ import * as dotenv from 'dotenv'
 import cryptoJs from 'crypto-js'
 import bcrypt from 'bcrypt'
 
+dotenv.config()
+
 const prisma = new PrismaClient()
 
 const createHashedPassword = async (password: string): Promise<string> => {
@@ -11,56 +13,63 @@ const createHashedPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, salt)
 }
 
-const compareHashedPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
-  return await bcrypt.compare(password, hashedPassword)
-}
-
-const walletService = WalletService.getInstance()
-
 async function main() {
   const SECRET_KEY = process.env.SECRET || ''
+  if (!SECRET_KEY) throw new Error('SECRET_KEY is not defined in .env file')
 
-  if (!SECRET_KEY) {
-    throw new Error('SECRET_KEY is not defined in .env file')
-  }
+  const walletService = WalletService.getInstance()
 
-  const roles = await prisma.role.createManyAndReturn({
-    data: [{ name: 'Admin' }, { name: 'Staff' }, { name: 'User' }]
+  const roles = await prisma.role.createMany({
+    data: [{ name: 'Admin' }, { name: 'Staff' }, { name: 'User' }],
+    skipDuplicates: true
   })
 
-  const positions = await prisma.position.createManyAndReturn({
-    data: [{ name: 'Doctor' }, { name: 'Nurse' }, { name: 'Receptionist' }]
+  const positions = await prisma.position.createMany({
+    data: [{ name: 'Doctor' }, { name: 'Nurse' }, { name: 'Receptionist' }],
+    skipDuplicates: true
   })
 
-  const adminWallet = await walletService.createNewWallet()
-
-  const encryptedMnemonic = cryptoJs.AES.encrypt(adminWallet.mnemonic, SECRET_KEY).toString()
-
-  const password = '123123'
-
-  const hashedPassword = await createHashedPassword(password)
-
-  const adminAccount = await prisma.account.create({
+  const avatar = await prisma.attachment.create({
     data: {
-      roleId: roles[0].id,
-      username: 'admin',
-      password: hashedPassword,
-      email: 'admin@gmail.com',
-      emailIsVerified: true,
-      firstname: 'Admin',
-      lastname: 'Nguyen',
-      walletAddress: adminWallet.pair.address,
-      walletMnemonic: encryptedMnemonic
+      fileName: 'avatar.png',
+      directory: '/avatars/',
+      length: 12345,
+      mediaType: 'image/png'
     }
   })
 
-  console.log('Admin account created:', adminAccount)
+  const adminWallet = await walletService.createNewWallet()
+  const encryptedMnemonic = cryptoJs.AES.encrypt(adminWallet.mnemonic, SECRET_KEY).toString()
+  const hashedPassword = await createHashedPassword('123123')
+
+  const adminAccount = await prisma.account.create({
+    data: {
+      role: { connect: { name: 'Admin' } },
+      username: 'admin',
+      password: hashedPassword,
+      email: 'admin@gmail.com',
+      firstname: 'Admin',
+      lastname: 'Nguyen',
+      walletAddress: adminWallet.pair.address,
+      avatarId: avatar.id
+    }
+  })
+
+  await prisma.user.create({
+    data: {
+      accountId: adminAccount.id,
+      firstname: 'Admin',
+      lastname: 'Nguyen',
+      phoneNumber: '0123456789',
+      address: '123 Admin Street'
+    }
+  })
+
+  console.log('Admin account and user profile created.')
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect()
-  })
+  .then(async () => await prisma.$disconnect())
   .catch(async (e) => {
     console.error(e)
     await prisma.$disconnect()

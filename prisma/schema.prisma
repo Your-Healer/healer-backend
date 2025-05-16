@@ -10,108 +10,235 @@ datasource db {
 }
 
 model Attachment {
-  id        Int       @id @default(autoincrement())
-  fileName  String    @db.VarChar(100)
-  directory String    @db.VarChar(100)
-  length    Int       @default(0)
-  mediaType String    @db.VarChar(50)
-  createdAt DateTime  @default(now())
-  Account   Account[]
+  id        String   @id @default(uuid())
+  fileName  String
+  directory String
+  length    BigInt
+  mediaType String
+  createdAt DateTime @default(now())
+
+  accounts Account[]
+}
+
+model Location {
+  id      String @id @default(uuid())
+  name    String
+  detail  String
+  street  String
+  city    String
+  country String
+  lat     Float
+  lng     Float
+
+  departments Department[]
 }
 
 model Role {
-  id          Int       @id @default(autoincrement())
-  name        String    @db.VarChar(50)
-  description String?   @db.VarChar(50)
-  accounts    Account[]
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+
+  accounts Account[]
 }
 
 model Account {
-  id              Int         @id @default(autoincrement())
-  roleId          Int
-  role            Role        @relation(fields: [roleId], references: [id])
-  avatarId        Int?
-  avatar          Attachment? @relation(fields: [avatarId], references: [id])
-  username        String      @unique @db.VarChar(50)
-  password        String      @db.VarChar(200)
-  email           String      @unique @db.VarChar(300)
-  emailIsVerified Boolean     @default(false)
-  phoneNumber     String?     @unique @db.VarChar(50)
-  firstname       String      @db.VarChar(50)
-  lastname        String      @db.VarChar(50)
-  walletAddress   String?     @db.VarChar(50)
-  walletMnemonic  String?     @db.VarChar(500)
-  Staff           Staff?
-  User            User?
+  id       String  @id @default(uuid())
+  roleId   String
+  avatarId String?
+
+  username       String  @unique
+  password       String
+  email          String? @unique
+  phoneNumber    String? @unique
+  firstname      String
+  lastname       String
+  walletAddress  String  @unique
+  walletMnemonic String  @unique
+
+  role   Role        @relation(fields: [roleId], references: [id])
+  avatar Attachment? @relation(fields: [avatarId], references: [id])
+
+  user     User?
+  staff    Staff?
+  bookings BookingTime[]
 }
 
 model Position {
-  id     Int     @id @default(autoincrement())
-  name   String  @db.VarChar(50)
-  staffs Staff[]
+  id   String @id @default(uuid())
+  name String
+
+  staffAssignments PositionStaff[]
+}
+
+model Service {
+  id   String @id @default(uuid())
+  name String
+
+  medicalRooms MedicalRoom[]
+}
+
+model PositionStaff {
+  positionId String
+  staffId    String
+
+  position Position @relation(fields: [positionId], references: [id])
+  staff    Staff    @relation(fields: [staffId], references: [id])
+
+  @@id([positionId, staffId])
 }
 
 model Department {
-  id          Int           @id @default(autoincrement())
-  symbol      String        @db.VarChar(50)
-  floor       Int           @default(0)
-  name        String        @db.VarChar(50)
-  staffs      Staff[]
-  MedicalRoom MedicalRoom[]
+  id         String @id @default(uuid())
+  locationId String
+  name       String
+  symbol     String
+  floor      Int    @default(0)
+
+  location         Location            @relation(fields: [locationId], references: [id])
+  medicalRooms     MedicalRoom[]
+  staffAssignments StaffOnDepartment[]
+}
+
+model StaffOnDepartment {
+  staffId      String
+  departmentId String
+
+  staff      Staff      @relation(fields: [staffId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+
+  @@id([staffId, departmentId])
 }
 
 model MedicalRoom {
-  id           Int            @id @default(autoincrement())
-  departmentId Int
-  department   Department     @relation(fields: [departmentId], references: [id])
-  floor        Int            @default(0)
-  name         String         @db.VarChar(50)
-  ShiftWorking ShiftWorking[]
-  Appointment  Appointment[]
+  id           String @id @default(uuid())
+  departmentId String
+  serviceId    String
+  floor        Int    @default(0)
+  name         String
+
+  department Department @relation(fields: [departmentId], references: [id])
+  service    Service    @relation(fields: [serviceId], references: [id])
+
+  times        MedicalRoomTime[]
+  appointments Appointment[]
+  shifts       ShiftWorking[]
 }
 
-model Staff {
-  id             Int            @id @default(autoincrement())
-  accountId      Int            @unique
-  account        Account        @relation(fields: [accountId], references: [id])
-  positions      Position[]
-  departments    Department[]
-  firstname      String         @db.VarChar(50)
-  lastname       String         @db.VarChar(50)
-  phoneNumber    String         @db.VarChar(50)
-  educationLevel EDUCATIONLEVEL @default(DIPLOMA)
-  ShiftWorking   ShiftWorking[]
+model MedicalRoomTime {
+  id       String   @id @default(uuid())
+  roomId   String
+  fromTime DateTime
+  toTime   DateTime
+
+  room     MedicalRoom   @relation(fields: [roomId], references: [id])
+  bookings BookingTime[]
 }
 
 model User {
-  id          Int           @id @default(autoincrement())
-  accountId   Int           @unique
-  account     Account       @relation(fields: [accountId], references: [id])
-  firstname   String        @db.VarChar(50)
-  lastname    String        @db.VarChar(50)
-  phoneNumber String?       @db.VarChar(50)
-  Appointment Appointment[]
+  id          String  @id @default(uuid())
+  accountId   String  @unique
+  firstname   String
+  lastname    String
+  phoneNumber String?
+  address     String?
+
+  account      Account       @relation(fields: [accountId], references: [id])
+  appointments Appointment[]
+  diseases     UserDisease[]
+}
+
+model Staff {
+  id             String          @id @default(uuid())
+  accountId      String          @unique
+  firstname      String
+  lastname       String
+  introduction   String?
+  educationLevel EDUCATIONLEVEL?
+
+  account     Account             @relation(fields: [accountId], references: [id])
+  positions   PositionStaff[]
+  departments StaffOnDepartment[]
+  shifts      ShiftWorking[]
+}
+
+model BookingTime {
+  id                String @id @default(uuid())
+  medicalRoomTimeId String
+  userAccountId     String
+
+  medicalRoomTime MedicalRoomTime @relation(fields: [medicalRoomTimeId], references: [id])
+  userAccount     Account         @relation(fields: [userAccountId], references: [id])
+  appointment     Appointment?
 }
 
 model ShiftWorking {
-  id       Int         @id @default(autoincrement())
-  doctorId Int?
-  doctor   Staff?      @relation(fields: [doctorId], references: [id])
-  roomId   Int
-  room     MedicalRoom @relation(fields: [roomId], references: [id])
+  id       String   @id @default(uuid())
+  doctorId String
+  roomId   String
   fromTime DateTime
   toTime   DateTime
+
+  doctor Staff       @relation(fields: [doctorId], references: [id])
+  room   MedicalRoom @relation(fields: [roomId], references: [id])
 }
 
 model Appointment {
-  id        Int         @id @default(autoincrement())
-  roomId    Int
-  room      MedicalRoom @relation(fields: [roomId], references: [id])
-  userId    Int
-  user      User        @relation(fields: [userId], references: [id])
-  patientId String      @db.VarChar(50)
-  fromTime  DateTime?
-  toTime    DateTime?
+  id            String            @id @default(uuid())
+  medicalRoomId String
+  userId        String
+  bookingTimeId String            @unique
+  patientId     String
+  status        APPOINTMENTSTATUS @default(IDLE)
+
+  medicalRoom MedicalRoom @relation(fields: [medicalRoomId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+  bookingTime BookingTime @relation(fields: [bookingTimeId], references: [id])
+
+  suggestions DiagnosisSuggestion[]
+  statusLogs  AppointmentStatusLog[]
+}
+
+model AppointmentStatusLog {
+  id            String            @id @default(uuid())
+  appointmentId String
+  status        APPOINTMENTSTATUS
+  updatedAt     DateTime          @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+}
+
+model Disease {
+  id          String  @id @default(uuid())
+  name        String
+  description String?
+  symptom     String?
+  icdCode     String?
+
+  suggestions DiagnosisSuggestion[]
+  userLinks   UserDisease[]
+}
+
+model UserDisease {
+  userId      String
+  diseaseId   String
+  diagnosedAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  disease Disease @relation(fields: [diseaseId], references: [id])
+
+  @@id([userId, diseaseId])
+}
+
+model DiagnosisSuggestion {
+  id            String   @id @default(uuid())
+  appointmentId String
+  suggestedByAI Boolean  @default(true)
+  diseaseId     String?
+  confidence    Float
+  createdAt     DateTime @default(now())
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  disease     Disease?    @relation(fields: [diseaseId], references: [id])
 }
 
 enum EDUCATIONLEVEL {
@@ -120,4 +247,11 @@ enum EDUCATIONLEVEL {
   BACHELOR
   MASTER
   PROFESSIONAL
+}
+
+enum APPOINTMENTSTATUS {
+  IDLE
+  BOOKED
+  PAID
+  CANCEL
 }
