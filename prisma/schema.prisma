@@ -46,14 +46,15 @@ model Account {
   roleId   String
   avatarId String?
 
-  username       String  @unique
-  password       String
-  email          String? @unique
-  phoneNumber    String? @unique
-  firstname      String
-  lastname       String
-  walletAddress  String  @unique
-  walletMnemonic String  @unique
+  username        String  @unique
+  password        String
+  email           String? @unique
+  phoneNumber     String? @unique
+  firstname       String
+  lastname        String
+  walletAddress   String  @unique
+  walletMnemonic  String  @unique
+  emailIsVerified Boolean @default(true)
 
   role   Role        @relation(fields: [roleId], references: [id])
   avatar Attachment? @relation(fields: [avatarId], references: [id])
@@ -144,7 +145,6 @@ model User {
 
   account      Account       @relation(fields: [accountId], references: [id])
   appointments Appointment[]
-  diseases     UserDisease[]
 }
 
 model Staff {
@@ -207,38 +207,15 @@ model AppointmentStatusLog {
   appointment Appointment @relation(fields: [appointmentId], references: [id])
 }
 
-model Disease {
-  id          String  @id @default(uuid())
-  name        String
-  description String?
-  symptom     String?
-  icdCode     String?
-
-  suggestions DiagnosisSuggestion[]
-  userLinks   UserDisease[]
-}
-
-model UserDisease {
-  userId      String
-  diseaseId   String
-  diagnosedAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id])
-  disease Disease @relation(fields: [diseaseId], references: [id])
-
-  @@id([userId, diseaseId])
-}
-
 model DiagnosisSuggestion {
   id            String   @id @default(uuid())
   appointmentId String
-  suggestedByAI Boolean  @default(true)
-  diseaseId     String?
+  suggestedByAI String?
+  disease       String?
   confidence    Float
   createdAt     DateTime @default(now())
 
   appointment Appointment @relation(fields: [appointmentId], references: [id])
-  disease     Disease?    @relation(fields: [diseaseId], references: [id])
 }
 
 enum EDUCATIONLEVEL {

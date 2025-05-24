@@ -1,6 +1,7 @@
 import prisma from '~/libs/prisma/init'
+import { Account, User } from '~/generated/prisma/client'
 
-export class UserService {
+export default class UserService {
   private static instance: UserService
   private constructor() {}
 
@@ -12,64 +13,101 @@ export class UserService {
   }
 
   async createNewUser(data: {
-    roleId: number
+    roleId: string
     username: string
     password: string
     email: string
     firstname: string
     lastname: string
-    walletAddress?: string
-    walletMnemonic?: string
+    walletAddress: string
+    walletMnemonic: string
     phoneNumber?: string
+    address?: string
   }) {
-    // Check if the account already exists
-    const emailExistingAccount = await prisma.account.findUnique({
-      where: {
-        email: data.email
+    const {
+      roleId,
+      username,
+      password,
+      email,
+      firstname,
+      lastname,
+      walletAddress,
+      walletMnemonic,
+      phoneNumber,
+      address
+    } = data
+
+    const account = await prisma.account.create({
+      data: {
+        roleId,
+        username,
+        password,
+        email,
+        firstname,
+        lastname,
+        walletAddress,
+        walletMnemonic,
+        phoneNumber,
+        emailIsVerified: false
       }
     })
-    const usernameExistingAccount = await prisma.account.findUnique({
-      where: {
-        username: data.username
+
+    const user = await prisma.user.create({
+      data: {
+        accountId: account.id,
+        firstname,
+        lastname,
+        phoneNumber,
+        address
       }
-    })
-    if (usernameExistingAccount) {
-      throw new Error('Username is required')
-    }
-    if (emailExistingAccount) {
-      throw new Error('Email already exists')
-    }
-
-    // Use a transaction to ensure both operations succeed or both fail
-    const [account, user] = await prisma.$transaction(async (tx) => {
-      // Create account first to get its ID
-      const createdAccount = await tx.account.create({
-        data: {
-          roleId: data.roleId,
-          username: data.username,
-          password: data.password,
-          email: data.email,
-          firstname: data.firstname,
-          lastname: data.lastname,
-          walletAddress: data.walletAddress,
-          walletMnemonic: data.walletMnemonic,
-          phoneNumber: data.phoneNumber
-        }
-      })
-
-      // Then create user with the account ID
-      const createdUser = await tx.user.create({
-        data: {
-          accountId: createdAccount.id,
-          firstname: data.firstname,
-          lastname: data.lastname,
-          phoneNumber: data.phoneNumber
-        }
-      })
-
-      return [createdAccount, createdUser]
     })
 
     return { account, user }
   }
+
+  async getUserById(id: string) {
+    return prisma.user.findUnique({
+      where: { id }
+    })
+  }
+
+  async getUserByAccountId(accountId: string) {
+    return prisma.user.findUnique({
+      where: { accountId }
+    })
+  }
+
+  async getAppointmentsHistory(userId: string) {
+    return prisma.appointment.findMany({
+      where: { userId },
+      include: {
+        medicalRoom: {
+          include: {
+            service: true,
+            department: true
+          }
+        },
+        bookingTime: true
+      },
+      orderBy: {
+        bookingTime: {
+          medicalRoomTime: {
+            fromTime: 'desc'
+          }
+        }
+      }
+    })
+  }
+
+  // async getUserDiseases(userId: string) {
+  //   return prisma.userDisease.findMany({
+  //     where: { userId },
+  //     include: {
+  //       disease: true
+  //     },
+  //     orderBy: {
+  //       diagnosedAt: 'desc'
+  //     }
+  //   })
+  // }
 }

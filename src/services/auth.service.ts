@@ -18,24 +18,35 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new Error('Invalid password')
     }
+
+    // Check if the account belongs to a user or staff
     const user = await prisma.user.findUnique({
       where: { accountId: data.account.id }
     })
-    if (!user) {
-      throw new Error('User not found')
+
+    const staff = await prisma.staff.findUnique({
+      where: { accountId: data.account.id }
+    })
+
+    if (!user || !staff) {
+      throw new Error('Account not associated with any user or staff')
     }
 
+    const id = user ? user.id : staff.id
     const token = createJWT({
       userName: data.account.username,
       accountId: data.account.id,
-      id: user.id,
-      verified: data.account.emailIsVerified
+      id: id,
+      verified: data.account.emailIsVerified,
+      isStaff: !!staff
     })
+
     return {
       token,
       email: data.account.email,
       emailIsVerified: data.account.emailIsVerified,
-      name: data.account.firstname + ' ' + data.account.lastname
+      name: data.account.firstname + ' ' + data.account.lastname,
+      isStaff: !!staff
     }
   }
 }

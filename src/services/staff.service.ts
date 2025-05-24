@@ -1,4 +1,6 @@
 import prisma from '~/libs/prisma/init'
+import { Staff, EDUCATIONLEVEL, Account } from '~/generated/prisma/client'
+import { createHashedPassword } from '~/middlewares/auth'
 
 export default class StaffService {
   private static instance: StaffService
@@ -11,163 +13,246 @@ export default class StaffService {
     return StaffService.instance
   }
 
-  async createNewStaff({
-    roleId,
-    username,
-    password,
-    email,
-    firstname,
-    lastname,
-    walletAddress,
-    walletMnemonic,
-    phoneNumber,
-    positionIds,
-    departmentIds
-  }: {
-    roleId: number
+  async createStaff(data: {
+    accountId: string
+    firstname: string
+    lastname: string
+    introduction?: string
+    educationLevel?: EDUCATIONLEVEL
+    positionIds?: string[]
+    departmentIds?: string[]
+  }): Promise<Staff> {
+    const { accountId, firstname, lastname, introduction, educationLevel, positionIds, departmentIds } = data
+
+    const staff = await prisma.staff.create({
+      data: {
+        accountId,
+        firstname,
+        lastname,
+        introduction,
+        educationLevel
+      }
+    })
+
+    // Assign positions if provided
+    if (positionIds && positionIds.length > 0) {
+      await Promise.all(
+        positionIds.map((positionId) =>
+          prisma.positionStaff.create({
+            data: {
+              staffId: staff.id,
+              positionId
+            }
+          })
+        )
+      )
+    }
+
+    // Assign departments if provided
+    if (departmentIds && departmentIds.length > 0) {
+      await Promise.all(
+        departmentIds.map((departmentId) =>
+          prisma.staffOnDepartment.create({
+            data: {
+              staffId: staff.id,
+              departmentId
+            }
+          })
+        )
+      )
+    }
+
+    return staff
+  }
+
+  async createNewStaff(data: {
+    roleId: string
     username: string
     password: string
     email: string
     firstname: string
     lastname: string
-    walletAddress?: string
-    walletMnemonic?: string
-    phoneNumber: string
-    positionIds: Array<number>
-    departmentIds: Array<number>
-  }) {
-    // Check if the account already exists
-    const emailExistingAccount = await prisma.account.findUnique({
-      where: {
-        email
+    walletAddress: string
+    walletMnemonic: string
+    phoneNumber?: string
+    introduction?: string
+    educationLevel?: EDUCATIONLEVEL
+    positionIds?: string[]
+    departmentIds?: string[]
+  }): Promise<{ account: Account; staff: Staff }> {
+    const {
+      roleId,
+      username,
+      password,
+      email,
+      firstname,
+      lastname,
+      walletAddress,
+      walletMnemonic,
+      phoneNumber,
+      introduction,
+      educationLevel,
+      positionIds,
+      departmentIds
+    } = data
+
+    const hashedPassword = await createHashedPassword(password)
+
+    const account = await prisma.account.create({
+      data: {
+        roleId,
+        username,
+        password: hashedPassword,
+        email,
+        firstname,
+        lastname,
+        walletAddress,
+        walletMnemonic,
+        phoneNumber,
+        emailIsVerified: false
       }
     })
-    const usernameExistingAccount = await prisma.account.findUnique({
-      where: {
-        username
-      }
-    })
-    const phoneNumberExistingAccount = await prisma.account.findUnique({
-      where: {
-        phoneNumber
-      }
-    })
-    if (usernameExistingAccount) {
-      throw new Error('Username is required')
-    }
-    if (emailExistingAccount) {
-      throw new Error('Email already exists')
-    }
-    if (phoneNumber) {
-      if (phoneNumberExistingAccount) {
-        throw new Error('Phone number already exists')
-      }
-    }
 
-    // Use a transaction to ensure both operations succeed or both fail
-    const [account, staff] = await prisma.$transaction(async (tx) => {
-      // Create account first to get its ID
-      const createdAccount = await tx.account.create({
-        data: {
-          roleId,
-          username,
-          password,
-          email,
-          firstname,
-          lastname,
-          walletAddress,
-          walletMnemonic,
-          phoneNumber
-        }
-      })
-
-      const positions = positionIds.map((positionId) => ({
-        positionId,
-        createdAt: new Date()
-      }))
-      const departments = departmentIds.map((departmentId) => ({
-        departmentId,
-        createdAt: new Date()
-      }))
-
-      const createdStaff = await tx.staff.create({
-        data: {
-          accountId: createdAccount.id,
-          positions: {
-            create: positions
-          },
-          departments: {
-            create: departments
-          },
-          firstname,
-          lastname,
-          phoneNumber
-        }
-      })
-
-      return [createdAccount, createdStaff]
+    const staff = await this.createStaff({
+      accountId: account.id,
+      firstname,
+      lastname,
+      introduction,
+      educationLevel,
+      positionIds,
+      departmentIds
     })
 
     return { account, staff }
   }
 
-  async getAllStaffPagination({
-    page = 1,
-    limit = 10,
-    search = '',
-    positionIds = [],
-    departmentIds = []
-  }: {
-    page?: number
-    limit?: number
-    search?: string
-    positionIds?: Array<number>
-    departmentIds?: Array<number>
-  }) {
-    const offset = (page - 1) * limit
-
-    const staffs = await prisma.staff.findMany({
-      skip: offset,
-      take: limit,
-      where: {
-        AND: [
-          {
-            OR: [
-              { firstname: { contains: search, mode: 'insensitive' } },
-              { lastname: { contains: search, mode: 'insensitive' } },
-              { phoneNumber: { contains: search, mode: 'insensitive' } }
-            ]
-          },
-          positionIds.length
-            ? {
-                positions: {
-                  some: {
-                    positionId: { in: positionIds }
-                  }
-                }
-              }
-            : {},
-          departmentIds.length
-            ? {
-                departments: {
-                  some: {
-                    departmentId: { in: departmentIds }
-                  }
-                }
-              }
-            : {}
-        ]
-      },
+  async getStaffById(id: string) {
+    return prisma.staff.findUnique({
+      where: { id },
       include: {
-        account: true,
-        positions: true,
-        departments: true
+        positions: {
+          include: {
+            position: true
+          }
+        },
+        departments: {
+          include: {
+            department: true
+          }
+        },
+        account: true
+      }
+    })
+  }
+
+  async getStaffByAccountId(accountId: string) {
+    return prisma.staff.findUnique({
+      where: { accountId },
+      include: {
+        positions: {
+          include: {
+            position: true
+          }
+        },
+        departments: {
+          include: {
+            department: true
+          }
+        }
+      }
+    })
+  }
+
+  async getStaffShifts(staffId: string, fromDate?: Date, toDate?: Date) {
+    const dateFilter: any = {}
+
+    if (fromDate) {
+      dateFilter['gte'] = fromDate
+    }
+
+    if (toDate) {
+      dateFilter['lte'] = toDate
+    }
+
+    const whereClause: any = { doctorId: staffId }
+    if (Object.keys(dateFilter).length > 0) {
+      whereClause.fromTime = dateFilter
+    }
+
+    return prisma.shiftWorking.findMany({
+      where: whereClause,
+      include: {
+        room: {
+          include: {
+            department: true,
+            service: true
+          }
+        }
+      },
+      orderBy: {
+        fromTime: 'asc'
+      }
+    })
+  }
+
+  async getStaffPatients(staffId: string, date?: Date) {
+    // Get rooms where this staff is working
+    const shifts = await prisma.shiftWorking.findMany({
+      where: {
+        doctorId: staffId
+      },
+      select: {
+        roomId: true
       }
     })
 
-    return {
-      total: staffs.length,
-      staffs
+    const roomIds = [...new Set(shifts.map((shift) => shift.roomId))]
+
+    let whereClause: any = {
+      medicalRoomId: { in: roomIds }
     }
+
+    if (date) {
+      // If specific date is provided, filter appointments for that date
+      const startOfDay = new Date(date)
+      startOfDay.setHours(0, 0, 0, 0)
+
+      const endOfDay = new Date(date)
+      endOfDay.setHours(23, 59, 59, 999)
+
+      whereClause.bookingTime = {
+        medicalRoomTime: {
+          fromTime: {
+            gte: startOfDay,
+            lte: endOfDay
+          }
+        }
+      }
+    }
+
+    return prisma.appointment.findMany({
+      where: whereClause,
+      include: {
+        user: true,
+        medicalRoom: {
+          include: {
+            service: true,
+            department: true
+          }
+        },
+        bookingTime: {
+          include: {
+            medicalRoomTime: true
+          }
+        }
+      },
+      orderBy: {
+        bookingTime: {
+          medicalRoomTime: {
+            fromTime: 'asc'
+          }
+        }
+      }
+    })
   }
 }

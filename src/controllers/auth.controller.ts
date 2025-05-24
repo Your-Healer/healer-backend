@@ -6,7 +6,7 @@ import cryptoJs from 'crypto-js'
 import config from '~/configs/env'
 import { AuthService } from '~/services/auth.service'
 import { Account, User } from '~/generated/prisma/client'
-import { UserService } from '~/services/user.service'
+import UserService from '~/services/user.service'
 
 const walletService = WalletService.getInstance()
 const authService = AuthService.getInstance()

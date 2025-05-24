@@ -1,4 +1,4 @@
 export default {
-  port: 80,
+  port: 3000,
   env: (process.env.NODE_ENV = 'development')
 }
