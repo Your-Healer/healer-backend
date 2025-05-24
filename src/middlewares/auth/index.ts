@@ -14,13 +14,20 @@ export const compareHashedPassword = async (password: string, hashedPassword: st
   return await bcrypt.compare(password, hashedPassword)
 }
 
-export const createJWT = (user: { id: number; accountId: number; userName: string; verified: boolean }): string => {
+export const createJWT = (user: {
+  id: string
+  accountId: string | number
+  userName: string
+  verified: boolean
+  isStaff?: boolean
+}): string => {
   const token = jwt.sign(
     {
       id: user.id,
       accountId: user.accountId,
       userName: user.userName,
-      verified: user.verified
+      verified: user.verified,
+      isStaff: user.isStaff || false
     },
     process.env.JWT_SECRET as string
   )
@@ -89,7 +96,7 @@ export const checkVerified = (req: any, res: Response, next: NextFunction): any 
   next()
 }
 
-export const checkRole = (roles: Array<number>) => {
+export const checkRole = (roles: Array<string>) => {
   return async (req: any, res: Response, next: NextFunction): Promise<any> => {
     const { accountId } = req.user
     const account = await prisma.account.findUnique({ where: { id: accountId } })

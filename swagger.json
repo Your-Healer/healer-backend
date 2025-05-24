@@ -1,0 +1,1455 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Healer Backend API",
+    "description": "API documentation for the Healer healthcare platform",
+    "version": "1.0",
+    "contact": {
+      "email": "admin@healer.com"
+    }
+  },
+  "produces": ["application/json"],
+  "consumes": ["application/json"],
+  "host": "localhost:3000",
+  "basePath": "/api/v1",
+  "securityDefinitions": {
+    "bearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+    }
+  },
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication operations"
+    },
+    {
+      "name": "User",
+      "description": "User profile and records operations"
+    },
+    {
+      "name": "Staff",
+      "description": "Medical staff operations"
+    },
+    {
+      "name": "Appointment",
+      "description": "Medical appointments management"
+    },
+    {
+      "name": "Shift",
+      "description": "Staff working shifts operations"
+    },
+    {
+      "name": "System",
+      "description": "System health and utility endpoints"
+    }
+  ],
+  "paths": {
+    "/ping": {
+      "get": {
+        "summary": "Server Health Check",
+        "description": "Check if the server is up and running",
+        "operationId": "healthCheck",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Server is operational",
+            "schema": {
+              "type": "string",
+              "example": "Hello World!"
+            }
+          }
+        }
+      }
+    },
+    "/ping/upload/single": {
+      "post": {
+        "summary": "Upload single file",
+        "description": "Upload a single file to the server",
+        "operationId": "uploadSingleFile",
+        "tags": ["System"],
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "file",
+            "in": "formData",
+            "required": true,
+            "type": "file",
+            "description": "File to upload"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "schema": {
+              "$ref": "#/definitions/FileUploadResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/ping/upload/multiple": {
+      "post": {
+        "summary": "Upload multiple files",
+        "description": "Upload multiple files to the server",
+        "operationId": "uploadMultipleFiles",
+        "tags": ["System"],
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "files",
+            "in": "formData",
+            "required": true,
+            "type": "array",
+            "items": {
+              "type": "file"
+            },
+            "collectionFormat": "multi",
+            "description": "Files to upload"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Files uploaded successfully",
+            "schema": {
+              "$ref": "#/definitions/FileUploadResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid file format",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/signup": {
+      "post": {
+        "summary": "Register new user",
+        "description": "Create a new user account",
+        "operationId": "registerUser",
+        "tags": ["Auth"],
+        "parameters": [
+          {
+            "name": "user",
+            "in": "body",
+            "description": "User registration data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UserRegistration"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration successful",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Registration successfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/login/username": {
+      "post": {
+        "summary": "Login with username",
+        "description": "Authenticate user with username and password",
+        "operationId": "loginWithUsername",
+        "tags": ["Auth"],
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "description": "Login credentials",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["username", "password"],
+              "properties": {
+                "username": {
+                  "type": "string",
+                  "example": "johndoe"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password",
+                  "example": "securePassword123"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/login/email": {
+      "post": {
+        "summary": "Login with email",
+        "description": "Authenticate user with email and password",
+        "operationId": "loginWithEmail",
+        "tags": ["Auth"],
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "description": "Login credentials",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["email", "password"],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "format": "email",
+                  "example": "john.doe@example.com"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password",
+                  "example": "securePassword123"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/login/phone": {
+      "post": {
+        "summary": "Login with phone number",
+        "description": "Authenticate user with phone number and password",
+        "operationId": "loginWithPhone",
+        "tags": ["Auth"],
+        "parameters": [
+          {
+            "name": "credentials",
+            "in": "body",
+            "description": "Login credentials",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["phoneNumber", "password"],
+              "properties": {
+                "phoneNumber": {
+                  "type": "string",
+                  "example": "09012345678"
+                },
+                "password": {
+                  "type": "string",
+                  "format": "password",
+                  "example": "securePassword123"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "schema": {
+              "$ref": "#/definitions/LoginResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Logout user",
+        "description": "Invalidate user session and token",
+        "operationId": "logoutUser",
+        "tags": ["Auth"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout successful",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Logout successful"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/users/profile": {
+      "get": {
+        "summary": "Get user profile",
+        "description": "Get current user's profile information",
+        "operationId": "getUserProfile",
+        "tags": ["User"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/UserProfile"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/users/appointments": {
+      "get": {
+        "summary": "Get user appointments",
+        "description": "Get appointment history for the current user",
+        "operationId": "getUserAppointments",
+        "tags": ["User", "Appointment"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Appointments retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Appointment"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/staff/{id}": {
+      "get": {
+        "summary": "Get staff profile",
+        "description": "Get staff profile by ID",
+        "operationId": "getStaffById",
+        "tags": ["Staff"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Staff ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff profile retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/StaffProfile"
+            }
+          },
+          "404": {
+            "description": "Staff not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/staff/shifts": {
+      "get": {
+        "summary": "Get staff shifts",
+        "description": "Get shifts for the authenticated staff member",
+        "operationId": "getStaffShifts",
+        "tags": ["Staff", "Shift"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "type": "string",
+            "format": "date",
+            "description": "Start date for shifts (YYYY-MM-DD)"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "type": "string",
+            "format": "date",
+            "description": "End date for shifts (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff shifts retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Shift"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/staff/patients": {
+      "get": {
+        "summary": "Get staff patients",
+        "description": "Get patients for the authenticated staff member",
+        "operationId": "getStaffPatients",
+        "tags": ["Staff"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "type": "string",
+            "format": "date",
+            "description": "Filter patients by appointment date (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff patients retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Appointment"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/staff": {
+      "post": {
+        "summary": "Create new staff member",
+        "description": "Create a new staff member account (admin only)",
+        "operationId": "createStaff",
+        "tags": ["Staff"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "staff",
+            "in": "body",
+            "description": "Staff data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/StaffRegistration"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Staff created successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Staff created successfully"
+                },
+                "staff": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "example": "abc123"
+                    },
+                    "firstname": {
+                      "type": "string",
+                      "example": "John"
+                    },
+                    "lastname": {
+                      "type": "string",
+                      "example": "Doe"
+                    },
+                    "email": {
+                      "type": "string",
+                      "example": "john.doe@healer.com"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/appointments": {
+      "post": {
+        "summary": "Create new appointment",
+        "description": "Book a new medical appointment",
+        "operationId": "createAppointment",
+        "tags": ["Appointment"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "appointment",
+            "in": "body",
+            "description": "Appointment data",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AppointmentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Appointment created successfully",
+            "schema": {
+              "$ref": "#/definitions/Appointment"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/appointments/{id}": {
+      "get": {
+        "summary": "Get appointment details",
+        "description": "Get details of a specific appointment",
+        "operationId": "getAppointmentById",
+        "tags": ["Appointment"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Appointment ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Appointment retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/Appointment"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Appointment not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update appointment status",
+        "description": "Update the status of an appointment",
+        "operationId": "updateAppointmentStatus",
+        "tags": ["Appointment"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Appointment ID"
+          },
+          {
+            "name": "statusUpdate",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["status"],
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "enum": ["IDLE", "BOOKED", "PAID", "CANCEL"],
+                  "example": "PAID"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Appointment status updated successfully",
+            "schema": {
+              "$ref": "#/definitions/Appointment"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Appointment not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/appointments/{id}/diagnosis": {
+      "post": {
+        "summary": "Add diagnosis suggestion",
+        "description": "Add a diagnosis suggestion to an appointment",
+        "operationId": "addDiagnosisSuggestion",
+        "tags": ["Appointment"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Appointment ID"
+          },
+          {
+            "name": "diagnosis",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["suggestedByAI", "confidence"],
+              "properties": {
+                "suggestedByAI": {
+                  "type": "boolean",
+                  "example": true
+                },
+                "disease": {
+                  "type": "string",
+                  "example": "Hypertension"
+                },
+                "confidence": {
+                  "type": "number",
+                  "format": "float",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "example": 0.87
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Diagnosis suggestion added successfully",
+            "schema": {
+              "$ref": "#/definitions/DiagnosisSuggestion"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Appointment not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/appointments/available-slots": {
+      "get": {
+        "summary": "Get available time slots",
+        "description": "Get available appointment time slots for a medical room",
+        "operationId": "getAvailableTimeSlots",
+        "tags": ["Appointment"],
+        "parameters": [
+          {
+            "name": "medicalRoomId",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "description": "Medical Room ID"
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "format": "date",
+            "description": "Date to check availability (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available time slots retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/MedicalRoomTime"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "UserRegistration": {
+      "type": "object",
+      "required": ["username", "password", "email", "firstname", "lastname"],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "johndoe"
+        },
+        "password": {
+          "type": "string",
+          "format": "password",
+          "example": "securePassword123"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "john.doe@example.com"
+        },
+        "firstname": {
+          "type": "string",
+          "example": "John"
+        },
+        "lastname": {
+          "type": "string",
+          "example": "Doe"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "example": "09012345678"
+        },
+        "address": {
+          "type": "string",
+          "example": "123 Main St, City"
+        }
+      }
+    },
+    "LoginResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Login successful"
+        },
+        "token": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        },
+        "email": {
+          "type": "string",
+          "example": "john.doe@example.com"
+        },
+        "emailIsVerified": {
+          "type": "boolean",
+          "example": true
+        },
+        "name": {
+          "type": "string",
+          "example": "John Doe"
+        },
+        "isStaff": {
+          "type": "boolean",
+          "example": false
+        }
+      }
+    },
+    "UserProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "abc123"
+        },
+        "accountId": {
+          "type": "string",
+          "example": "def456"
+        },
+        "firstname": {
+          "type": "string",
+          "example": "John"
+        },
+        "lastname": {
+          "type": "string",
+          "example": "Doe"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "example": "09012345678"
+        },
+        "address": {
+          "type": "string",
+          "example": "123 Main St, City"
+        }
+      }
+    },
+    "StaffRegistration": {
+      "type": "object",
+      "required": ["username", "password", "email", "firstname", "lastname"],
+      "properties": {
+        "username": {
+          "type": "string",
+          "example": "drbrown"
+        },
+        "password": {
+          "type": "string",
+          "format": "password",
+          "example": "securePassword123"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "example": "dr.brown@healer.com"
+        },
+        "firstname": {
+          "type": "string",
+          "example": "Robert"
+        },
+        "lastname": {
+          "type": "string",
+          "example": "Brown"
+        },
+        "phoneNumber": {
+          "type": "string",
+          "example": "09023456789"
+        },
+        "introduction": {
+          "type": "string",
+          "example": "Cardiologist with 10 years of experience"
+        },
+        "educationLevel": {
+          "type": "string",
+          "enum": ["DIPLOMA", "ASSOCIATE", "BACHELOR", "MASTER", "PROFESSIONAL"],
+          "example": "PROFESSIONAL"
+        },
+        "positionIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["pos-123", "pos-456"]
+        },
+        "departmentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["dept-789"]
+        },
+        "createWallet": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "StaffProfile": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "abc123"
+        },
+        "accountId": {
+          "type": "string",
+          "example": "def456"
+        },
+        "firstname": {
+          "type": "string",
+          "example": "Robert"
+        },
+        "lastname": {
+          "type": "string",
+          "example": "Brown"
+        },
+        "introduction": {
+          "type": "string",
+          "example": "Cardiologist with 10 years of experience"
+        },
+        "educationLevel": {
+          "type": "string",
+          "example": "PROFESSIONAL"
+        },
+        "positions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "position": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Doctor"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "departments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "department": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "example": "Cardiology"
+                  },
+                  "symbol": {
+                    "type": "string",
+                    "example": "CARD"
+                  },
+                  "floor": {
+                    "type": "integer",
+                    "example": 2
+                  }
+                }
+              }
+            }
+          }
+        },
+        "account": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string",
+              "example": "dr.brown@healer.com"
+            },
+            "phoneNumber": {
+              "type": "string",
+              "example": "09023456789"
+            }
+          }
+        }
+      }
+    },
+    "AppointmentRequest": {
+      "type": "object",
+      "required": ["medicalRoomId", "medicalRoomTimeId", "patientId"],
+      "properties": {
+        "medicalRoomId": {
+          "type": "string",
+          "example": "room-123"
+        },
+        "medicalRoomTimeId": {
+          "type": "string",
+          "example": "timeslot-456"
+        },
+        "patientId": {
+          "type": "string",
+          "example": "pat-789"
+        }
+      }
+    },
+    "Appointment": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "appt-123"
+        },
+        "medicalRoomId": {
+          "type": "string",
+          "example": "room-123"
+        },
+        "userId": {
+          "type": "string",
+          "example": "user-456"
+        },
+        "bookingTimeId": {
+          "type": "string",
+          "example": "booking-789"
+        },
+        "patientId": {
+          "type": "string",
+          "example": "pat-789"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["IDLE", "BOOKED", "PAID", "CANCEL"],
+          "example": "BOOKED"
+        },
+        "medicalRoom": {
+          "$ref": "#/definitions/MedicalRoom"
+        },
+        "user": {
+          "$ref": "#/definitions/UserProfile"
+        },
+        "bookingTime": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "medicalRoomTime": {
+              "$ref": "#/definitions/MedicalRoomTime"
+            }
+          }
+        },
+        "suggestions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/DiagnosisSuggestion"
+          }
+        },
+        "statusLogs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["IDLE", "BOOKED", "PAID", "CANCEL"]
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      }
+    },
+    "MedicalRoom": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "room-123"
+        },
+        "departmentId": {
+          "type": "string",
+          "example": "dept-456"
+        },
+        "serviceId": {
+          "type": "string",
+          "example": "serv-789"
+        },
+        "floor": {
+          "type": "integer",
+          "example": 3
+        },
+        "name": {
+          "type": "string",
+          "example": "Cardiology Consultation Room 1"
+        },
+        "department": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string",
+              "example": "Cardiology"
+            },
+            "symbol": {
+              "type": "string",
+              "example": "CARD"
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string",
+              "example": "Consultation"
+            }
+          }
+        }
+      }
+    },
+    "MedicalRoomTime": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "timeslot-123"
+        },
+        "roomId": {
+          "type": "string",
+          "example": "room-456"
+        },
+        "fromTime": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-08-12T09:00:00Z"
+        },
+        "toTime": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-08-12T09:45:00Z"
+        }
+      }
+    },
+    "DiagnosisSuggestion": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "diag-123"
+        },
+        "appointmentId": {
+          "type": "string",
+          "example": "appt-456"
+        },
+        "suggestedByAI": {
+          "type": "string",
+          "example": "TRUE"
+        },
+        "disease": {
+          "type": "string",
+          "example": "Hypertension"
+        },
+        "confidence": {
+          "type": "number",
+          "format": "float",
+          "example": 0.87
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-08-12T10:30:00Z"
+        }
+      }
+    },
+    "Shift": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "shift-123"
+        },
+        "doctorId": {
+          "type": "string",
+          "example": "doctor-456"
+        },
+        "roomId": {
+          "type": "string",
+          "example": "room-789"
+        },
+        "fromTime": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-08-12T08:00:00Z"
+        },
+        "toTime": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2023-08-12T16:00:00Z"
+        },
+        "room": {
+          "$ref": "#/definitions/MedicalRoom"
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "boolean",
+          "example": true
+        },
+        "code": {
+          "type": "integer",
+          "example": 400
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid input parameters"
+        }
+      }
+    }
+  }
+}

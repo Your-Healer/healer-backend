@@ -6,9 +6,11 @@ import cryptoJs from 'crypto-js'
 import config from '~/configs/env'
 import { AuthService } from '~/services/auth.service'
 import { Account, User } from '~/generated/prisma/client'
+import UserService from '~/services/user.service'
 
 const walletService = WalletService.getInstance()
 const authService = AuthService.getInstance()
+const userService = UserService.getInstance()
 
 export async function registerController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
@@ -40,7 +42,7 @@ export async function registerController(req: Request, res: Response, next: Next
       walletMnemonic: encryptedMnemonic
     }
 
-    const { account, user } = await authService.createNewUser(data)
+    const { account, user } = await userService.createNewUser(data)
 
     return res.status(200).json({
       message: 'Registration successfully'
