@@ -13,8 +13,9 @@ services:
       - '3000:3000'
     volumes:
       - ./uploads:/app/uploads
+      - ./scripts:/app/scripts
     restart: unless-stopped
-    command: node dist/index.js
+    command: /bin/sh -c "chmod +x /app/scripts/entrypoint.sh && /app/scripts/entrypoint.sh"
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/v1/ping']
       interval: 30s
