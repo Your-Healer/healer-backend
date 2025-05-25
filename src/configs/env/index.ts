@@ -26,7 +26,9 @@ export default merge(
       redisUsername: process.env.REDIS_USERNAME,
       redisPassword: process.env.REDIS_PASSWORD,
       redisHost: process.env.REDIS_HOST,
-      redisPort: process.env.REDIS_PORT
+      redisPort: process.env.REDIS_PORT,
+      supabaseUrl: process.env.SUPABASE_URL,
+      supabaseKey: process.env.SUPABASE_API_KEY
     }
   },
   envConfig
