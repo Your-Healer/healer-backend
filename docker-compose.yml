@@ -9,7 +9,6 @@ services:
       - .env
     environment:
       - NODE_ENV=production
-      - NODE_PATH=/app/node_modules:/app
     ports:
       - '3000:3000'
     volumes:

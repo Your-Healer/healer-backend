@@ -13,7 +13,7 @@ COPY package.json ./
 # First, generate or update package-lock.json if needed
 RUN npm install --package-lock-only
 
-# Copy updated package-lock.json
+# Copy all source files
 COPY . .
 
 # Install dependencies using the updated package-lock.json
@@ -27,7 +27,8 @@ RUN echo "Building TypeScript files..." && \
     npm run build && \
     echo "Build completed. Checking dist directory:" && \
     ls -la dist && \
-    if [ -f "dist/index.js" ]; then echo "✅ dist/index.js exists"; else echo "❌ dist/index.js not found"; fi
+    if [ -f "dist/index.js" ]; then echo "✅ dist/index.js exists"; else echo "❌ dist/index.js not found"; fi && \
+    ls -la src/generated/prisma/client || echo "❌ Prisma client not found at expected location"
 
 # Production stage - Also using Node 20
 FROM node:20-alpine AS production
@@ -53,18 +54,20 @@ RUN apk add --no-cache dumb-init curl
 
 # Copy build artifacts from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/generated ./src/generated
+COPY --from=builder /app/src/generated ./dist/generated
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/swagger.json ./swagger.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
-# Create script for checking app readiness
-RUN echo '#!/bin/sh\necho "Checking application readiness..."\nfind /app -name "index.js" | grep -q "dist/index.js" && echo "✅ Application files ready" || echo "❌ Missing main application file"' > /app/healthcheck.sh && \
-    chmod +x /app/healthcheck.sh
-
 # Create directories with proper permissions
 RUN mkdir -p /app/uploads && \
     chown -R appuser:appgroup /app
+
+# Verify the production image structure
+RUN echo "Checking production dist directory:" && \
+    ls -la dist && \
+    echo "Checking Prisma client location:" && \
+    ls -la dist/generated/prisma/client || echo "Prisma client not found at expected location!"
 
 # Set user to non-root
 USER appuser
@@ -75,5 +78,5 @@ EXPOSE 3000
 # Use dumb-init as entrypoint to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Run the application with inspection enabled for debugging
-CMD ["npm", "run", "start:docker"]
+# Run the application
+CMD ["node", "dist/index.js"]
