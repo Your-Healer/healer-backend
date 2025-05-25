@@ -1,5 +1,5 @@
-# Base build stage
-FROM node:18-alpine AS builder
+# Base build stage - Updated to Node 20 for compatibility with dependencies
+FROM node:20-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -8,15 +8,18 @@ WORKDIR /app
 RUN apk add --no-cache python3 make g++ libc6-compat
 
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json ./
 
-# Install dependencies
-RUN npm ci
+# First, generate or update package-lock.json if needed
+RUN npm install --package-lock-only
 
-# Copy application source
+# Copy updated package-lock.json
 COPY . .
 
-# Generate Prisma client to the specified output path
+# Install dependencies using the updated package-lock.json
+RUN npm install
+
+# Generate Prisma client
 RUN npx prisma generate
 
 # Build TypeScript code with verbose output
@@ -26,8 +29,8 @@ RUN echo "Building TypeScript files..." && \
     ls -la dist && \
     if [ -f "dist/index.js" ]; then echo "✅ dist/index.js exists"; else echo "❌ dist/index.js not found"; fi
 
-# Production stage
-FROM node:18-alpine AS production
+# Production stage - Also using Node 20
+FROM node:20-alpine AS production
 
 # Set working directory
 WORKDIR /app
@@ -38,8 +41,11 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 # Set environment variables
 ENV NODE_ENV=production
 
-# Install production dependencies only
-COPY package.json package-lock.json ./
+# Copy package files
+COPY package.json ./
+COPY --from=builder /app/package-lock.json ./
+
+# Install production dependencies only using the consistent package-lock.json
 RUN npm ci --only=production && npm cache clean --force
 
 # Install only necessary runtime tools
