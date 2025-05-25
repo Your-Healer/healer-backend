@@ -1,3 +1,6 @@
+// Register module aliases
+import './aliases'
+
 import 'dotenv/config'
 import express, { Request, Response } from 'express'
 import config from './configs/env'
