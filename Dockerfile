@@ -48,9 +48,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/swagger.json ./swagger.json
 
-# Copy additional necessary files
-COPY .env.template ./
-COPY tsconfig.json ./
+# Copy additional necessary files - fixed for .env.template missing error
+# Don't rely on external file
+RUN touch .env.example
 
 # Create volume directories with proper permissions
 RUN mkdir -p /app/uploads && \
