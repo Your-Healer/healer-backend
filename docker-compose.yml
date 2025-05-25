@@ -9,11 +9,13 @@ services:
       - .env
     environment:
       - NODE_ENV=production
+      - NODE_PATH=/app/node_modules:/app
     ports:
       - '3000:3000'
     volumes:
       - ./uploads:/app/uploads
     restart: unless-stopped
+    command: npm run start:docker
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/v1/ping']
       interval: 30s

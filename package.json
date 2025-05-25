@@ -10,6 +10,8 @@
     "dev:prod": "cross-env STAGE=production pnpx nodemon",
     "build": "rimraf ./dist && tsc --noCheck && tsc-alias",
     "start": "pnpm run build && cross-env STAGE=production node dist/index.js",
+    "start:dev": "pnpm run build && cross-env STAGE=production nodemon",
+    "start:docker": "npm run build && cross-env STAGE=production node --inspect=0.0.0.0 dist/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check .",
@@ -72,6 +74,7 @@
     "lodash": "^4.17.21",
     "morgan": "^1.10.0",
     "multer": "^2.0.0",
+    "module-alias": "^2.2.3",
     "swagger-express-router": "^1.0.1",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.17.0"
