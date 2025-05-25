@@ -53,6 +53,10 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/swagger.json ./swagger.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
+# Copy entrypoint script and make it executable (while still root)
+COPY scripts/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Copy additional necessary files
 RUN touch .env.example
 
@@ -74,18 +78,5 @@ EXPOSE 3000
 # Use dumb-init as entrypoint to handle signals properly
 ENTRYPOINT ["dumb-init", "--"]
 
-# Create a debug script to help troubleshoot
-RUN echo "#!/bin/sh\necho 'Searching for index.js files:'\nfind /app -name 'index.js' | sort\necho 'Directory structure:'\nfind /app -type d | sort\n" > /app/debug.sh && \
-    chmod +x /app/debug.sh
-
-# Add startup script to help with troubleshooting
-CMD if [ -f "dist/index.js" ]; then \
-      echo "Starting application..." && \
-      node dist/index.js; \
-    else \
-      echo "dist/index.js not found! Running debug script..." && \
-      /app/debug.sh && \
-      echo "Check if src/index.js exists instead:" && \
-      ls -la src/ 2>/dev/null || echo "src directory not found"; \
-      exit 1; \
-    fi
+# Run our entrypoint script
+CMD ["/app/entrypoint.sh"]
