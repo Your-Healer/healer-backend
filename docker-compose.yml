@@ -15,7 +15,7 @@ services:
     volumes:
       - ./uploads:/app/uploads
     restart: unless-stopped
-    command: npm run start:docker
+    command: node dist/index.js
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:3000/api/v1/ping']
       interval: 30s
