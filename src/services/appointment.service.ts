@@ -1,5 +1,5 @@
 import prisma from '~/libs/prisma/init'
-import { Appointment, APPOINTMENTSTATUS } from '~/generated/prisma/client'
+import { Appointment, APPOINTMENTSTATUS } from '@prisma/client'
 
 export default class AppointmentService {
   private static instance: AppointmentService
@@ -129,6 +129,6 @@ export default class AppointmentService {
     })
 
     // Filter to only available slots (those without bookings)
-    return timeSlots.filter((slot) => slot.bookings.length === 0)
+    return timeSlots.filter((slot: any) => slot.bookings.length === 0)
   }
 }

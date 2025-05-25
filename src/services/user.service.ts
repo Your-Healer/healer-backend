@@ -1,5 +1,5 @@
 import prisma from '~/libs/prisma/init'
-import { Account, User } from '~/generated/prisma/client'
+import { Account, User } from '@prisma/client'
 
 export default class UserService {
   private static instance: UserService

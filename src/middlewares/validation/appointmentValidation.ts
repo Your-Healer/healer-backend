@@ -1,5 +1,5 @@
 import { body } from 'express-validator'
-import { APPOINTMENTSTATUS } from '~/generated/prisma/client'
+import { APPOINTMENTSTATUS } from '@prisma/client'
 
 export const appointmentValidation = [
   body('medicalRoomId').notEmpty().withMessage('Medical room ID is required'),

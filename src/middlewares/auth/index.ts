@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import { Request, Response, NextFunction } from 'express'
 import { logger } from '~/configs/logger'
 import prisma from '~/libs/prisma/init'
-import { Role } from '~/generated/prisma/client'
+import { Role } from '@prisma/client'
 
 export const createHashedPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(10)

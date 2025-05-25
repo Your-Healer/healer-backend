@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import AppointmentService from '~/services/appointment.service'
-import { APPOINTMENTSTATUS } from '~/generated/prisma/client'
+import { APPOINTMENTSTATUS } from '@prisma/client'
 
 const appointmentService = AppointmentService.getInstance()
 
