@@ -1,6 +1,6 @@
 import prisma from '~/libs/prisma/init'
 import { compareHashedPassword, createJWT } from '~/middlewares/auth'
-import { Account } from '~/generated/prisma/client'
+import { Account } from '@prisma/client'
 
 export class AuthService {
   private static instance: AuthService

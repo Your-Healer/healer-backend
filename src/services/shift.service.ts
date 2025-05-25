@@ -1,5 +1,5 @@
 import prisma from '~/libs/prisma/init'
-import { ShiftWorking } from '~/generated/prisma/client'
+import { ShiftWorking } from '@prisma/client'
 
 export default class ShiftService {
   private static instance: ShiftService

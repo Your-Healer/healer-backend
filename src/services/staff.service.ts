@@ -1,5 +1,5 @@
 import prisma from '~/libs/prisma/init'
-import { Staff, EDUCATIONLEVEL, Account } from '~/generated/prisma/client'
+import { Staff, EDUCATIONLEVEL, Account } from '@prisma/client'
 import { createHashedPassword } from '~/middlewares/auth'
 
 export default class StaffService {

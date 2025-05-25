@@ -16,7 +16,6 @@ const initRedis = () => {
       username: process.env.REDIS_USERNAME,
       password: process.env.REDIS_PASSWORD
     })
-    logger.info(`Redis client initialized using host: ${process.env.REDIS_HOST || 'localhost'}`)
   }
 
   client.on('connect', () => {
