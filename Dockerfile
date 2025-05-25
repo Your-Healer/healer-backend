@@ -10,25 +10,27 @@ RUN apk add --no-cache python3 make g++ libc6-compat
 # Copy package files
 COPY package.json ./
 
-# First, generate or update package-lock.json if needed
+# Generate fresh package-lock.json to ensure sync
 RUN npm install --package-lock-only
+
+# Copy prisma schema first for better layer caching
+COPY prisma ./prisma
+
+# Install dependencies using npm
+RUN npm install
+
+# Generate Prisma client BEFORE copying source code
+RUN npx prisma generate
 
 # Copy all source files
 COPY . .
-
-# Install dependencies using the updated package-lock.json
-RUN npm install
-
-# Generate Prisma client
-RUN npx prisma generate
 
 # Build TypeScript code with verbose output
 RUN echo "Building TypeScript files..." && \
     npm run build && \
     echo "Build completed. Checking dist directory:" && \
     ls -la dist && \
-    if [ -f "dist/index.js" ]; then echo "✅ dist/index.js exists"; else echo "❌ dist/index.js not found"; fi && \
-    ls -la src/generated/prisma/client || echo "❌ Prisma client not found at expected location"
+    if [ -f "dist/index.js" ]; then echo "✅ dist/index.js exists"; else echo "❌ dist/index.js not found"; fi
 
 # Production stage - Also using Node 20
 FROM node:20-alpine AS production
@@ -42,20 +44,24 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 # Set environment variables
 ENV NODE_ENV=production
 
-# Copy package files
+# Copy package files and the fresh lock file from builder
 COPY package.json ./
 COPY --from=builder /app/package-lock.json ./
 
-# Install production dependencies only using the consistent package-lock.json
-RUN npm ci --only=production && npm cache clean --force
+# Copy prisma schema
+COPY --from=builder /app/prisma ./prisma
+
+# Install production dependencies - use --omit=dev instead of deprecated --only=production
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Generate Prisma client in production stage
+RUN npx prisma generate
 
 # Install only necessary runtime tools
 RUN apk add --no-cache dumb-init curl
 
 # Copy build artifacts from builder stage
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/src/generated ./dist/generated
-COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/swagger.json ./swagger.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
@@ -66,8 +72,8 @@ RUN mkdir -p /app/uploads && \
 # Verify the production image structure
 RUN echo "Checking production dist directory:" && \
     ls -la dist && \
-    echo "Checking Prisma client location:" && \
-    ls -la dist/generated/prisma/client || echo "Prisma client not found at expected location!"
+    echo "Checking Prisma client in node_modules:" && \
+    ls -la node_modules/@prisma/client || echo "Prisma client not found in node_modules!"
 
 # Set user to non-root
 USER appuser
