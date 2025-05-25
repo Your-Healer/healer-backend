@@ -12,6 +12,14 @@
   "consumes": ["application/json"],
   "host": "localhost:3000",
   "basePath": "/api/v1",
+  "schemes": ["http", "https"],
+  "x-cors": {
+    "enabled": true,
+    "allowOrigin": "*",
+    "allowCredentials": true,
+    "allowMethods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    "allowHeaders": ["Content-Type", "Authorization", "X-Requested-With"]
+  },
   "securityDefinitions": {
     "bearerAuth": {
       "type": "apiKey",

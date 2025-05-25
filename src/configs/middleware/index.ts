@@ -1,5 +1,4 @@
 import express from 'express'
-import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import bodyParser from 'body-parser'
@@ -16,7 +15,7 @@ const sessionMiddleware = session({
 
 const configMiddleware = (app: any) => {
   app.use(sessionMiddleware)
-  app.use(cors())
+
   app.use(helmet())
   app.use(morgan('combined'))
   app.use(bodyParser.json())
