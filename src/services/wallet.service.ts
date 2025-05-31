@@ -1,4 +1,4 @@
-import { Keyring } from '@polkadot/api'
+import { ApiPromise, Keyring, WsProvider } from '@polkadot/api'
 import {
   cryptoWaitReady,
   ed25519PairFromSeed,
@@ -7,16 +7,37 @@ import {
   mnemonicValidate,
   randomAsU8a
 } from '@polkadot/util-crypto'
+import 'dotenv/config'
+
+const SUSTRATE_HOST = process.env.SUSTRATE_HOST
 export default class WalletService {
   private static instance: WalletService
+  private provider: WsProvider
 
-  private constructor() {}
+  private constructor() {
+    this.provider = new WsProvider(SUSTRATE_HOST)
+  }
 
   static getInstance() {
     if (!WalletService.instance) {
       WalletService.instance = new WalletService()
     }
     return WalletService.instance
+  }
+
+  async checkConnection() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const [chain, nodeName, nodeVersion] = await Promise.all([
+        api.rpc.system.chain(),
+        api.rpc.system.name(),
+        api.rpc.system.version()
+      ])
+      return { status: 'success', message: `You are connected to chain ${chain} using ${nodeName} v${nodeVersion}` }
+    } catch (error) {
+      console.error('Error establishing connection:', error)
+      return { status: 'error', message: 'Failed to connect to crypto library.' }
+    }
   }
 
   async createNewWallet() {

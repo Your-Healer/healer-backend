@@ -72,6 +72,48 @@
         }
       }
     },
+    "/ping/healer-network": {
+      "get": {
+        "summary": "Check Healer Network Connection",
+        "description": "Check the connection status to the Healer blockchain network",
+        "operationId": "checkHealerNetwork",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Network connection status retrieved successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "connected"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Successfully connected to Healer network"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Network connection failed",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "error"
+                },
+                "message": {
+                  "type": "string",
+                  "example": "Failed to connect to crypto library."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ping/upload/single": {
       "post": {
         "summary": "Upload single file",
@@ -957,6 +999,308 @@
           },
           "400": {
             "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/shifts": {
+      "get": {
+        "summary": "Get all shifts",
+        "description": "Get all available shifts (admin only)",
+        "operationId": "getAllShifts",
+        "tags": ["Shift"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "type": "string",
+            "format": "date",
+            "description": "Start date for shifts (YYYY-MM-DD)"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "type": "string",
+            "format": "date",
+            "description": "End date for shifts (YYYY-MM-DD)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shifts retrieved successfully",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Shift"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create new shift",
+        "description": "Create a new staff shift (admin only)",
+        "operationId": "createShift",
+        "tags": ["Shift"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shift",
+            "in": "body",
+            "description": "Shift data",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "required": ["doctorId", "roomId", "fromTime", "toTime"],
+              "properties": {
+                "doctorId": {
+                  "type": "string",
+                  "example": "doctor-123"
+                },
+                "roomId": {
+                  "type": "string",
+                  "example": "room-456"
+                },
+                "fromTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2023-08-12T08:00:00Z"
+                },
+                "toTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2023-08-12T16:00:00Z"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Shift created successfully",
+            "schema": {
+              "$ref": "#/definitions/Shift"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      }
+    },
+    "/shifts/{id}": {
+      "get": {
+        "summary": "Get shift by ID",
+        "description": "Get details of a specific shift",
+        "operationId": "getShiftById",
+        "tags": ["Shift"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Shift ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shift retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/Shift"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Shift not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update shift",
+        "description": "Update an existing shift (admin only)",
+        "operationId": "updateShift",
+        "tags": ["Shift"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Shift ID"
+          },
+          {
+            "name": "shift",
+            "in": "body",
+            "description": "Updated shift data",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "doctorId": {
+                  "type": "string",
+                  "example": "doctor-123"
+                },
+                "roomId": {
+                  "type": "string",
+                  "example": "room-456"
+                },
+                "fromTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2023-08-12T08:00:00Z"
+                },
+                "toTime": {
+                  "type": "string",
+                  "format": "date-time",
+                  "example": "2023-08-12T16:00:00Z"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shift updated successfully",
+            "schema": {
+              "$ref": "#/definitions/Shift"
+            }
+          },
+          "400": {
+            "description": "Invalid input",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Shift not found",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete shift",
+        "description": "Delete an existing shift (admin only)",
+        "operationId": "deleteShift",
+        "tags": ["Shift"],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "description": "Shift ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shift deleted successfully",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Shift deleted successfully"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/Error"
+            }
+          },
+          "404": {
+            "description": "Shift not found",
             "schema": {
               "$ref": "#/definitions/Error"
             }
