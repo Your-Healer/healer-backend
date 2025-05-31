@@ -18,15 +18,42 @@ const PORT = config.port
 
 const configMiddleware = (app: any) => {
   app.use(sessionMiddleware)
-
   app.use(
     cors({
       origin: (origin, callback) => {
-        if (!origin || [`http://localhost:${PORT}`].includes(origin)) {
+        // Allow requests without origin (like mobile apps, Postman, curl)
+        if (!origin) {
           callback(null, true)
-        } else {
-          callback(new Error('Not allowed by CORS'))
+          return
         }
+
+        // Allow localhost in any port
+        if (origin.startsWith('http://localhost') || origin.startsWith('https://localhost')) {
+          callback(null, true)
+          return
+        }
+
+        // Allow IP addresses (for VPS deployment)
+        const ipPattern = /^https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}(:\d+)?$/
+        if (ipPattern.test(origin)) {
+          callback(null, true)
+          return
+        }
+
+        // Allow specific origins from environment variable
+        const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || []
+        if (allowedOrigins.includes(origin)) {
+          callback(null, true)
+          return
+        }
+
+        // For development, allow all origins
+        if (process.env.NODE_ENV === 'development') {
+          callback(null, true)
+          return
+        }
+
+        callback(new Error('Not allowed by CORS'))
       },
       credentials: true,
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],

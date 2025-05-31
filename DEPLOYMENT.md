@@ -16,9 +16,11 @@ This guide will help you deploy the Healer Backend application on a VPS with Ngi
    - Docker Compose
    - Git
 
-## Quick Deployment
+## IP-Only Deployment (No Domain Required)
 
-### Step 1: Install Docker and Docker Compose
+If you only have a VPS IP address and no domain name, use this simplified deployment method:
+
+### Step 1: Install Docker and Docker Compose on VPS
 
 ```bash
 # Update system
@@ -65,6 +67,60 @@ A    www.your-domain.com  YOUR_VPS_IP
 ```
 
 ### Step 4: Deploy Application
+
+### Step 2: Clone and Setup Project
+
+```bash
+# Clone your repository
+git clone <your-repo-url> healer-backend
+cd healer-backend
+
+# Make deployment scripts executable
+chmod +x deploy-ip.sh
+chmod +x ssl-renew.sh
+
+# Create environment file
+cp .env.example .env
+# Edit .env with your production settings
+nano .env
+```
+
+### Step 3: Deploy Application (IP-Only)
+
+```bash
+# Run the IP-only deployment script
+./deploy-ip.sh
+```
+
+Or using PowerShell on Windows:
+
+```powershell
+# Run the PowerShell deployment script
+.\deploy-ip.ps1
+```
+
+The script will:
+
+1. Detect your server IP automatically
+2. Configure Nginx for IP-only access
+3. Start services without SSL
+4. Set up proper CORS for Swagger UI
+5. Test the deployment
+
+### Step 4: Access Your Application
+
+After deployment, access your application at:
+
+- **HTTP**: `http://YOUR_VPS_IP`
+- **API**: `http://YOUR_VPS_IP/api/v1/`
+- **Swagger**: `http://YOUR_VPS_IP/api/v1/swagger/api-docs/`
+- **Health**: `http://YOUR_VPS_IP/health`
+
+## Domain-Based Deployment (With SSL)
+
+If you have a domain name, use this method for production deployment with SSL:
+
+### Step 1: Install Docker and Docker Compose
 
 ```bash
 # Run the deployment script
@@ -134,7 +190,29 @@ SSL certificates are automatically renewed. The renewal is handled by:
 
 ## Useful Commands
 
-### Service Management
+### IP-Only Deployment Commands
+
+```bash
+# View logs
+docker-compose -f docker-compose.ip.yml logs -f
+
+# View specific service logs
+docker-compose -f docker-compose.ip.yml logs -f app
+docker-compose -f docker-compose.ip.yml logs -f nginx
+
+# Restart services
+docker-compose -f docker-compose.ip.yml restart
+
+# Stop services
+docker-compose -f docker-compose.ip.yml down
+
+# Update and restart (for code changes)
+git pull
+docker-compose -f docker-compose.ip.yml build app
+docker-compose -f docker-compose.ip.yml up -d
+```
+
+### Domain-Based Deployment Commands
 
 ```bash
 # View logs
