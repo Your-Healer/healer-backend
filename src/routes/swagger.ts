@@ -9,14 +9,12 @@ router.use('/api-docs', swaggerUi.serve)
 router.get(
   '/api-docs',
   swaggerUi.setup(swaggerDocument, {
+    explorer: true,
     swaggerOptions: {
       requestInterceptor: (request: any) => {
+        request.headers.Origin = '*'
         return request
-      },
-      supportedSubmitMethods: ['get', 'post', 'put', 'delete', 'patch'],
-      docExpansion: 'list',
-      filter: true,
-      showRequestHeaders: true
+      }
     }
   })
 )
