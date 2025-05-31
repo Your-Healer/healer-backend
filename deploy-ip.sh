@@ -68,13 +68,18 @@ check_env_file() {
     if [ ! -f ".env" ]; then
         print_warning ".env file not found. Creating from template..."
         
-        if [ -f ".env.example" ]; then
+        if [ -f ".env.template" ]; then
+            cp .env.template .env
+            print_status "Please edit .env file with your production settings:"
+            print_warning "nano .env"
+            read -p "Press Enter when you've finished editing .env file..."
+        elif [ -f ".env.example" ]; then
             cp .env.example .env
             print_status "Please edit .env file with your production settings:"
             print_warning "nano .env"
             read -p "Press Enter when you've finished editing .env file..."
         else
-            print_error ".env.example file not found. Please create .env file manually."
+            print_error ".env.template or .env.example file not found. Please create .env file manually."
             exit 1
         fi
     else

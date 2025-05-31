@@ -67,6 +67,12 @@ DATABASE_URL=postgresql://username:password@host:port/database
 # Node Environment
 NODE_ENV=production
 
+# Security Headers (IMPORTANT: set to false for IP-only deployment)
+USE_STRICT_HEADERS=false
+
+# CORS Origins (leave empty for IP-only access, add domains if needed)
+CORS_ORIGINS=
+
 # Redis (if using)
 REDIS_URL=redis://username:password@host:port
 
@@ -74,6 +80,16 @@ REDIS_URL=redis://username:password@host:port
 SUPABASE_URL=your_supabase_url
 SUPABASE_API_KEY=your_supabase_api_key
 ```
+
+## 🚨 Fixing CORS/COOP Issues
+
+If you see Cross-Origin-Opener-Policy errors, run this command:
+
+```powershell
+.\rebuild-ip.ps1
+```
+
+This will rebuild your application with the updated security headers configuration for IP-only access.
 
 ## 📝 Common Commands
 

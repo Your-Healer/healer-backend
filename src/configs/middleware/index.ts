@@ -60,13 +60,24 @@ const configMiddleware = (app: any) => {
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
     })
   )
+  app.use(
+    helmet({
+      crossOriginOpenerPolicy: false, // Disable COOP for IP-based access
+      originAgentCluster: false // Disable Origin-Agent-Cluster header
+    })
+  )
 
-  app.use(helmet())
-
-  if (process.env.NODE_ENV !== 'development') {
+  // Only set strict security headers for HTTPS/domain-based deployments
+  if (process.env.NODE_ENV !== 'development' && process.env.USE_STRICT_HEADERS === 'true') {
     app.use((req: Request, res: Response, next: NextFunction) => {
-      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-      res.setHeader('Origin-Agent-Cluster', '?1')
+      // Only set these headers if accessing via HTTPS or localhost
+      const protocol = req.get('X-Forwarded-Proto') || req.protocol
+      const host = req.get('host') || ''
+
+      if (protocol === 'https' || host.includes('localhost')) {
+        res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+        res.setHeader('Origin-Agent-Cluster', '?1')
+      }
       next()
     })
   }
