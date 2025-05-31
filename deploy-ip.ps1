@@ -67,10 +67,15 @@ function Test-EnvFile {
     
     if (!(Test-Path ".env")) {
         Write-StatusWarning ".env file not found."
-        
-        if (Test-Path ".env.example") {
-            Copy-Item ".env.example" ".env"
+          if (Test-Path ".env.template") {
+            Copy-Item ".env.template" ".env"
             Write-StatusInfo "Created .env from template. Please edit it with your production settings."
+            Write-StatusWarning "Edit the .env file now and press Enter when done..."
+            Read-Host
+        }
+        elseif (Test-Path ".env.example") {
+            Copy-Item ".env.example" ".env"
+            Write-StatusInfo "Created .env from example. Please edit it with your production settings."
             Write-StatusWarning "Edit the .env file now and press Enter when done..."
             Read-Host
         }
