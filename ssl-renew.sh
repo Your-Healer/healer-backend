@@ -15,13 +15,13 @@ NC='\033[0m'
 echo -e "${YELLOW}[$(date)] Starting SSL certificate renewal...${NC}"
 
 # Attempt to renew certificates
-docker-compose -f docker-compose.prod.yml run --rm certbot renew --quiet
+docker compose -f docker compose.prod.yml run --rm certbot renew --quiet
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}[$(date)] SSL certificate renewal successful${NC}"
     
     # Reload Nginx to use new certificates
-    docker-compose -f docker-compose.prod.yml restart nginx
+    docker compose -f docker compose.prod.yml restart nginx
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}[$(date)] Nginx restarted successfully${NC}"

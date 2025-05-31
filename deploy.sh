@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 # Configuration
 DOMAIN=""
 EMAIL=""
-COMPOSE_FILE="docker-compose.prod.yml"
+COMPOSE_FILE="docker compose.prod.yml"
 
 # Function to print colored output
 print_status() {
@@ -43,7 +43,7 @@ check_requirements() {
         exit 1
     fi
     
-    if ! command -v docker-compose &> /dev/null; then
+    if ! command -v docker compose &> /dev/null; then
         print_error "Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     fi
@@ -131,7 +131,7 @@ server {
 }
 EOF
     
-    docker-compose -f $COMPOSE_FILE up -d nginx app
+    docker compose -f $COMPOSE_FILE up -d nginx app
     
     print_success "Services started without SSL!"
 }
@@ -140,7 +140,7 @@ EOF
 obtain_ssl() {
     print_status "Obtaining SSL certificate..."
     
-    docker-compose -f $COMPOSE_FILE run --rm certbot certonly \
+    docker compose -f $COMPOSE_FILE run --rm certbot certonly \
         --webroot \
         --webroot-path /var/www/certbot \
         --email $EMAIL \
@@ -164,7 +164,7 @@ restore_ssl_config() {
     
     mv nginx/conf.d/default.conf.backup nginx/conf.d/default.conf
     
-    docker-compose -f $COMPOSE_FILE restart nginx
+    docker compose -f $COMPOSE_FILE restart nginx
     
     print_success "Full configuration restored!"
 }
@@ -176,8 +176,8 @@ setup_renewal() {
     # Create renewal script
     cat > ssl-renew.sh << 'EOF'
 #!/bin/bash
-docker-compose -f docker-compose.prod.yml run --rm certbot renew --quiet
-docker-compose -f docker-compose.prod.yml restart nginx
+docker compose -f docker compose.prod.yml run --rm certbot renew --quiet
+docker compose -f docker compose.prod.yml restart nginx
 EOF
     
     chmod +x ssl-renew.sh
@@ -199,9 +199,9 @@ show_status() {
     print_success "  Docs:  https://$DOMAIN/api/v1/swagger/api-docs/"
     echo ""
     print_status "Useful commands:"
-    echo "  View logs:           docker-compose -f $COMPOSE_FILE logs -f"
-    echo "  Stop services:       docker-compose -f $COMPOSE_FILE down"
-    echo "  Restart services:    docker-compose -f $COMPOSE_FILE restart"
+    echo "  View logs:           docker compose -f $COMPOSE_FILE logs -f"
+    echo "  Stop services:       docker compose -f $COMPOSE_FILE down"
+    echo "  Restart services:    docker compose -f $COMPOSE_FILE restart"
     echo "  Renew SSL:           ./ssl-renew.sh"
 }
 
