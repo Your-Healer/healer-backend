@@ -31,7 +31,7 @@ function Test-Requirements {
         exit 1
     }
     
-    if (!(Get-Command docker-compose -ErrorAction SilentlyContinue)) {
+    if (!(Get-Command docker compose -ErrorAction SilentlyContinue)) {
         Write-StatusError "Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     }
@@ -99,15 +99,15 @@ function Stop-ExistingServices {
     Write-StatusInfo "Stopping any existing services..."
     
     try {
-        & docker-compose -f docker-compose.ip.yml down 2>$null
+        & docker compose -f docker compose.ip.yml down 2>$null
     } catch {}
     
     try {
-        & docker-compose -f docker-compose.prod.yml down 2>$null
+        & docker compose -f docker compose.prod.yml down 2>$null
     } catch {}
     
     try {
-        & docker-compose down 2>$null
+        & docker compose down 2>$null
     } catch {}
     
     Write-StatusSuccess "Existing services stopped!"
@@ -118,14 +118,14 @@ function Start-Services {
     Write-StatusInfo "Building and starting services..."
     
     # Build the application
-    & docker-compose -f docker-compose.ip.yml build
+    & docker compose -f docker compose.ip.yml build
     if ($LASTEXITCODE -ne 0) {
         Write-StatusError "Failed to build application!"
         exit 1
     }
     
     # Start services
-    & docker-compose -f docker-compose.ip.yml up -d
+    & docker compose -f docker compose.ip.yml up -d
     if ($LASTEXITCODE -ne 0) {
         Write-StatusError "Failed to start services!"
         exit 1
@@ -140,13 +140,13 @@ function Wait-ForServices {
     
     Start-Sleep -Seconds 10
     
-    $services = & docker-compose -f docker-compose.ip.yml ps
+    $services = & docker compose -f docker compose.ip.yml ps
     if ($services -match "Up") {
         Write-StatusSuccess "Services are running!"
     }
     else {
         Write-StatusError "Some services failed to start. Check logs:"
-        & docker-compose -f docker-compose.ip.yml logs
+        & docker compose -f docker compose.ip.yml logs
         exit 1
     }
 }
@@ -189,11 +189,11 @@ function Show-Status {
     Write-StatusSuccess "  Health:      http://$IP/health"
     Write-Host ""
     Write-StatusInfo "Useful commands:"
-    Write-Host "  View logs:           docker-compose -f docker-compose.ip.yml logs -f"
-    Write-Host "  View app logs:       docker-compose -f docker-compose.ip.yml logs -f app"
-    Write-Host "  View nginx logs:     docker-compose -f docker-compose.ip.yml logs -f nginx"
-    Write-Host "  Stop services:       docker-compose -f docker-compose.ip.yml down"
-    Write-Host "  Restart services:    docker-compose -f docker-compose.ip.yml restart"
+    Write-Host "  View logs:           docker compose -f docker compose.ip.yml logs -f"
+    Write-Host "  View app logs:       docker compose -f docker compose.ip.yml logs -f app"
+    Write-Host "  View nginx logs:     docker compose -f docker compose.ip.yml logs -f nginx"
+    Write-Host "  Stop services:       docker compose -f docker compose.ip.yml down"
+    Write-Host "  Restart services:    docker compose -f docker compose.ip.yml restart"
     Write-Host ""
     Write-StatusWarning "Note: This deployment uses HTTP only. For production with SSL, you'll need a domain name."
 }
