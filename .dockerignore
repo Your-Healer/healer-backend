@@ -49,3 +49,21 @@ LICENSE
 .editorconfig
 *.log
 logs
+
+# Nginx configuration
+nginx/
+
+# SSL certificates  
+certbot/
+
+# Deployment scripts
+*.sh
+deploy.sh
+ssl-renew.sh
+
+# Docker files
+docker-compose*.yml
+Dockerfile*
+
+# Documentation
+DEPLOYMENT.md
