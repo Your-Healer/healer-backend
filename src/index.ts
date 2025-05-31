@@ -8,11 +8,11 @@ import cors from 'cors'
 
 const PORT = config.port
 const app = express()
+
 app.use(
   cors({
-    origin: '*', // Or specify allowed origins
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+    origin: ['*'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
   })
 )
 
