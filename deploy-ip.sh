@@ -101,8 +101,8 @@ create_directories() {
 stop_existing_services() {
     print_status "Stopping any existing services..."
     
-    docker compose -f docker compose.ip.yml down 2>/dev/null || true
-    docker compose -f docker compose.prod.yml down 2>/dev/null || true
+    docker compose -f docker docker-compose.ip.yml down 2>/dev/null || true
+    docker compose -f docker docker-compose.prod.yml down 2>/dev/null || true
     docker compose down 2>/dev/null || true
     
     print_success "Existing services stopped!"
@@ -113,10 +113,10 @@ start_services() {
     print_status "Building and starting services..."
     
     # Build the application
-    docker compose -f docker compose.ip.yml build
+    docker compose -f docker docker-compose.ip.yml build
     
     # Start services
-    docker compose -f docker compose.ip.yml up -d
+    docker compose -f docker docker-compose.ip.yml up -d
     
     print_success "Services started!"
 }
@@ -128,11 +128,11 @@ wait_for_services() {
     sleep 10
     
     # Check if services are running
-    if docker compose -f docker compose.ip.yml ps | grep -q "Up"; then
+    if docker compose -f docker docker-compose.ip.yml ps | grep -q "Up"; then
         print_success "Services are running!"
     else
         print_error "Some services failed to start. Check logs:"
-        docker compose -f docker compose.ip.yml logs
+        docker compose -f docker docker-compose.ip.yml logs
         exit 1
     fi
 }
@@ -167,11 +167,11 @@ show_status() {
     print_success "  Health:      http://$SERVER_IP/health"
     echo ""
     print_status "Useful commands:"
-    echo "  View logs:           docker compose -f docker compose.ip.yml logs -f"
-    echo "  View app logs:       docker compose -f docker compose.ip.yml logs -f app"
-    echo "  View nginx logs:     docker compose -f docker compose.ip.yml logs -f nginx"
-    echo "  Stop services:       docker compose -f docker compose.ip.yml down"
-    echo "  Restart services:    docker compose -f docker compose.ip.yml restart"
+    echo "  View logs:           docker compose -f docker docker-compose.ip.yml logs -f"
+    echo "  View app logs:       docker compose -f docker docker-compose.ip.yml logs -f app"
+    echo "  View nginx logs:     docker compose -f docker docker-compose.ip.yml logs -f nginx"
+    echo "  Stop services:       docker compose -f docker docker-compose.ip.yml down"
+    echo "  Restart services:    docker compose -f docker docker-compose.ip.yml restart"
     echo ""
     print_warning "Note: This deployment uses HTTP only. For production with SSL, you'll need a domain name."
 }
