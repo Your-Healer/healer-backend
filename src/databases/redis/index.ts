@@ -4,10 +4,10 @@ import { logger } from '~/configs/logger'
 
 const initRedis = () => {
   const redis = new Redis({
-    port: config.secrets.redisPort,
-    host: config.secrets.redisHost,
-    username: config.secrets.redisUsername,
-    password: config.secrets.redisPassword
+    port: config.secrets.redis.port,
+    host: config.secrets.redis.host,
+    username: config.secrets.redis.username,
+    password: config.secrets.redis.password
   })
 
   redis.on('ready', () => {
