@@ -39,7 +39,8 @@ export default merge(
         secureSecret: process.env.VN_PAY_SECURE_SECRET,
         host: process.env.VN_PAY_HOST,
         testMode: process.env.VN_PAY_TEST_MODE == 'true'
-      }
+      },
+      zalopay: {}
     }
   },
   envConfig
