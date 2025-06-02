@@ -1,5 +1,6 @@
 import Redis from 'ioredis'
 import { logger } from '../configs/logger'
+import config from '~/configs/env'
 
 const initRedis = () => {
   let client: Redis

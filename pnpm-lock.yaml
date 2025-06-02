@@ -20,6 +20,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.49.8
         version: 2.49.8
+      base64-arraybuffer:
+        specifier: ^1.0.2
+        version: 1.0.2
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
@@ -74,9 +77,6 @@ importers:
       multer:
         specifier: ^2.0.0
         version: 2.0.0
-      swagger-express-router:
-        specifier: ^1.0.1
-        version: 1.0.1
       swagger-ui-express:
         specifier: ^5.0.1
         version: 5.0.1(express@5.1.0)
@@ -123,9 +123,6 @@ importers:
       '@types/swagger-ui-express':
         specifier: ^4.1.8
         version: 4.1.8
-      base64-arraybuffer:
-        specifier: ^1.0.2
-        version: 1.0.2
       eslint:
         specifier: ^9.25.1
         version: 9.25.1
@@ -1895,9 +1892,6 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  ramda@0.29.0:
-    resolution: {integrity: sha512-BBea6L67bYLtdbOqfp8f58fPMqEwx0doL+pAi8TZyp2YWz8R9G8z9x75CZI8W+ftqhFHCpEX2cRnUUXK130iKA==}
-
   random-bytes@1.0.0:
     resolution: {integrity: sha512-iv7LhNVO047HzYR3InF6pUcUsPQiHTM1Qal51DcGSuZFBil1aBBWG5eHPNek7bvILMaYJ/8RU1e8w1AMdHmLQQ==}
     engines: {node: '>= 0.8'}
@@ -2111,10 +2105,6 @@ packages:
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
     engines: {node: '>=8'}
-
-  swagger-express-router@1.0.1:
-    resolution: {integrity: sha512-naRvW7c90piqnIudXeJ+61/Fsw8VJMpsUXyzr3Rl1CnI/s/zpS9D3+1DCwptztSkib/FfDwGmgpjaw9wR/O8Yw==}
-    engines: {node: '>= 4.2.0'}
 
   swagger-ui-dist@5.22.0:
     resolution: {integrity: sha512-8YlCSxiyb8uPFa7qoB1lRHYr1PBbT1NuV9RvQdFFPFPudRBTPf9coU5jl02KhzvrtmTEw4jXRgb0kg8pJvVuWQ==}
@@ -4272,8 +4262,6 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  ramda@0.29.0: {}
-
   random-bytes@1.0.0: {}
 
   range-parser@1.2.1: {}
@@ -4506,10 +4494,6 @@ snapshots:
   supports-color@7.2.0:
     dependencies:
       has-flag: 4.0.0
-
-  swagger-express-router@1.0.1:
-    dependencies:
-      ramda: 0.29.0
 
   swagger-ui-dist@5.22.0:
     dependencies:

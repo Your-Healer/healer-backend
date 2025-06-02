@@ -72,8 +72,10 @@ model Position {
 }
 
 model Service {
-  id   String @id @default(uuid())
-  name String
+  id           String  @id @default(uuid())
+  name         String
+  description  String?
+  durationTime Int     @default(0)
 
   medicalRooms MedicalRoom[]
 }
