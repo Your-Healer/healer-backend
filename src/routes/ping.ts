@@ -3,14 +3,14 @@ import { compareHashedPassword, createHashedPassword } from '~/middlewares/auth'
 import multer from 'multer'
 import { decode } from 'base64-arraybuffer'
 import supabaseClient from '~/configs/supabase'
-import WalletService from '~/services/wallet.service'
+import BlockchainService from '~/services/blockchain.service'
 
 const router = Router()
 
 const storage = multer.memoryStorage()
 const upload = multer({ storage: storage })
 
-const walletService = WalletService.getInstance()
+const blockchainService = BlockchainService.getInstance()
 
 router.get('/', async (req: Request, res: Response) => {
   res.send('Hello World!')
@@ -18,7 +18,7 @@ router.get('/', async (req: Request, res: Response) => {
 
 router.get('/healer-network', async (req: Request, res: Response) => {
   try {
-    const { status, message } = await walletService.checkConnection()
+    const { status, message } = await blockchainService.checkConnection()
     res.status(200).json({ status, message })
   } catch (error) {
     console.error('Error checking connection:', error)

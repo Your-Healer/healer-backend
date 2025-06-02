@@ -1,21 +1,20 @@
 import { NextFunction, Request, Response } from 'express'
 import prisma from '~/libs/prisma/init'
 import { createHashedPassword } from '~/middlewares/auth'
-import WalletService from '~/services/wallet.service'
+import BlockchainService from '~/services/blockchain.service'
 import cryptoJs from 'crypto-js'
 import config from '~/configs/env'
 import { AuthService } from '~/services/auth.service'
-import { Account, User } from '@prisma/client'
 import UserService from '~/services/user.service'
 
-const walletService = WalletService.getInstance()
+const blockchainService = BlockchainService.getInstance()
 const authService = AuthService.getInstance()
 const userService = UserService.getInstance()
 
 export async function registerController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { username, password, email, firstname, lastname } = req.body
-    const { mnemonic, isValidMnemonic, keyring, pair } = await walletService.createNewWallet()
+    const { mnemonic, isValidMnemonic, keyring, pair } = await blockchainService.createNewWallet()
     const address = pair.address
 
     if (!mnemonic || !isValidMnemonic) {

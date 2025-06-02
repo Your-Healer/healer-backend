@@ -13,7 +13,7 @@ export default class ShiftService {
   }
 
   async createShift(data: { doctorId: string; roomId: string; fromTime: Date; toTime: Date }): Promise<ShiftWorking> {
-    return prisma.shiftWorking.create({
+    return await prisma.shiftWorking.create({
       data
     })
   }
@@ -27,20 +27,20 @@ export default class ShiftService {
       toTime?: Date
     }
   ): Promise<ShiftWorking> {
-    return prisma.shiftWorking.update({
+    return await prisma.shiftWorking.update({
       where: { id },
       data
     })
   }
 
   async deleteShift(id: string): Promise<ShiftWorking> {
-    return prisma.shiftWorking.delete({
+    return await prisma.shiftWorking.delete({
       where: { id }
     })
   }
 
-  async getShiftById(id: string) {
-    return prisma.shiftWorking.findUnique({
+  async getShiftById(id: string): Promise<ShiftWorking | null> {
+    return await prisma.shiftWorking.findUnique({
       where: { id },
       include: {
         doctor: true,

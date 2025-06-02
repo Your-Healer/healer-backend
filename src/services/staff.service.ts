@@ -1,5 +1,5 @@
 import prisma from '~/libs/prisma/init'
-import { Staff, EDUCATIONLEVEL, Account } from '@prisma/client'
+import { Staff, EDUCATIONLEVEL, Account, ShiftWorking, Appointment } from '@prisma/client'
 import { createHashedPassword } from '~/middlewares/auth'
 
 export default class StaffService {
@@ -126,8 +126,8 @@ export default class StaffService {
     return { account, staff }
   }
 
-  async getStaffById(id: string) {
-    return prisma.staff.findUnique({
+  async getStaffById(id: string): Promise<Staff | null> {
+    return await prisma.staff.findUnique({
       where: { id },
       include: {
         positions: {
@@ -145,8 +145,8 @@ export default class StaffService {
     })
   }
 
-  async getStaffByAccountId(accountId: string) {
-    return prisma.staff.findUnique({
+  async getStaffByAccountId(accountId: string): Promise<Staff | null> {
+    return await prisma.staff.findUnique({
       where: { accountId },
       include: {
         positions: {
@@ -163,7 +163,7 @@ export default class StaffService {
     })
   }
 
-  async getStaffShifts(staffId: string, fromDate?: Date, toDate?: Date) {
+  async getStaffShifts(staffId: string, fromDate?: Date, toDate?: Date): Promise<ShiftWorking[]> {
     const dateFilter: any = {}
 
     if (fromDate) {
@@ -179,7 +179,7 @@ export default class StaffService {
       whereClause.fromTime = dateFilter
     }
 
-    return prisma.shiftWorking.findMany({
+    return await prisma.shiftWorking.findMany({
       where: whereClause,
       include: {
         room: {
@@ -195,7 +195,7 @@ export default class StaffService {
     })
   }
 
-  async getStaffPatients(staffId: string, date?: Date) {
+  async getStaffPatients(staffId: string, date?: Date): Promise<Appointment[]> {
     // Get rooms where this staff is working
     const shifts = await prisma.shiftWorking.findMany({
       where: {
@@ -230,7 +230,7 @@ export default class StaffService {
       }
     }
 
-    return prisma.appointment.findMany({
+    return await prisma.appointment.findMany({
       where: whereClause,
       include: {
         user: true,
