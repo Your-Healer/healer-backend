@@ -10,8 +10,8 @@ import {
 import 'dotenv/config'
 
 const SUSTRATE_HOST = process.env.SUSTRATE_HOST
-export default class WalletService {
-  private static instance: WalletService
+export default class BlockchainService {
+  private static instance: BlockchainService
   private provider: WsProvider
 
   private constructor() {
@@ -19,10 +19,10 @@ export default class WalletService {
   }
 
   static getInstance() {
-    if (!WalletService.instance) {
-      WalletService.instance = new WalletService()
+    if (!BlockchainService.instance) {
+      BlockchainService.instance = new BlockchainService()
     }
-    return WalletService.instance
+    return BlockchainService.instance
   }
 
   async checkConnection() {

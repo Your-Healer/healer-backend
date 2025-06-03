@@ -1,5 +1,5 @@
 import { PrismaClient, EDUCATIONLEVEL } from '../src/generated/prisma/client'
-import WalletService from '../src/services/wallet.service'
+import BlockchainService from '../src/services/blockchain.service'
 import * as dotenv from 'dotenv'
 import cryptoJs from 'crypto-js'
 import bcrypt from 'bcrypt'
@@ -17,7 +17,7 @@ async function main() {
   const SECRET_KEY = process.env.SECRET || ''
   if (!SECRET_KEY) throw new Error('SECRET_KEY is not defined in .env file')
 
-  const walletService = WalletService.getInstance()
+  const blockchainService = BlockchainService.getInstance()
 
   console.log('Starting database seeding...')
 
@@ -184,7 +184,7 @@ async function main() {
 
   // ================ ADMIN ACCOUNT ================
   console.log('Creating admin account...')
-  const adminWallet = await walletService.createNewWallet()
+  const adminWallet = await blockchainService.createNewWallet()
   const adminEncryptedMnemonic = cryptoJs.AES.encrypt(adminWallet.mnemonic, SECRET_KEY).toString()
   const adminHashedPassword = await createHashedPassword('admin123')
 
@@ -216,7 +216,7 @@ async function main() {
   // ================ DOCTOR ACCOUNTS ================
   console.log('Creating doctor accounts...')
   // Cardiologist
-  const cardioWallet = await walletService.createNewWallet()
+  const cardioWallet = await blockchainService.createNewWallet()
   const cardioEncryptedMnemonic = cryptoJs.AES.encrypt(cardioWallet.mnemonic, SECRET_KEY).toString()
   const cardioHashedPassword = await createHashedPassword('doctor123')
 
@@ -259,7 +259,7 @@ async function main() {
   })
 
   // Neurologist
-  const neuroWallet = await walletService.createNewWallet()
+  const neuroWallet = await blockchainService.createNewWallet()
   const neuroEncryptedMnemonic = cryptoJs.AES.encrypt(neuroWallet.mnemonic, SECRET_KEY).toString()
   const neuroHashedPassword = await createHashedPassword('doctor123')
 
@@ -302,7 +302,7 @@ async function main() {
   })
 
   // General practitioner
-  const generalWallet = await walletService.createNewWallet()
+  const generalWallet = await blockchainService.createNewWallet()
   const generalEncryptedMnemonic = cryptoJs.AES.encrypt(generalWallet.mnemonic, SECRET_KEY).toString()
   const generalHashedPassword = await createHashedPassword('doctor123')
 
@@ -346,7 +346,7 @@ async function main() {
 
   // ================ NURSE ACCOUNT ================
   console.log('Creating nurse account...')
-  const nurseWallet = await walletService.createNewWallet()
+  const nurseWallet = await blockchainService.createNewWallet()
   const nurseEncryptedMnemonic = cryptoJs.AES.encrypt(nurseWallet.mnemonic, SECRET_KEY).toString()
   const nurseHashedPassword = await createHashedPassword('nurse123')
 
@@ -391,7 +391,7 @@ async function main() {
   // ================ PATIENT ACCOUNTS ================
   console.log('Creating patient accounts...')
   // Patient 1
-  const patient1Wallet = await walletService.createNewWallet()
+  const patient1Wallet = await blockchainService.createNewWallet()
   const patient1EncryptedMnemonic = cryptoJs.AES.encrypt(patient1Wallet.mnemonic, SECRET_KEY).toString()
   const patient1HashedPassword = await createHashedPassword('patient123')
 
@@ -421,7 +421,7 @@ async function main() {
   })
 
   // Patient 2
-  const patient2Wallet = await walletService.createNewWallet()
+  const patient2Wallet = await blockchainService.createNewWallet()
   const patient2EncryptedMnemonic = cryptoJs.AES.encrypt(patient2Wallet.mnemonic, SECRET_KEY).toString()
   const patient2HashedPassword = await createHashedPassword('patient123')
 

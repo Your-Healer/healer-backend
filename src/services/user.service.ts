@@ -1,5 +1,5 @@
 import prisma from '~/libs/prisma/init'
-import { Account, User } from '@prisma/client'
+import { Account, Appointment, User } from '@prisma/client'
 
 export default class UserService {
   private static instance: UserService
@@ -23,7 +23,7 @@ export default class UserService {
     walletMnemonic: string
     phoneNumber?: string
     address?: string
-  }) {
+  }): Promise<{ account: Account; user: User }> {
     const {
       roleId,
       username,
@@ -65,20 +65,20 @@ export default class UserService {
     return { account, user }
   }
 
-  async getUserById(id: string) {
-    return prisma.user.findUnique({
+  async getUserById(id: string): Promise<User | null> {
+    return await prisma.user.findUnique({
       where: { id }
     })
   }
 
-  async getUserByAccountId(accountId: string) {
-    return prisma.user.findUnique({
+  async getUserByAccountId(accountId: string): Promise<User | null> {
+    return await prisma.user.findUnique({
       where: { accountId }
     })
   }
 
-  async getAppointmentsHistory(userId: string) {
-    return prisma.appointment.findMany({
+  async getAppointmentsHistory(userId: string): Promise<Appointment[]> {
+    return await prisma.appointment.findMany({
       where: { userId },
       include: {
         medicalRoom: {

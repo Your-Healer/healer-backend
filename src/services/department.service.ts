@@ -1,3 +1,4 @@
+import { Department, MedicalRoom, StaffOnDepartment } from '@prisma/client'
 import prisma from '~/libs/prisma/init'
 
 export class DepartmentService {
@@ -11,8 +12,8 @@ export class DepartmentService {
     return DepartmentService.instance
   }
 
-  async getAllDepartments() {
-    return prisma.department.findMany({
+  async getAllDepartments(): Promise<Department[]> {
+    return await prisma.department.findMany({
       include: {
         location: true,
         medicalRooms: {
@@ -24,8 +25,8 @@ export class DepartmentService {
     })
   }
 
-  async getDepartmentById(id: string) {
-    return prisma.department.findUnique({
+  async getDepartmentById(id: string): Promise<Department | null> {
+    return await prisma.department.findUnique({
       where: { id },
       include: {
         location: true,
@@ -52,8 +53,8 @@ export class DepartmentService {
     })
   }
 
-  async getMedicalRoomsByDepartment(departmentId: string) {
-    return prisma.medicalRoom.findMany({
+  async getMedicalRoomsByDepartment(departmentId: string): Promise<MedicalRoom[]> {
+    return await prisma.medicalRoom.findMany({
       where: { departmentId },
       include: {
         service: true
@@ -61,8 +62,8 @@ export class DepartmentService {
     })
   }
 
-  async getStaffByDepartment(departmentId: string) {
-    return prisma.staffOnDepartment.findMany({
+  async getStaffByDepartment(departmentId: string): Promise<StaffOnDepartment[]> {
+    return await prisma.staffOnDepartment.findMany({
       where: { departmentId },
       include: {
         staff: {

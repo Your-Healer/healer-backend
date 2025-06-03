@@ -2,13 +2,12 @@ import { NextFunction, Response } from 'express'
 import cryptoJs from 'crypto-js'
 
 import prisma from '~/libs/prisma/init'
-import { createHashedPassword } from '~/middlewares/auth'
 import StaffService from '~/services/staff.service'
-import WalletService from '~/services/wallet.service'
+import BlockchainService from '~/services/blockchain.service'
 import config from '~/configs/env'
 
 const staffService = StaffService.getInstance()
-const walletService = WalletService.getInstance()
+const blockchainService = BlockchainService.getInstance()
 
 export const createStaffController = async (req: any, res: Response, next: NextFunction): Promise<any> => {
   try {
@@ -39,7 +38,7 @@ export const createStaffController = async (req: any, res: Response, next: NextF
     let walletAddress = null
     let encryptedMnemonic = null
 
-    const { mnemonic, isValidMnemonic, pair } = await walletService.createNewWallet()
+    const { mnemonic, isValidMnemonic, pair } = await blockchainService.createNewWallet()
 
     if (!mnemonic || !isValidMnemonic) {
       return res.status(400).json({ error: 'Failed to create wallet' })

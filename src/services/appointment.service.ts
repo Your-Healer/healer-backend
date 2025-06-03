@@ -1,5 +1,5 @@
+import { Appointment, APPOINTMENTSTATUS, DiagnosisSuggestion, MedicalRoomTime } from '@prisma/client'
 import prisma from '~/libs/prisma/init'
-import { Appointment, APPOINTMENTSTATUS } from '@prisma/client'
 
 export default class AppointmentService {
   private static instance: AppointmentService
@@ -26,8 +26,7 @@ export default class AppointmentService {
       }
     })
 
-    // Then create the appointment with the booking
-    const appointment = await prisma.appointment.create({
+    return await prisma.appointment.create({
       data: {
         userId: data.userId,
         medicalRoomId: data.medicalRoomId,
@@ -41,8 +40,6 @@ export default class AppointmentService {
         }
       }
     })
-
-    return appointment
   }
 
   async updateAppointmentStatus(appointmentId: string, status: APPOINTMENTSTATUS): Promise<Appointment> {
@@ -62,8 +59,8 @@ export default class AppointmentService {
     return updatedAppointment
   }
 
-  async getAppointmentById(id: string) {
-    return prisma.appointment.findUnique({
+  async getAppointmentById(id: string): Promise<Appointment | null> {
+    return await prisma.appointment.findUnique({
       where: { id },
       include: {
         user: true,
@@ -93,8 +90,8 @@ export default class AppointmentService {
     diseaseId?: string
     disease?: string
     confidence: number
-  }) {
-    return prisma.diagnosisSuggestion.create({
+  }): Promise<DiagnosisSuggestion> {
+    return await prisma.diagnosisSuggestion.create({
       data: {
         appointmentId: data.appointmentId,
         suggestedByAI: data.suggestedByAI ? 'TRUE' : 'FALSE',
@@ -104,7 +101,7 @@ export default class AppointmentService {
     })
   }
 
-  async getAvailableTimeSlots(medicalRoomId: string, date: Date) {
+  async getAvailableTimeSlots(medicalRoomId: string, date: Date): Promise<MedicalRoomTime[]> {
     const startOfDay = new Date(date)
     startOfDay.setHours(0, 0, 0, 0)
 
