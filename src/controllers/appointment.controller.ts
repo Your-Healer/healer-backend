@@ -6,45 +6,85 @@ const appointmentService = AppointmentService.getInstance()
 
 export async function createAppointmentController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id: userId, accountId } = req.user
-    const { medicalRoomId, medicalRoomTimeId } = req.body
+    const { id: userId } = req.user
+    const { patientId, medicalRoomTimeId, notes } = req.body
+
+    if (!patientId || !medicalRoomTimeId) {
+      return res.status(400).json({ error: 'Missing required fields' })
+    }
 
     const appointment = await appointmentService.createAppointment({
       userId,
-      medicalRoomId,
+      patientId,
       medicalRoomTimeId,
-      patientId: accountId
+      notes
     })
 
     return res.status(201).json({
       message: 'Appointment created successfully',
       appointment
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating appointment:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
 
 export async function updateAppointmentStatusController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { id } = req.params
-    const { status } = req.body
+    const { status, reason } = req.body
 
-    // Validate the status input
     if (!Object.values(APPOINTMENTSTATUS).includes(status as APPOINTMENTSTATUS)) {
       return res.status(400).json({ error: 'Invalid status value' })
     }
 
-    const updatedAppointment = await appointmentService.updateAppointmentStatus(id, status as APPOINTMENTSTATUS)
+    const appointment = await appointmentService.updateAppointmentStatus(id, status as APPOINTMENTSTATUS, reason)
 
     return res.status(200).json({
       message: 'Appointment status updated successfully',
-      appointment: updatedAppointment
+      appointment
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error updating appointment status:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function cancelAppointmentController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+    const { reason } = req.body
+
+    if (!reason) {
+      return res.status(400).json({ error: 'Cancellation reason is required' })
+    }
+
+    const appointment = await appointmentService.cancelAppointment(id, reason)
+
+    return res.status(200).json({
+      message: 'Appointment cancelled successfully',
+      appointment
+    })
+  } catch (error: any) {
+    console.error('Error cancelling appointment:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function completeAppointmentController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+
+    const appointment = await appointmentService.completeAppointment(id)
+
+    return res.status(200).json({
+      message: 'Appointment completed successfully',
+      appointment
+    })
+  } catch (error: any) {
+    console.error('Error completing appointment:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
 
@@ -58,49 +98,153 @@ export async function getAppointmentByIdController(req: Request, res: Response, 
     }
 
     return res.status(200).json(appointment)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching appointment:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
 
-export async function addDiagnosisController(req: Request, res: Response, next: NextFunction): Promise<any> {
+export async function getAppointmentsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { userId, staffId, departmentId, status, date, fromDate, toDate, page = 1, limit = 10 } = req.query
+
+    const filter = {
+      userId: userId as string,
+      staffId: staffId as string,
+      departmentId: departmentId as string,
+      status: status as APPOINTMENTSTATUS,
+      date: date ? new Date(date as string) : undefined,
+      fromDate: fromDate ? new Date(fromDate as string) : undefined,
+      toDate: toDate ? new Date(toDate as string) : undefined
+    }
+
+    const result = await appointmentService.getAppointments(filter, parseInt(page as string), parseInt(limit as string))
+
+    return res.status(200).json(result)
+  } catch (error: any) {
+    console.error('Error fetching appointments:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getUpcomingAppointmentsController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id: userId } = req.user
+    const { limit = 5 } = req.query
+
+    const appointments = await appointmentService.getUpcomingAppointments(userId, parseInt(limit as string))
+
+    return res.status(200).json(appointments)
+  } catch (error: any) {
+    console.error('Error fetching upcoming appointments:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function addDiagnosisSuggestionController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { appointmentId } = req.params
-    const { diseaseId, confidence, suggestedByAI } = req.body
+    const { suggestedByAI, disease, confidence, description } = req.body
 
-    const diagnosis = await appointmentService.addDiagnosisSuggestion({
+    if (!disease || confidence === undefined) {
+      return res.status(400).json({ error: 'Disease and confidence are required' })
+    }
+
+    const suggestion = await appointmentService.addDiagnosisSuggestion({
       appointmentId,
-      diseaseId,
-      confidence,
-      suggestedByAI: Boolean(suggestedByAI)
+      suggestedByAI: Boolean(suggestedByAI),
+      disease,
+      confidence: parseFloat(confidence),
+      description
     })
 
     return res.status(201).json({
-      message: 'Diagnosis added successfully',
-      diagnosis
+      message: 'Diagnosis suggestion added successfully',
+      suggestion
     })
-  } catch (error) {
-    console.error('Error adding diagnosis:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+  } catch (error: any) {
+    console.error('Error adding diagnosis suggestion:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
 
-export async function getAvailableTimeSlotsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+export async function getAppointmentStatisticsController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
   try {
-    const { medicalRoomId } = req.params
-    const dateStr = req.query.date as string
+    const { departmentId, fromDate, toDate } = req.query
 
-    if (!dateStr) {
-      return res.status(400).json({ error: 'Date parameter is required' })
+    const filter = {
+      departmentId: departmentId as string,
+      fromDate: fromDate ? new Date(fromDate as string) : undefined,
+      toDate: toDate ? new Date(toDate as string) : undefined
     }
 
-    const date = new Date(dateStr)
-    const availableSlots = await appointmentService.getAvailableTimeSlots(medicalRoomId, date)
+    const stats = await appointmentService.getAppointmentStatistics(filter)
 
-    return res.status(200).json(availableSlots)
-  } catch (error) {
-    console.error('Error fetching available time slots:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(200).json(stats)
+  } catch (error: any) {
+    console.error('Error fetching appointment statistics:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function checkTimeSlotAvailabilityController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  try {
+    const { medicalRoomTimeId } = req.params
+
+    const isAvailable = await appointmentService.checkTimeSlotAvailability(medicalRoomTimeId)
+
+    return res.status(200).json({ available: isAvailable })
+  } catch (error: any) {
+    console.error('Error checking time slot availability:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getAppointmentsByStaffController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { staffId } = req.params
+    const { date, page = 1, limit = 10 } = req.query
+
+    const result = await appointmentService.getAppointmentsByStaff(
+      staffId,
+      date ? new Date(date as string) : undefined,
+      parseInt(page as string),
+      parseInt(limit as string)
+    )
+
+    return res.status(200).json(result)
+  } catch (error: any) {
+    console.error('Error fetching appointments by staff:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getPatientAppointmentHistoryController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  try {
+    const { patientId } = req.params
+    const { page = 1, limit = 10 } = req.query
+
+    const result = await appointmentService.getPatientAppointmentHistory(
+      patientId,
+      parseInt(page as string),
+      parseInt(limit as string)
+    )
+
+    return res.status(200).json(result)
+  } catch (error: any) {
+    console.error('Error fetching patient appointment history:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }

@@ -2,6 +2,13 @@ import { Account } from '@prisma/client'
 import { BaseService } from './base.service'
 import { compareHashedPassword, createJWT } from '~/middlewares/auth'
 import prisma from '~/libs/prisma/init'
+import {
+  createEmailVerificationToken,
+  verifyEmailVerificationToken,
+  createPasswordResetToken,
+  verifyPasswordResetToken,
+  refreshToken
+} from '~/middlewares/auth'
 
 export interface LoginDTO {
   identifier: string // username, email, or phone

@@ -50,8 +50,6 @@ model Account {
   password        String
   email           String? @unique
   phoneNumber     String? @unique
-  firstname       String
-  lastname        String
   walletAddress   String  @unique
   walletMnemonic  String  @unique
   emailIsVerified Boolean @default(true)
@@ -76,6 +74,7 @@ model Service {
   name         String
   description  String?
   durationTime Int     @default(0)
+  price        Int     @default(0)
 
   medicalRooms MedicalRoom[]
 }
@@ -147,6 +146,21 @@ model User {
 
   account      Account       @relation(fields: [accountId], references: [id])
   appointments Appointment[]
+  Patient      Patient[]
+  BookingTime  BookingTime[]
+}
+
+model Patient {
+  id          String  @id @default(uuid())
+  userId      String
+  firstname   String
+  lastname    String
+  phoneNumber String?
+  address     String?
+
+  user        User          @relation(fields: [userId], references: [id])
+  BookingTime BookingTime[]
+  Appointment Appointment[]
 }
 
 model Staff {
@@ -166,11 +180,15 @@ model Staff {
 model BookingTime {
   id                String @id @default(uuid())
   medicalRoomTimeId String
-  userAccountId     String
+  userId            String
+  patientId         String
 
   medicalRoomTime MedicalRoomTime @relation(fields: [medicalRoomTimeId], references: [id])
-  userAccount     Account         @relation(fields: [userAccountId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
+  patient         Patient         @relation(fields: [patientId], references: [id])
   appointment     Appointment?
+  Account         Account?        @relation(fields: [accountId], references: [id])
+  accountId       String?
 }
 
 model ShiftWorking {
@@ -194,6 +212,7 @@ model Appointment {
 
   medicalRoom MedicalRoom @relation(fields: [medicalRoomId], references: [id])
   user        User        @relation(fields: [userId], references: [id])
+  patient     Patient     @relation(fields: [patientId], references: [id])
   bookingTime BookingTime @relation(fields: [bookingTimeId], references: [id])
 
   suggestions DiagnosisSuggestion[]
@@ -210,11 +229,13 @@ model AppointmentStatusLog {
 }
 
 model DiagnosisSuggestion {
-  id            String   @id @default(uuid())
+  id            String @id @default(uuid())
   appointmentId String
+
   suggestedByAI String?
   disease       String?
-  confidence    Float
+  confidence    Float    @default(0)
+  description   String?
   createdAt     DateTime @default(now())
 
   appointment Appointment @relation(fields: [appointmentId], references: [id])

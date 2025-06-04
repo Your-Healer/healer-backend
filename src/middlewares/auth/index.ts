@@ -1,109 +1,130 @@
+import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
-import { Request, Response, NextFunction } from 'express'
-import { logger } from '~/configs/logger'
 import prisma from '~/libs/prisma/init'
-import { Role } from '@prisma/client'
+
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const SALT_ROUNDS = 10
 
 export const createHashedPassword = async (password: string): Promise<string> => {
-  const salt = await bcrypt.genSalt(10)
-  return await bcrypt.hash(password, salt)
+  return await bcrypt.hash(password, SALT_ROUNDS)
 }
 
 export const compareHashedPassword = async (password: string, hashedPassword: string): Promise<boolean> => {
   return await bcrypt.compare(password, hashedPassword)
 }
 
-export const createJWT = (user: {
-  id: string
-  accountId: string | number
-  userName: string
-  verified: boolean
-  isStaff?: boolean
-}): string => {
-  const token = jwt.sign(
-    {
-      id: user.id,
-      accountId: user.accountId,
-      userName: user.userName,
-      verified: user.verified,
-      isStaff: user.isStaff || false
-    },
-    process.env.JWT_SECRET as string
-  )
-  return token
+export const createJWT = (payload: any): string => {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
 }
 
-export const createEmailJWT = (email: string): string => {
-  const token = jwt.sign(
-    {
-      email
-    },
-    process.env.JWT_SECRET as string,
-    { expiresIn: '1h' }
-  )
-  return token
+export const verifyJWT = (token: string): any => {
+  return jwt.verify(token, JWT_SECRET)
 }
 
-export const protect = (req: any, res: Response, next: NextFunction): any => {
-  const bearerToken = req.headers.authorization
-
-  if (!bearerToken) {
-    return res.status(401).json({ message: 'Unauthorized' })
-  }
-  const [, token] = bearerToken.split(' ')
-
-  if (!token) {
-    return res.status(401).json({ message: 'Invalid token' })
-  }
+export const protect = async (req: any, res: Response, next: NextFunction): Promise<any> => {
   try {
-    const user = jwt.verify(token, (process.env.JWT_SECRET as string) || ' ')
-    req.user = user
-    req.token = token
-    next()
-  } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' })
-  }
-}
-
-export const blockJWT = (req: any, res: Response, next: NextFunction): any => {
-  const bearer = req.headers.authorization
-  const tokenFromSession = req.session.token
-  logger.info('🚀 ~ file: index.ts:68 ~ blockJWT ~ tokenFromSession:', tokenFromSession)
-  if (!tokenFromSession) {
-    return res.status(401).json({ msg: 'Session Expired' })
-  }
-  if (!bearer) {
-    return res.status(401).json({ msg: 'Unauthorized' })
-  }
-
-  const [, token] = bearer.split(' ')
-
-  if (!token) {
-    return res.status(401).json({ msg: 'invalid token' })
-  }
-  if (token !== tokenFromSession) {
-    return res.status(401).json({ msg: 'invalid token' })
-  }
-  next()
-}
-
-export const checkVerified = (req: any, res: Response, next: NextFunction): any => {
-  const { verified } = req.user
-  if (!verified) {
-    return res.status(401).json({ message: 'User not verified' })
-  }
-  next()
-}
-
-export const checkRole = (roles: Array<string>) => {
-  return async (req: any, res: Response, next: NextFunction): Promise<any> => {
-    const { accountId } = req.user
-    const account = await prisma.account.findUnique({ where: { id: accountId } })
-    if (!account) {
-      return res.status(401).send()
+    const authHeader = req.headers.authorization
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: 'Access token is required' })
     }
-    if (roles.indexOf(account.roleId) > -1) next()
-    return res.status(401).send()
+
+    const token = authHeader.substring(7)
+    const decoded = verifyJWT(token)
+
+    // Get account with role information
+    const account = await prisma.account.findUnique({
+      where: { id: decoded.accountId },
+      include: {
+        role: true,
+        user: true,
+        staff: {
+          include: {
+            positions: {
+              include: {
+                position: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (!account) {
+      return res.status(401).json({ message: 'Invalid token' })
+    }
+
+    // Attach user info to request
+    req.user = {
+      accountId: account.id,
+      userId: account.user?.id,
+      staffId: account.staff?.id,
+      role: account.role?.name,
+      username: account.username,
+      email: account.email,
+      account: account
+    }
+
+    next()
+  } catch (error: any) {
+    console.error('Auth middleware error:', error)
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Invalid token' })
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ message: 'Token expired' })
+    }
+    return res.status(500).json({ message: 'Internal server error' })
+  }
+}
+
+export const optionalAuth = async (req: any, res: Response, next: NextFunction): Promise<any> => {
+  try {
+    const authHeader = req.headers.authorization
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      // No token provided, continue without authentication
+      req.user = null
+      return next()
+    }
+
+    const token = authHeader.substring(7)
+    const decoded = verifyJWT(token)
+
+    const account = await prisma.account.findUnique({
+      where: { id: decoded.accountId },
+      include: {
+        role: true,
+        user: true,
+        staff: {
+          include: {
+            positions: {
+              include: {
+                position: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (account) {
+      req.user = {
+        accountId: account.id,
+        userId: account.user?.id,
+        staffId: account.staff?.id,
+        role: account.role?.name,
+        username: account.username,
+        email: account.email,
+        account: account
+      }
+    } else {
+      req.user = null
+    }
+
+    next()
+  } catch (error: any) {
+    // If token is invalid, continue without authentication
+    req.user = null
+    next()
   }
 }

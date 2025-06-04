@@ -1,20 +1,19 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api'
-import {
-  cryptoWaitReady,
-  ed25519PairFromSeed,
-  mnemonicGenerate,
-  mnemonicToMiniSecret,
-  mnemonicValidate,
-  randomAsU8a
-} from '@polkadot/util-crypto'
-import 'dotenv/config'
+import { cryptoWaitReady, mnemonicGenerate, mnemonicValidate } from '@polkadot/util-crypto'
+import configs from '../configs/env'
+import { AllExtrinsics } from '~/utils/types'
+import { SubmittableExtrinsicFunction } from '@polkadot/api/types'
 
-const SUSTRATE_HOST = process.env.SUSTRATE_HOST
+const SUSTRATE_HOST = configs.secrets.substrateHost || process.env.SUBSTRATE_HOST
+
 export default class BlockchainService {
   private static instance: BlockchainService
   private provider: WsProvider
 
   private constructor() {
+    if (!SUSTRATE_HOST) {
+      throw new Error('Substrate host is not configured.')
+    }
     this.provider = new WsProvider(SUSTRATE_HOST)
   }
 
@@ -49,5 +48,25 @@ export default class BlockchainService {
     const pair = keyring.addFromMnemonic(mnemonic)
 
     return { mnemonic, isValidMnemonic, keyring, pair }
+  }
+
+  async getExtrinsic() {
+    const api = await ApiPromise.create({ provider: this.provider })
+    const extrinsic = api.tx
+
+    const map: Partial<AllExtrinsics> = {}
+    for (const [palletName, pallet] of Object.entries(extrinsic)) {
+      const methods = Object.keys(pallet)
+      if (methods.length > 0) {
+        map[palletName] = {}
+        for (const methodName of methods) {
+          map[palletName]![methodName] = (pallet as any)[methodName] as SubmittableExtrinsicFunction<'promise'>
+        }
+      }
+    }
+
+    console.log(map)
+
+    return map as AllExtrinsics
   }
 }

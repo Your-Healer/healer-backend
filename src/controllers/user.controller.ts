@@ -13,32 +13,144 @@ export async function getUserProfileController(req: any, res: Response, next: Ne
     }
 
     return res.status(200).json(user)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching user profile:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function updateUserProfileController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.user
+    const { firstname, lastname, phoneNumber, address } = req.body
+
+    const user = await userService.updateUser(id, {
+      firstname,
+      lastname,
+      phoneNumber,
+      address
+    })
+
+    return res.status(200).json({
+      message: 'User profile updated successfully',
+      user
+    })
+  } catch (error: any) {
+    console.error('Error updating user profile:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getUsersController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { searchTerm, hasAppointments, page = 1, limit = 10 } = req.query
+
+    const filter = {
+      searchTerm: searchTerm as string,
+      hasAppointments: hasAppointments === 'true' ? true : hasAppointments === 'false' ? false : undefined
+    }
+
+    const result = await userService.getUsers(filter, parseInt(page as string), parseInt(limit as string))
+
+    return res.status(200).json(result)
+  } catch (error: any) {
+    console.error('Error fetching users:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getUserByIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+    const user = await userService.getUserById(id)
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    return res.status(200).json(user)
+  } catch (error: any) {
+    console.error('Error fetching user:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
 
 export async function getAppointmentHistoryController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
     const { id } = req.user
-    const appointments = await userService.getAppointmentsHistory(id)
+    const { page = 1, limit = 10 } = req.query
 
-    return res.status(200).json(appointments)
-  } catch (error) {
+    const result = await userService.getUserAppointments(id, parseInt(page as string), parseInt(limit as string))
+
+    return res.status(200).json(result)
+  } catch (error: any) {
     console.error('Error fetching appointment history:', error)
-    return res.status(500).json({ error: 'Internal server error' })
+    return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
 
-// export async function getUserDiseasesController(req: any, res: Response, next: NextFunction) {
-//   try {
-//     const { id } = req.user
-//     const diseases = await userService.getUserDiseases(id)
+export async function getUserPatientsController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.user
+    const { page = 1, limit = 10 } = req.query
 
-//     return res.status(200).json(diseases)
-//   } catch (error) {
-//     console.error('Error fetching user diseases:', error)
-//     return res.status(500).json({ error: 'Internal server error' })
-//   }
-// }
+    const result = await userService.getUserPatients(id, parseInt(page as string), parseInt(limit as string))
+
+    return res.status(200).json(result)
+  } catch (error: any) {
+    console.error('Error fetching user patients:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function deleteUserController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+
+    await userService.deleteUser(id)
+
+    return res.status(200).json({
+      message: 'User deleted successfully'
+    })
+  } catch (error: any) {
+    console.error('Error deleting user:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getUserStatisticsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { userId } = req.query
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' })
+    }
+    const stats = await userService.getUserStatistics(userId as string)
+
+    return res.status(200).json(stats)
+  } catch (error: any) {
+    console.error('Error fetching user statistics:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function searchUsersController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { searchTerm } = req.query
+    const { page = 1, limit = 10 } = req.query
+
+    if (!searchTerm) {
+      return res.status(400).json({ error: 'Search term is required' })
+    }
+
+    const result = await userService.searchUsers(
+      searchTerm as string,
+      parseInt(page as string),
+      parseInt(limit as string)
+    )
+
+    return res.status(200).json(result)
+  } catch (error: any) {
+    console.error('Error searching users:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}

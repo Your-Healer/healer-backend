@@ -1,18 +1,19 @@
+import { BaseService } from './base.service'
 import prisma from '~/libs/prisma/init'
 import { Staff, EDUCATIONLEVEL, Account, ShiftWorking, Appointment } from '@prisma/client'
 import { createHashedPassword } from '~/middlewares/auth'
 
-export default class StaffService {
+export default class StaffService extends BaseService {
   private static instance: StaffService
-  private constructor() {}
-
-  static getInstance() {
+  private constructor() {
+    super()
+  }
+  static getInstance(): StaffService {
     if (!StaffService.instance) {
       StaffService.instance = new StaffService()
     }
     return StaffService.instance
   }
-
   async createStaff(data: {
     accountId: string
     firstname: string
@@ -104,11 +105,9 @@ export default class StaffService {
         username,
         password: hashedPassword,
         email,
-        firstname,
-        lastname,
+        phoneNumber,
         walletAddress,
         walletMnemonic,
-        phoneNumber,
         emailIsVerified: false
       }
     })
@@ -254,5 +253,27 @@ export default class StaffService {
         }
       }
     })
+  }
+
+  async getAllStaff() {
+    try {
+      return await prisma.staff.findMany({
+        include: {
+          account: true,
+          positions: {
+            include: {
+              position: true
+            }
+          },
+          departments: {
+            include: {
+              department: true
+            }
+          }
+        }
+      })
+    } catch (error) {
+      this.handleError(error, 'getAllStaff')
+    }
   }
 }
