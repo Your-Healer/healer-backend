@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { protect } from '~/middlewares/auth'
+import { protect } from '~/middlewares/auth/index'
 import { isAdmin } from '~/middlewares/auth/roles'
 import {
   createAccountController,

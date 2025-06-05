@@ -1,6 +1,7 @@
 import { Router } from 'express'
-import { protect } from '~/middlewares/auth'
-import { isAdmin, isReceptionist } from '~/middlewares/auth/roles'
+import { protect } from '~/middlewares/auth/index'
+import { isDoctor, isDepartmentHead, isMedicalStaff, isNurse, isReceptionist } from '~/middlewares/auth/positions'
+import { isAdmin, isPatient, isStaff, isUser, hasAnyRole } from '~/middlewares/auth/roles'
 import {
   createMedicalRoomController,
   updateMedicalRoomController,

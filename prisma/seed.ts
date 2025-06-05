@@ -1017,7 +1017,7 @@ async function main() {
       if (deptRooms.length > 0) {
         await prisma.shiftWorking.create({
           data: {
-            doctorId: staff.id,
+            staffId: staff.id,
             roomId: deptRooms[0].id, // Phòng khám chính
             fromTime: morningStart,
             toTime: morningEnd
@@ -1040,7 +1040,7 @@ async function main() {
 
         await prisma.shiftWorking.create({
           data: {
-            doctorId: staff.id,
+            staffId: staff.id,
             roomId: deptRooms[roomIndex].id,
             fromTime: afternoonStart,
             toTime: afternoonEnd

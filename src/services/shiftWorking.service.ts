@@ -3,21 +3,21 @@ import { BaseService } from './base.service'
 import prisma from '~/libs/prisma/init'
 
 export interface CreateShiftData {
-  doctorId: string
+  staffId: string
   roomId: string
   fromTime: Date
   toTime: Date
 }
 
 export interface UpdateShiftData {
-  doctorId?: string
+  staffId?: string
   roomId?: string
   fromTime?: Date
   toTime?: Date
 }
 
 export interface ShiftFilter {
-  doctorId?: string
+  staffId?: string
   roomId?: string
   departmentId?: string
   date?: Date
@@ -26,7 +26,7 @@ export interface ShiftFilter {
 }
 
 export interface BulkShiftData {
-  doctorId: string
+  staffId: string
   roomId: string
   dates: Date[]
   morningShift?: { startHour: number; endHour: number }
@@ -34,7 +34,7 @@ export interface BulkShiftData {
 }
 
 export interface RecurringShiftData {
-  doctorId: string
+  staffId: string
   roomId: string
   startDate: Date
   endDate: Date
@@ -55,12 +55,11 @@ export default class ShiftWorkingService extends BaseService {
     return ShiftWorkingService.instance
   }
 
-  // Re-export all methods from ShiftService with proper naming
   async createShift(data: CreateShiftData): Promise<ShiftWorking> {
     try {
-      // Validate doctor exists and has appropriate position
-      const doctor = await prisma.staff.findUnique({
-        where: { id: data.doctorId },
+      // Validate staff exists and has appropriate position
+      const staff = await prisma.staff.findUnique({
+        where: { id: data.staffId },
         include: {
           positions: {
             include: {
@@ -70,17 +69,17 @@ export default class ShiftWorkingService extends BaseService {
           departments: true
         }
       })
-      if (!doctor) {
+      if (!staff) {
         throw new Error('Doctor not found')
       }
 
-      // Check if staff member has doctor position
-      const isDoctorPosition = doctor.positions?.some(
+      // Check if staff member has staff position
+      const isDoctorPosition = staff.positions?.some(
         (pos) => pos.position?.name === 'Bác sĩ' || pos.position?.name === 'Trưởng khoa'
       )
 
       if (!isDoctorPosition) {
-        throw new Error('Staff member is not a doctor')
+        throw new Error('Staff member is not a staff')
       }
 
       // Validate room exists
@@ -95,8 +94,8 @@ export default class ShiftWorkingService extends BaseService {
         throw new Error('Medical room not found')
       }
 
-      // Check if doctor is assigned to room's department
-      const isAssignedToDepartment = doctor.departments?.some((dept) => dept.departmentId === room.departmentId)
+      // Check if staff is assigned to room's department
+      const isAssignedToDepartment = staff.departments?.some((dept) => dept.departmentId === room.departmentId)
 
       if (!isAssignedToDepartment) {
         throw new Error('Doctor is not assigned to this department')
@@ -112,10 +111,10 @@ export default class ShiftWorkingService extends BaseService {
       }
 
       // Check for time conflicts
-      const conflicts = await this.checkShiftConflicts(data.doctorId, data.fromTime, data.toTime)
+      const conflicts = await this.checkShiftConflicts(data.staffId, data.fromTime, data.toTime)
 
       if (conflicts.length > 0) {
-        throw new Error('Time conflict with existing doctor shift')
+        throw new Error('Time conflict with existing staff shift')
       }
 
       // Check for room conflicts
@@ -131,7 +130,7 @@ export default class ShiftWorkingService extends BaseService {
       }
 
       const shiftData: Prisma.ShiftWorkingCreateInput = {
-        doctor: { connect: { id: data.doctorId } },
+        staff: { connect: { id: data.staffId } },
         room: { connect: { id: data.roomId } },
         fromTime: data.fromTime,
         toTime: data.toTime
@@ -140,7 +139,7 @@ export default class ShiftWorkingService extends BaseService {
       return await prisma.shiftWorking.create({
         data: shiftData,
         include: {
-          doctor: {
+          staff: {
             include: {
               account: true
             }
@@ -174,7 +173,7 @@ export default class ShiftWorkingService extends BaseService {
 
       // Prepare updated data with existing values as defaults
       const updateData = {
-        doctorId: data.doctorId || existingShift.doctorId,
+        staffId: data.staffId || existingShift.staffId,
         roomId: data.roomId || existingShift.roomId,
         fromTime: data.fromTime || existingShift.fromTime,
         toTime: data.toTime || existingShift.toTime
@@ -186,21 +185,16 @@ export default class ShiftWorkingService extends BaseService {
       }
 
       // Check for conflicts if critical fields changed
-      if (data.doctorId || data.fromTime || data.toTime) {
-        const conflicts = await this.checkShiftConflicts(
-          updateData.doctorId,
-          updateData.fromTime,
-          updateData.toTime,
-          id
-        )
+      if (data.staffId || data.fromTime || data.toTime) {
+        const conflicts = await this.checkShiftConflicts(updateData.staffId, updateData.fromTime, updateData.toTime, id)
 
         if (conflicts.length > 0) {
-          throw new Error('Time conflict with existing doctor shift')
+          throw new Error('Time conflict with existing staff shift')
         }
       }
 
       const prismaUpdateData: Prisma.ShiftWorkingUpdateInput = {
-        doctor: data.doctorId ? { connect: { id: data.doctorId } } : undefined,
+        staff: data.staffId ? { connect: { id: data.staffId } } : undefined,
         room: data.roomId ? { connect: { id: data.roomId } } : undefined,
         fromTime: data.fromTime,
         toTime: data.toTime
@@ -210,7 +204,7 @@ export default class ShiftWorkingService extends BaseService {
         where: { id },
         data: prismaUpdateData,
         include: {
-          doctor: {
+          staff: {
             include: {
               account: true
             }
@@ -255,7 +249,7 @@ export default class ShiftWorkingService extends BaseService {
       return await prisma.shiftWorking.findUnique({
         where: { id },
         include: {
-          doctor: {
+          staff: {
             include: {
               account: true,
               positions: {
@@ -288,7 +282,7 @@ export default class ShiftWorkingService extends BaseService {
 
       const where: any = {}
 
-      if (filter.doctorId) where.doctorId = filter.doctorId
+      if (filter.staffId) where.staffId = filter.staffId
       if (filter.roomId) where.roomId = filter.roomId
 
       if (filter.departmentId) {
@@ -319,7 +313,7 @@ export default class ShiftWorkingService extends BaseService {
           take,
           where,
           include: {
-            doctor: {
+            staff: {
               include: {
                 account: true,
                 positions: {
@@ -351,12 +345,12 @@ export default class ShiftWorkingService extends BaseService {
     }
   }
 
-  async getShiftsByDoctor(doctorId: string, fromDate?: Date, toDate?: Date, page: number = 1, limit: number = 10) {
+  async getShiftsByDoctor(staffId: string, fromDate?: Date, toDate?: Date, page: number = 1, limit: number = 10) {
     try {
       const { skip, take } = this.calculatePagination(page, limit)
 
-      const doctor = await prisma.staff.findUnique({
-        where: { id: doctorId },
+      const staff = await prisma.staff.findUnique({
+        where: { id: staffId },
         include: {
           account: true,
           positions: {
@@ -366,11 +360,11 @@ export default class ShiftWorkingService extends BaseService {
           }
         }
       })
-      if (!doctor) {
+      if (!staff) {
         throw new Error('Doctor not found')
       }
 
-      const where: any = { doctorId }
+      const where: any = { staffId }
       if (fromDate || toDate) {
         where.fromTime = {}
         if (fromDate) where.fromTime.gte = fromDate
@@ -404,7 +398,7 @@ export default class ShiftWorkingService extends BaseService {
 
       return {
         ...this.formatPaginationResult(shifts, total, page, limit),
-        doctor,
+        staff,
         totalHours: Math.round(totalHours * 100) / 100,
         totalDays,
         averageHoursPerDay: totalDays > 0 ? Math.round((totalHours / totalDays) * 100) / 100 : 0
@@ -446,7 +440,7 @@ export default class ShiftWorkingService extends BaseService {
           take,
           where,
           include: {
-            doctor: {
+            staff: {
               include: {
                 account: true,
                 positions: {
@@ -463,7 +457,7 @@ export default class ShiftWorkingService extends BaseService {
       ])
 
       const coverage = this.calculateRoomCoverage(shifts, fromDate, toDate)
-      const uniqueDoctors = [...new Set(shifts.map((shift) => shift.doctorId))].length
+      const uniqueDoctors = [...new Set(shifts.map((shift) => shift.staffId))].length
 
       return {
         ...this.formatPaginationResult(shifts, total, page, limit),
@@ -514,7 +508,7 @@ export default class ShiftWorkingService extends BaseService {
           take,
           where,
           include: {
-            doctor: {
+            staff: {
               include: {
                 account: true,
                 positions: {
@@ -535,7 +529,7 @@ export default class ShiftWorkingService extends BaseService {
         prisma.shiftWorking.count({ where })
       ])
 
-      const uniqueDoctors = [...new Set(shifts.map((shift) => shift.doctorId))].length
+      const uniqueDoctors = [...new Set(shifts.map((shift) => shift.staffId))].length
       const uniqueRooms = [...new Set(shifts.map((shift) => shift.roomId))].length
       const totalHours = this.calculateTotalHours(shifts)
 
@@ -552,7 +546,7 @@ export default class ShiftWorkingService extends BaseService {
         }
         roomShifts[roomId].shifts.push(shift)
         roomShifts[roomId].totalHours += this.calculateShiftDuration(shift.fromTime, shift.toTime)
-        roomShifts[roomId].doctors.add(shift.doctorId)
+        roomShifts[roomId].doctors.add(shift.staffId)
       })
 
       Object.keys(roomShifts).forEach((roomId) => {
@@ -577,6 +571,109 @@ export default class ShiftWorkingService extends BaseService {
     }
   }
 
+  async getShiftsByDateRange(fromDate: Date, toDate: Date, page: number = 1, limit: number = 10) {
+    try {
+      const { skip, take } = this.calculatePagination(page, limit)
+
+      const where: any = {
+        fromTime: {
+          gte: fromDate,
+          lte: toDate
+        }
+      }
+
+      const [shifts, total] = await Promise.all([
+        prisma.shiftWorking.findMany({
+          skip,
+          take,
+          where,
+          include: {
+            staff: {
+              include: {
+                account: true,
+                positions: {
+                  include: {
+                    position: true
+                  }
+                }
+              }
+            },
+            room: {
+              include: {
+                department: {
+                  include: {
+                    location: true
+                  }
+                },
+                service: true
+              }
+            }
+          },
+          orderBy: { fromTime: 'asc' }
+        }),
+        prisma.shiftWorking.count({ where })
+      ])
+
+      return this.formatPaginationResult(shifts, total, page, limit)
+    } catch (error) {
+      this.handleError(error, 'getShiftsByDateRange')
+    }
+  }
+
+  async getShiftsByStaff(staffId: string, fromDate?: Date, toDate?: Date, page: number = 1, limit: number = 10) {
+    try {
+      const { skip, take } = this.calculatePagination(page, limit)
+
+      const staff = await prisma.staff.findUnique({
+        where: { id: staffId },
+        include: {
+          account: true,
+          positions: {
+            include: {
+              position: true
+            }
+          }
+        }
+      })
+      if (!staff) {
+        throw new Error('Staff not found')
+      }
+
+      const where: any = { staffId }
+      if (fromDate || toDate) {
+        where.fromTime = {}
+        if (fromDate) where.fromTime.gte = fromDate
+        if (toDate) where.fromTime.lte = toDate
+      }
+
+      const [shifts, total] = await Promise.all([
+        prisma.shiftWorking.findMany({
+          skip,
+          take,
+          where,
+          include: {
+            room: {
+              include: {
+                department: {
+                  include: {
+                    location: true
+                  }
+                },
+                service: true
+              }
+            }
+          },
+          orderBy: { fromTime: 'asc' }
+        }),
+        prisma.shiftWorking.count({ where })
+      ])
+
+      return this.formatPaginationResult(shifts, total, page, limit)
+    } catch (error) {
+      this.handleError(error, 'getShiftsByStaff')
+    }
+  }
+
   async createBulkShifts(data: BulkShiftData): Promise<ShiftWorking[]> {
     try {
       const shifts: CreateShiftData[] = []
@@ -590,7 +687,7 @@ export default class ShiftWorkingService extends BaseService {
           morningEnd.setHours(data.morningShift.endHour, 0, 0, 0)
 
           shifts.push({
-            doctorId: data.doctorId,
+            staffId: data.staffId,
             roomId: data.roomId,
             fromTime: morningStart,
             toTime: morningEnd
@@ -605,7 +702,7 @@ export default class ShiftWorkingService extends BaseService {
           afternoonEnd.setHours(data.afternoonShift.endHour, 0, 0, 0)
 
           shifts.push({
-            doctorId: data.doctorId,
+            staffId: data.staffId,
             roomId: data.roomId,
             fromTime: afternoonStart,
             toTime: afternoonEnd
@@ -647,7 +744,7 @@ export default class ShiftWorkingService extends BaseService {
             toTime.setHours(timeSlot.endHour, 0, 0, 0)
 
             shifts.push({
-              doctorId: data.doctorId,
+              staffId: data.staffId,
               roomId: data.roomId,
               fromTime,
               toTime
@@ -678,7 +775,7 @@ export default class ShiftWorkingService extends BaseService {
     try {
       const where: any = {}
 
-      if (filter.doctorId) where.doctorId = filter.doctorId
+      if (filter.staffId) where.staffId = filter.staffId
       if (filter.departmentId) {
         where.room = {
           departmentId: filter.departmentId
@@ -695,7 +792,7 @@ export default class ShiftWorkingService extends BaseService {
         prisma.shiftWorking.count({ where }),
         prisma.shiftWorking.findMany({
           where,
-          select: { doctorId: true, roomId: true, fromTime: true, toTime: true }
+          select: { staffId: true, roomId: true, fromTime: true, toTime: true }
         }),
         prisma.shiftWorking.count({
           where: {
@@ -711,7 +808,7 @@ export default class ShiftWorkingService extends BaseService {
         })
       ])
 
-      const uniqueDoctors = [...new Set(shifts.map((s) => s.doctorId))].length
+      const uniqueDoctors = [...new Set(shifts.map((s) => s.staffId))].length
       const uniqueRooms = [...new Set(shifts.map((s) => s.roomId))].length
       const totalHours = this.calculateTotalHours(shifts)
       const averageShiftsPerDoctor = uniqueDoctors > 0 ? totalShifts / uniqueDoctors : 0
@@ -730,10 +827,10 @@ export default class ShiftWorkingService extends BaseService {
     }
   }
 
-  async checkShiftConflicts(doctorId: string, fromTime: Date, toTime: Date, excludeShiftId?: string) {
+  async checkShiftConflicts(staffId: string, fromTime: Date, toTime: Date, excludeShiftId?: string) {
     try {
       const where: any = {
-        doctorId: doctorId,
+        staffId: staffId,
         AND: [{ fromTime: { lt: toTime } }, { toTime: { gt: fromTime } }]
       }
 
@@ -755,7 +852,7 @@ export default class ShiftWorkingService extends BaseService {
 
       return conflicts.map((conflict) => ({
         id: conflict.id,
-        doctorId: conflict.doctorId,
+        staffId: conflict.staffId,
         roomId: conflict.roomId,
         fromTime: conflict.fromTime,
         toTime: conflict.toTime,
@@ -765,6 +862,47 @@ export default class ShiftWorkingService extends BaseService {
       }))
     } catch (error) {
       this.handleError(error, 'checkShiftConflicts')
+    }
+  }
+
+  async assignShift(staffId: string, roomId: string, fromTime: Date, toTime: Date): Promise<ShiftWorking> {
+    try {
+      const existingShift = await prisma.shiftWorking.findFirst({
+        where: {
+          OR: [
+            { staffId: staffId, AND: [{ fromTime: { lt: toTime } }, { toTime: { gt: fromTime } }] },
+            { roomId: roomId, AND: [{ fromTime: { lt: toTime } }, { toTime: { gt: fromTime } }] }
+          ]
+        }
+      })
+      if (existingShift) {
+        throw new Error('Shift already exists for this staff or room at the specified time')
+      }
+      const shiftData: Prisma.ShiftWorkingCreateInput = {
+        staff: { connect: { id: staffId } },
+        room: { connect: { id: roomId } },
+        fromTime,
+        toTime
+      }
+      const createdShiftWorking = await prisma.shiftWorking.create({
+        data: shiftData,
+        include: {
+          staff: {
+            include: {
+              account: true
+            }
+          },
+          room: {
+            include: {
+              department: true,
+              service: true
+            }
+          }
+        }
+      })
+      return createdShiftWorking
+    } catch (error) {
+      this.handleError(error, 'assignShift')
     }
   }
 

@@ -12,11 +12,9 @@ export async function createAccountController(req: Request, res: Response, next:
       username,
       password,
       email,
-      phoneNumber,
-      avatarId
+      phoneNumber
     })
 
-    // Remove sensitive data from response
     const { password: _, walletMnemonic: __, ...safeAccount } = account
 
     return res.status(201).json({
@@ -43,7 +41,6 @@ export async function getAccountByIdController(req: Request, res: Response, next
       return res.status(404).json({ error: 'Account not found' })
     }
 
-    // Remove sensitive data
     const { password, walletMnemonic, ...safeAccount } = account
 
     return res.status(200).json({
@@ -59,7 +56,7 @@ export async function getAccountByUsernameController(req: Request, res: Response
   try {
     const { username } = req.params
 
-    const account = await accountService.getAccountByUsername(username)
+    const account = await accountService.getAccountByUsername({ username })
     if (!account) {
       return res.status(404).json({ error: 'Account not found' })
     }
@@ -80,7 +77,7 @@ export async function getAccountByEmailController(req: Request, res: Response, n
   try {
     const { email } = req.params
 
-    const account = await accountService.getAccountByEmail(email)
+    const account = await accountService.getAccountByEmail({ email })
     if (!account) {
       return res.status(404).json({ error: 'Account not found' })
     }
@@ -168,7 +165,7 @@ export async function resetPasswordController(req: Request, res: Response, next:
   try {
     const { email, newPassword } = req.body
 
-    const account = await accountService.resetPassword(email, newPassword)
+    const account = await accountService.resetPassword({ email, newPassword })
 
     return res.status(200).json({
       message: 'Password reset successfully'
@@ -210,7 +207,7 @@ export async function getAccountsController(req: Request, res: Response, next: N
       searchTerm: searchTerm as string
     }
 
-    const result = await accountService.getAccounts(filter, Number(page), Number(limit))
+    const result = await accountService.getAccounts({ filter, page: Number(page), limit: Number(limit) })
 
     // Remove sensitive data from all accounts
     const safeAccounts = result.data.map((account) => {
@@ -269,7 +266,7 @@ export async function checkAccountExistsController(req: Request, res: Response, 
       return res.status(400).json({ error: 'At least one field (username, email, phoneNumber) is required' })
     }
 
-    const result = await accountService.checkAccountExists(username, email, phoneNumber)
+    const result = await accountService.checkAccountExists({ username, email, phoneNumber })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -490,7 +487,7 @@ export async function getAccountActivityController(req: Request, res: Response, 
     const activity = {
       lastLogin: null,
       emailVerified: account.emailIsVerified,
-      profileComplete: !!(account.email && (account.user || account.staff))
+      profileComplete: !!(account.email && (account.user != null || account.staff != null))
     }
 
     return res.status(200).json({
@@ -511,7 +508,11 @@ export async function searchAccountsController(req: Request, res: Response, next
     }
 
     const filter = { searchTerm: searchTerm as string }
-    const result = await accountService.getAccounts(filter, Number(page), Number(limit))
+    const result = await accountService.getAccounts({
+      filter,
+      page: Number(page),
+      limit: Number(limit)
+    })
 
     // Remove sensitive data
     const safeAccounts = result.data.map((account) => {

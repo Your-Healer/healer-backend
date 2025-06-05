@@ -724,4 +724,21 @@ export default class MedicalService extends BaseService {
       this.handleError(error, 'getServicePopularity')
     }
   }
+
+  async getServiceById(id: string): Promise<Service | null> {
+    try {
+      return await prisma.service.findUnique({
+        where: { id },
+        include: {
+          _count: {
+            select: {
+              medicalRooms: true
+            }
+          }
+        }
+      })
+    } catch (error) {
+      this.handleError(error, 'getServiceById')
+    }
+  }
 }

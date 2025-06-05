@@ -29,16 +29,6 @@ export const isUser = (req: any, res: Response, next: NextFunction): any => {
   next()
 }
 
-export const isReceptionist = (req: any, res: Response, next: NextFunction): any => {
-  const allowedRoles = ['Lễ tân', 'Quản trị viên']
-  if (!allowedRoles.includes(req.user?.role)) {
-    return res.status(403).json({
-      message: 'Access denied: Receptionist privileges required'
-    })
-  }
-  next()
-}
-
 export const isPatient = (req: any, res: Response, next: NextFunction): any => {
   if (req.user?.role !== 'Người dùng') {
     return res.status(403).json({

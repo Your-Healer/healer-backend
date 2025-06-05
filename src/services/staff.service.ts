@@ -1,7 +1,7 @@
 import { BaseService } from './base.service'
 import prisma from '~/libs/prisma/init'
 import { Staff, EDUCATIONLEVEL, Account, ShiftWorking, Appointment } from '@prisma/client'
-import { createHashedPassword } from '~/middlewares/auth'
+import { createHashedPassword } from '~/middlewares/auth/index'
 
 export default class StaffService extends BaseService {
   private static instance: StaffService
@@ -274,6 +274,35 @@ export default class StaffService extends BaseService {
       })
     } catch (error) {
       this.handleError(error, 'getAllStaff')
+    }
+  }
+
+  async searchStaff(query: string): Promise<Staff[]> {
+    try {
+      return await prisma.staff.findMany({
+        where: {
+          OR: [
+            { firstname: { contains: query, mode: 'insensitive' } },
+            { lastname: { contains: query, mode: 'insensitive' } },
+            { account: { username: { contains: query, mode: 'insensitive' } } }
+          ]
+        },
+        include: {
+          account: true,
+          positions: {
+            include: {
+              position: true
+            }
+          },
+          departments: {
+            include: {
+              department: true
+            }
+          }
+        }
+      })
+    } catch (error) {
+      this.handleError(error, 'searchStaff')
     }
   }
 }

@@ -1,39 +1,19 @@
 import { Account, Prisma } from '@prisma/client'
 import { BaseService } from './base.service'
-import { createHashedPassword, compareHashedPassword } from '~/middlewares/auth'
+import { createHashedPassword, compareHashedPassword } from '~/middlewares/auth/index'
 import BlockchainService from './blockchain.service'
 import cryptoJs from 'crypto-js'
 import prisma from '~/libs/prisma/init'
-
-export interface CreateAccountData {
-  roleId: string
-  username: string
-  password: string
-  email: string
-  phoneNumber?: string
-  walletAddress?: string
-  walletMnemonic?: string
-  avatarId?: string
-}
-
-export interface UpdateAccountData {
-  username?: string
-  email?: string
-  phoneNumber?: string
-  avatarId?: string
-  emailIsVerified?: boolean
-}
-
-export interface ChangePasswordData {
-  currentPassword: string
-  newPassword: string
-}
-
-export interface AccountFilter {
-  roleId?: string
-  emailIsVerified?: boolean
-  searchTerm?: string
-}
+import {
+  ChangePasswordDto,
+  CheckAccountExistsDto,
+  CreateAccountDto,
+  GetAccountByEmailDto,
+  GetAccountByUsernameDto,
+  GetAccountsDto,
+  ResetPasswordDto,
+  UpdateAccountDto
+} from '~/dtos/account.dto'
 
 export default class AccountService extends BaseService {
   private static blockchainService: BlockchainService
@@ -51,7 +31,7 @@ export default class AccountService extends BaseService {
     this.blockchainService = blockchainService
   }
 
-  async createAccount(data: CreateAccountData): Promise<Account> {
+  async createAccount(data: CreateAccountDto): Promise<Account> {
     try {
       // Check if username already exists
       const existingUsername = await prisma.account.findUnique({
@@ -84,18 +64,12 @@ export default class AccountService extends BaseService {
       // Hash password
       const hashedPassword = await createHashedPassword(data.password)
 
-      // Create wallet if not provided
-      let walletAddress = data.walletAddress
-      let walletMnemonic = data.walletMnemonic
+      const wallet = await this.blockchainService.createNewWallet()
+      const walletAddress = wallet.pair.address
 
-      if (!walletAddress || !walletMnemonic) {
-        const wallet = await this.blockchainService.createNewWallet()
-        walletAddress = wallet.pair.address
-
-        // Encrypt mnemonic
-        const SECRET_KEY = process.env.SECRET || 'default-secret-key'
-        walletMnemonic = cryptoJs.AES.encrypt(wallet.mnemonic, SECRET_KEY).toString()
-      }
+      // Encrypt mnemonic
+      const SECRET_KEY = process.env.SECRET || 'default-secret-key'
+      const walletMnemonic = cryptoJs.AES.encrypt(wallet.mnemonic, SECRET_KEY).toString()
 
       const accountData: Prisma.AccountCreateInput = {
         role: { connect: { id: data.roleId } },
@@ -105,7 +79,6 @@ export default class AccountService extends BaseService {
         phoneNumber: data.phoneNumber,
         walletAddress,
         walletMnemonic,
-        avatar: data.avatarId ? { connect: { id: data.avatarId } } : undefined,
         emailIsVerified: false
       }
 
@@ -141,10 +114,10 @@ export default class AccountService extends BaseService {
     }
   }
 
-  async getAccountByUsername(username: string) {
+  async getAccountByUsername(data: GetAccountByUsernameDto) {
     try {
       return await prisma.account.findUnique({
-        where: { username },
+        where: { username: data.username },
         include: {
           role: true,
           avatar: true,
@@ -165,10 +138,10 @@ export default class AccountService extends BaseService {
     }
   }
 
-  async getAccountByEmail(email: string) {
+  async getAccountByEmail(data: GetAccountByEmailDto) {
     try {
       return await prisma.account.findUnique({
-        where: { email },
+        where: { email: data.email },
         include: {
           role: true,
           avatar: true,
@@ -189,7 +162,7 @@ export default class AccountService extends BaseService {
     }
   }
 
-  async updateAccount(id: string, data: UpdateAccountData): Promise<Account> {
+  async updateAccount(id: string, data: UpdateAccountDto): Promise<Account> {
     try {
       // Check if account exists
       const existingAccount = await prisma.account.findUnique({
@@ -246,7 +219,7 @@ export default class AccountService extends BaseService {
     }
   }
 
-  async changePassword(id: string, data: ChangePasswordData): Promise<Account> {
+  async changePassword(id: string, data: ChangePasswordDto): Promise<Account> {
     try {
       const account = await prisma.account.findUnique({
         where: { id }
@@ -273,16 +246,16 @@ export default class AccountService extends BaseService {
     }
   }
 
-  async resetPassword(email: string, newPassword: string): Promise<Account> {
+  async resetPassword(data: ResetPasswordDto): Promise<Account> {
     try {
       const account = await prisma.account.findUnique({
-        where: { email }
+        where: { email: data.email }
       })
       if (!account) {
         throw new Error('Account with this email not found')
       }
 
-      const hashedPassword = await createHashedPassword(newPassword)
+      const hashedPassword = await createHashedPassword(data.newPassword)
       return await prisma.account.update({
         where: { id: account.id },
         data: { password: hashedPassword }
@@ -303,24 +276,24 @@ export default class AccountService extends BaseService {
     }
   }
 
-  async getAccounts(filter: AccountFilter = {}, page: number = 1, limit: number = 10) {
+  async getAccounts(data: GetAccountsDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const where: any = {}
 
-      if (filter.roleId) where.roleId = filter.roleId
-      if (filter.emailIsVerified !== undefined) where.emailIsVerified = filter.emailIsVerified
+      if (data.filter.roleId) where.roleId = data.filter.roleId
+      if (data.filter.emailIsVerified !== undefined) where.emailIsVerified = data.filter.emailIsVerified
 
-      if (filter.searchTerm) {
+      if (data.filter.searchTerm) {
         where.OR = [
-          { username: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { email: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { phoneNumber: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { user: { firstname: { contains: filter.searchTerm, mode: 'insensitive' } } },
-          { user: { lastname: { contains: filter.searchTerm, mode: 'insensitive' } } },
-          { staff: { firstname: { contains: filter.searchTerm, mode: 'insensitive' } } },
-          { staff: { lastname: { contains: filter.searchTerm, mode: 'insensitive' } } }
+          { username: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { email: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { phoneNumber: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { user: { firstname: { contains: data.filter.searchTerm, mode: 'insensitive' } } },
+          { user: { lastname: { contains: data.filter.searchTerm, mode: 'insensitive' } } },
+          { staff: { firstname: { contains: data.filter.searchTerm, mode: 'insensitive' } } },
+          { staff: { lastname: { contains: data.filter.searchTerm, mode: 'insensitive' } } }
         ]
       }
 
@@ -349,7 +322,7 @@ export default class AccountService extends BaseService {
         prisma.account.count({ where })
       ])
 
-      return this.formatPaginationResult(accounts, total, page, limit)
+      return this.formatPaginationResult(accounts, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getAccounts')
     }
@@ -418,11 +391,7 @@ export default class AccountService extends BaseService {
     }
   }
 
-  async checkAccountExists(
-    username: string,
-    email?: string,
-    phoneNumber?: string
-  ): Promise<{
+  async checkAccountExists(data: CheckAccountExistsDto): Promise<{
     usernameExists: boolean
     emailExists: boolean
     phoneExists: boolean
@@ -430,10 +399,10 @@ export default class AccountService extends BaseService {
     try {
       const [usernameCheck, emailCheck, phoneCheck] = await Promise.all([
         prisma.account.findUnique({
-          where: { username }
+          where: { username: data.username }
         }),
-        email ? prisma.account.findUnique({ where: { email } }) : null,
-        phoneNumber ? prisma.account.findMany({ where: { phoneNumber }, take: 1 }) : []
+        data.email ? prisma.account.findUnique({ where: { email: data.email } }) : null,
+        data.phoneNumber ? prisma.account.findMany({ where: { phoneNumber: data.phoneNumber }, take: 1 }) : []
       ])
 
       return {

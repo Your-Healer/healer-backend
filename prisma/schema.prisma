@@ -193,13 +193,13 @@ model BookingTime {
 
 model ShiftWorking {
   id       String   @id @default(uuid())
-  doctorId String
+  staffId  String
   roomId   String
   fromTime DateTime
   toTime   DateTime
 
-  doctor Staff       @relation(fields: [doctorId], references: [id])
-  room   MedicalRoom @relation(fields: [roomId], references: [id])
+  staff Staff       @relation(fields: [staffId], references: [id])
+  room  MedicalRoom @relation(fields: [roomId], references: [id])
 }
 
 model Appointment {

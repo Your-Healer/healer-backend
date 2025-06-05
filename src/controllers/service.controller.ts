@@ -277,3 +277,19 @@ export async function getMedicalStatisticsController(req: Request, res: Response
     return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
+
+export async function getServiceByIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+    const service = await medicalService.getServiceById(id)
+
+    if (!service) {
+      return res.status(404).json({ error: 'Service not found' })
+    }
+
+    return res.status(200).json(service)
+  } catch (error: any) {
+    console.error('Error fetching service:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}

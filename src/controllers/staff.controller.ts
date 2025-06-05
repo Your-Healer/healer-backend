@@ -135,3 +135,62 @@ export async function getStaffPatientsController(req: any, res: Response, next: 
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
+
+export async function updateStaffProfileController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+  } catch (error) {}
+}
+
+export async function getStaffAppointmentsController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+  } catch (error) {}
+}
+
+export async function getAllStaffController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const staffMembers = await staffService.getAllStaff()
+
+    return res.status(200).json(staffMembers)
+  } catch (error) {
+    console.error('Error fetching all staff:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+export async function searchStaffController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { query } = req.query
+
+    if (!query) {
+      return res.status(400).json({ message: 'Query parameter is required' })
+    }
+
+    const staffMembers = await staffService.searchStaff(query)
+
+    return res.status(200).json(staffMembers)
+  } catch (error) {
+    console.error('Error searching staff:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}
+
+export async function getStaffByIdController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+
+    if (!id) {
+      return res.status(400).json({ message: 'Staff ID is required' })
+    }
+
+    const staffMember = await staffService.getStaffById(id)
+
+    if (!staffMember) {
+      return res.status(404).json({ message: 'Staff not found' })
+    }
+
+    return res.status(200).json(staffMember)
+  } catch (error) {
+    console.error('Error fetching staff by ID:', error)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+}

@@ -9,7 +9,8 @@ import {
   createPasswordResetToken,
   verifyPasswordResetToken,
   refreshToken
-} from '~/middlewares/auth'
+} from '~/middlewares/auth/index'
+import {} from '~/services/auth.service'
 import BlockchainService from '~/services/blockchain.service'
 import cryptoJs from 'crypto-js'
 import config from '~/configs/env'
