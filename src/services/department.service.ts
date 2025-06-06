@@ -1,26 +1,19 @@
 import { Department, Prisma } from '@prisma/client'
 import { BaseService } from './base.service'
 import prisma from '~/libs/prisma/init'
-
-export interface CreateDepartmentData {
-  locationId: string
-  name: string
-  symbol: string
-  floor: number
-}
-
-export interface UpdateDepartmentData {
-  locationId?: string
-  name?: string
-  symbol?: string
-  floor?: number
-}
-
-export interface DepartmentFilter {
-  locationId?: string
-  floor?: number
-  searchTerm?: string
-}
+import {
+  AssignStaffToDepartmentDto,
+  BulkAssignStaffDto,
+  CreateDepartmentDto,
+  GetAvailableFloorsInLocationDto,
+  GetDepartmentMedicalRoomsDto,
+  GetDepartmentsByFloorDto,
+  GetDepartmentsDto,
+  GetDepartmentStaffDto,
+  RemoveStaffFromDepartmentDto,
+  SearchDepartmentsDto,
+  UpdateDepartmentDto
+} from '~/dtos/department.dto'
 
 export default class DepartmentService extends BaseService {
   private static instance: DepartmentService
@@ -35,7 +28,7 @@ export default class DepartmentService extends BaseService {
     return this.instance
   }
 
-  async createDepartment(data: CreateDepartmentData): Promise<Department> {
+  async createDepartment(data: CreateDepartmentDto): Promise<Department> {
     try {
       // Validate location exists
       const location = await prisma.location.findUnique({
@@ -71,7 +64,7 @@ export default class DepartmentService extends BaseService {
     }
   }
 
-  async updateDepartment(id: string, data: UpdateDepartmentData): Promise<Department> {
+  async updateDepartment(id: string, data: UpdateDepartmentDto): Promise<Department> {
     try {
       const existingDept = await prisma.department.findUnique({
         where: { id }
@@ -153,19 +146,19 @@ export default class DepartmentService extends BaseService {
     }
   }
 
-  async getDepartments(filter: DepartmentFilter = {}, page: number = 1, limit: number = 10) {
+  async getDepartments(data: GetDepartmentsDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const where: any = {}
 
-      if (filter.locationId) where.locationId = filter.locationId
-      if (filter.floor !== undefined) where.floor = filter.floor
+      if (data.filter.locationId) where.locationId = data.filter.locationId
+      if (data.filter.floor !== undefined) where.floor = data.filter.floor
 
-      if (filter.searchTerm) {
+      if (data.filter.searchTerm) {
         where.OR = [
-          { name: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { symbol: { contains: filter.searchTerm, mode: 'insensitive' } }
+          { name: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { symbol: { contains: data.filter.searchTerm, mode: 'insensitive' } }
         ]
       }
 
@@ -200,7 +193,7 @@ export default class DepartmentService extends BaseService {
         prisma.department.count({ where })
       ])
 
-      return this.formatPaginationResult(departments, total, page, limit)
+      return this.formatPaginationResult(departments, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getDepartments')
     }
@@ -238,12 +231,12 @@ export default class DepartmentService extends BaseService {
     }
   }
 
-  async getDepartmentMedicalRooms(departmentId: string, page: number = 1, limit: number = 10) {
+  async getDepartmentMedicalRooms(data: GetDepartmentMedicalRoomsDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const department = await prisma.department.findUnique({
-        where: { id: departmentId }
+        where: { id: data.departmentId }
       })
       if (!department) {
         throw new Error('Department not found')
@@ -251,7 +244,7 @@ export default class DepartmentService extends BaseService {
 
       const [rooms, total] = await Promise.all([
         prisma.medicalRoom.findMany({
-          where: { departmentId },
+          where: { departmentId: data.departmentId },
           skip,
           take,
           include: {
@@ -265,19 +258,19 @@ export default class DepartmentService extends BaseService {
           }
         }),
         prisma.medicalRoom.count({
-          where: { departmentId }
+          where: { departmentId: data.departmentId }
         })
       ])
 
-      return this.formatPaginationResult(rooms, total, page, limit)
+      return this.formatPaginationResult(rooms, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getDepartmentMedicalRooms')
     }
   }
 
-  async getDepartmentStaff(departmentId: string, page: number = 1, limit: number = 10) {
+  async getDepartmentStaff(departmentId: string, data: GetDepartmentStaffDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const staff = await prisma.staff.findMany({
         where: { departments: { some: { departmentId } } },
@@ -295,17 +288,17 @@ export default class DepartmentService extends BaseService {
       // Apply pagination manually since findByDepartmentId doesn't support it
       const paginatedStaff = staff.slice(skip, skip + take)
 
-      return this.formatPaginationResult(paginatedStaff, total, page, limit)
+      return this.formatPaginationResult(paginatedStaff, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getDepartmentStaff')
     }
   }
 
-  async assignStaffToDepartment(departmentId: string, staffId: string): Promise<void> {
+  async assignStaffToDepartment(data: AssignStaffToDepartmentDto): Promise<void> {
     try {
       // Verify department exists
       const department = await prisma.department.findUnique({
-        where: { id: departmentId }
+        where: { id: data.departmentId }
       })
       if (!department) {
         throw new Error('Department not found')
@@ -313,7 +306,7 @@ export default class DepartmentService extends BaseService {
 
       // Verify staff exists
       const staff = await prisma.staff.findUnique({
-        where: { id: staffId }
+        where: { id: data.staffId }
       })
       if (!staff) {
         throw new Error('Staff not found')
@@ -322,8 +315,8 @@ export default class DepartmentService extends BaseService {
       // Check if already assigned
       const existingAssignment = await prisma.staffOnDepartment.findFirst({
         where: {
-          staffId,
-          departmentId
+          staffId: data.staffId,
+          departmentId: data.departmentId
         }
       })
       if (existingAssignment) {
@@ -332,8 +325,8 @@ export default class DepartmentService extends BaseService {
 
       await prisma.staffOnDepartment.create({
         data: {
-          staff: { connect: { id: staffId } },
-          department: { connect: { id: departmentId } }
+          staff: { connect: { id: data.staffId } },
+          department: { connect: { id: data.departmentId } }
         }
       })
     } catch (error) {
@@ -341,13 +334,13 @@ export default class DepartmentService extends BaseService {
     }
   }
 
-  async removeStaffFromDepartment(departmentId: string, staffId: string): Promise<void> {
+  async removeStaffFromDepartment(data: RemoveStaffFromDepartmentDto): Promise<void> {
     try {
       // Verify assignment exists
       const assignment = await prisma.staffOnDepartment.findFirst({
         where: {
-          staffId,
-          departmentId
+          staffId: data.staffId,
+          departmentId: data.departmentId
         }
       })
       if (!assignment) {
@@ -357,8 +350,8 @@ export default class DepartmentService extends BaseService {
       await prisma.staffOnDepartment.delete({
         where: {
           staffId_departmentId: {
-            staffId,
-            departmentId
+            staffId: data.staffId,
+            departmentId: data.departmentId
           }
         }
       })
@@ -397,15 +390,15 @@ export default class DepartmentService extends BaseService {
     }
   }
 
-  async searchDepartments(searchTerm: string, page: number = 1, limit: number = 10) {
+  async searchDepartments(data: SearchDepartmentsDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const departments = await prisma.department.findMany({
         where: {
           OR: [
-            { name: { contains: searchTerm, mode: 'insensitive' } },
-            { symbol: { contains: searchTerm, mode: 'insensitive' } }
+            { name: { contains: data.searchTerm, mode: 'insensitive' } },
+            { symbol: { contains: data.searchTerm, mode: 'insensitive' } }
           ]
         },
         skip,
@@ -414,21 +407,21 @@ export default class DepartmentService extends BaseService {
       const total = await prisma.department.count({
         where: {
           OR: [
-            { name: { contains: searchTerm, mode: 'insensitive' } },
-            { symbol: { contains: searchTerm, mode: 'insensitive' } }
+            { name: { contains: data.searchTerm, mode: 'insensitive' } },
+            { symbol: { contains: data.searchTerm, mode: 'insensitive' } }
           ]
         }
       })
 
-      return this.formatPaginationResult(departments, total, page, limit)
+      return this.formatPaginationResult(departments, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'searchDepartments')
     }
   }
 
-  async getDepartmentStatistics(departmentId?: string) {
+  async getDepartmentStatistics(data: GetDepartmentMedicalRoomsDto) {
     try {
-      const where: any = departmentId ? { id: departmentId } : {}
+      const where: any = data.departmentId ? { id: data.departmentId } : {}
 
       const [totalDepartments, departmentsWithRooms, departmentsWithStaff, totalMedicalRooms, totalStaff] =
         await Promise.all([
@@ -443,12 +436,12 @@ export default class DepartmentService extends BaseService {
           }),
           prisma.medicalRoom.count({
             where: {
-              departmentId
+              departmentId: data.departmentId
             }
           }),
           prisma.staffOnDepartment.count({
             where: {
-              departmentId
+              departmentId: data.departmentId
             }
           })
         ])
@@ -471,12 +464,12 @@ export default class DepartmentService extends BaseService {
     }
   }
 
-  async getDepartmentsByFloor(locationId: string, floor: number) {
+  async getDepartmentsByFloor(data: GetDepartmentsByFloorDto) {
     try {
       return await prisma.department.findMany({
         where: {
-          locationId,
-          floor
+          locationId: data.locationId,
+          floor: data.floor
         }
       })
     } catch (error) {
@@ -484,10 +477,10 @@ export default class DepartmentService extends BaseService {
     }
   }
 
-  async getAvailableFloorsInLocation(locationId: string) {
+  async getAvailableFloorsInLocation(data: GetAvailableFloorsInLocationDto) {
     try {
       const floors = await prisma.department.findMany({
-        where: { locationId },
+        where: { locationId: data.locationId },
         select: { floor: true }
       })
 
@@ -499,18 +492,16 @@ export default class DepartmentService extends BaseService {
     }
   }
 
-  async bulkAssignStaff(departmentId: string, staffIds: string[]): Promise<void> {
+  async bulkAssignStaff(data: BulkAssignStaffDto): Promise<void> {
     try {
-      // Verify department exists
       const department = await prisma.department.findUnique({
-        where: { id: departmentId }
+        where: { id: data.departmentId }
       })
       if (!department) {
         throw new Error('Department not found')
       }
 
-      // Verify all staff exist
-      for (const staffId of staffIds) {
+      for (const staffId of data.staffIds) {
         const staff = await prisma.staff.findUnique({
           where: { id: staffId }
         })
@@ -519,14 +510,13 @@ export default class DepartmentService extends BaseService {
         }
       }
 
-      // Remove existing assignments and add new ones
       await prisma.staffOnDepartment.deleteMany({
-        where: { departmentId }
+        where: { departmentId: data.departmentId }
       })
 
-      const assignments = staffIds.map((staffId) => ({
+      const assignments = data.staffIds.map((staffId) => ({
         staffId,
-        departmentId
+        departmentId: data.departmentId
       }))
 
       await prisma.staffOnDepartment.createMany({

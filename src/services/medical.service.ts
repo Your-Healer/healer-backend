@@ -1,43 +1,21 @@
 import { MedicalRoom, MedicalRoomTime, Service, Department, Prisma } from '@prisma/client'
 import { BaseService } from './base.service'
 import prisma from '~/libs/prisma/init'
-
-export interface CreateMedicalRoomData {
-  departmentId: string
-  serviceId: string
-  floor: number
-  name: string
-}
-
-export interface UpdateMedicalRoomData {
-  departmentId?: string
-  serviceId?: string
-  floor?: number
-  name?: string
-}
-
-export interface CreateTimeSlotData {
-  roomId: string
-  fromTime: Date
-  toTime: Date
-}
-
-export interface MedicalRoomFilter {
-  departmentId?: string
-  serviceId?: string
-  floor?: number
-  available?: boolean
-  searchTerm?: string
-}
-
-export interface TimeSlotFilter {
-  roomId?: string
-  departmentId?: string
-  date?: Date
-  fromTime?: Date
-  toTime?: Date
-  available?: boolean
-}
+import {
+  CreateBulkTimeSlotsDto,
+  CreateMedicalRoomDto,
+  CreateServiceDto,
+  CreateTimeSlotDto,
+  GetAvailableTimeSlotsDto,
+  GetMedicalRoomsDto,
+  GetMedicalStatisticsDto,
+  GetRoomUtilizationDto,
+  GetServicePopularityDto,
+  GetServicesDto,
+  GetTimeSlotsDto,
+  UpdateMedicalRoomDto,
+  UpdateServiceDto
+} from '~/dtos/medical.dto'
 
 export default class MedicalService extends BaseService {
   private static instance: MedicalService
@@ -51,7 +29,7 @@ export default class MedicalService extends BaseService {
     return MedicalService.instance
   }
   // Medical Room Management
-  async createMedicalRoom(data: CreateMedicalRoomData): Promise<MedicalRoom> {
+  async createMedicalRoom(data: CreateMedicalRoomDto): Promise<MedicalRoom> {
     try {
       // Validate department exists
       const department = await prisma.department.findUnique({
@@ -95,7 +73,7 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  async updateMedicalRoom(id: string, data: UpdateMedicalRoomData): Promise<MedicalRoom> {
+  async updateMedicalRoom(id: string, data: UpdateMedicalRoomDto): Promise<MedicalRoom> {
     try {
       const existingRoom = await prisma.medicalRoom.findUnique({
         where: { id }
@@ -172,21 +150,21 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  async getMedicalRooms(filter: MedicalRoomFilter = {}, page: number = 1, limit: number = 10) {
+  async getMedicalRooms(data: GetMedicalRoomsDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const where: any = {}
 
-      if (filter.departmentId) where.departmentId = filter.departmentId
-      if (filter.serviceId) where.serviceId = filter.serviceId
-      if (filter.floor !== undefined) where.floor = filter.floor
+      if (data.filter.departmentId) where.departmentId = data.filter.departmentId
+      if (data.filter.serviceId) where.serviceId = data.filter.serviceId
+      if (data.filter.floor !== undefined) where.floor = data.filter.floor
 
-      if (filter.searchTerm) {
+      if (data.filter.searchTerm) {
         where.OR = [
-          { name: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { department: { name: { contains: filter.searchTerm, mode: 'insensitive' } } },
-          { service: { name: { contains: filter.searchTerm, mode: 'insensitive' } } }
+          { name: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { department: { name: { contains: data.filter.searchTerm, mode: 'insensitive' } } },
+          { service: { name: { contains: data.filter.searchTerm, mode: 'insensitive' } } }
         ]
       }
 
@@ -213,7 +191,7 @@ export default class MedicalService extends BaseService {
         prisma.medicalRoom.count({ where })
       ])
 
-      return this.formatPaginationResult(rooms, total, page, limit)
+      return this.formatPaginationResult(rooms, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getMedicalRooms')
     }
@@ -248,8 +226,7 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  // Time Slot Management
-  async createTimeSlot(data: CreateTimeSlotData): Promise<MedicalRoomTime> {
+  async createTimeSlot(data: CreateTimeSlotDto): Promise<MedicalRoomTime> {
     try {
       // Validate room exists
       const room = await prisma.medicalRoom.findUnique({
@@ -293,14 +270,10 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  async createBulkTimeSlots(
-    roomId: string,
-    dates: Date[],
-    timeSlots: Array<{ startHour: number; endHour: number; slotDuration: number }>
-  ): Promise<MedicalRoomTime[]> {
+  async createBulkTimeSlots(data: CreateBulkTimeSlotsDto): Promise<MedicalRoomTime[]> {
     try {
       const room = await prisma.medicalRoom.findUnique({
-        where: { id: roomId }
+        where: { id: data.roomId }
       })
       if (!room) {
         throw new Error('Medical room not found')
@@ -308,8 +281,8 @@ export default class MedicalService extends BaseService {
 
       const createdSlots: MedicalRoomTime[] = []
 
-      for (const date of dates) {
-        for (const timeSlot of timeSlots) {
+      for (const date of data.dates) {
+        for (const timeSlot of data.timeSlots) {
           const currentHour = timeSlot.startHour
           const endHour = timeSlot.endHour
 
@@ -324,7 +297,7 @@ export default class MedicalService extends BaseService {
 
             try {
               const slot = await this.createTimeSlot({
-                roomId,
+                roomId: data.roomId,
                 fromTime,
                 toTime
               })
@@ -344,33 +317,33 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  async getTimeSlots(filter: TimeSlotFilter = {}, page: number = 1, limit: number = 10) {
+  async getTimeSlots(data: GetTimeSlotsDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const where: any = {}
 
-      if (filter.roomId) where.roomId = filter.roomId
-      if (filter.departmentId) {
+      if (data.filter.roomId) where.roomId = data.filter.roomId
+      if (data.filter.departmentId) {
         where.room = {
-          departmentId: filter.departmentId
+          departmentId: data.filter.departmentId
         }
       }
 
-      if (filter.date) {
-        const startOfDay = new Date(filter.date)
+      if (data.filter.date) {
+        const startOfDay = new Date(data.filter.date)
         startOfDay.setHours(0, 0, 0, 0)
-        const endOfDay = new Date(filter.date)
+        const endOfDay = new Date(data.filter.date)
         endOfDay.setHours(23, 59, 59, 999)
 
         where.fromTime = {
           gte: startOfDay,
           lte: endOfDay
         }
-      } else if (filter.fromTime || filter.toTime) {
+      } else if (data.filter.fromTime || data.filter.toTime) {
         where.fromTime = {}
-        if (filter.fromTime) where.fromTime.gte = filter.fromTime
-        if (filter.toTime) where.fromTime.lte = filter.toTime
+        if (data.filter.fromTime) where.fromTime.gte = data.filter.fromTime
+        if (data.filter.toTime) where.fromTime.lte = data.filter.toTime
       }
 
       const [timeSlots, total] = await Promise.all([
@@ -401,31 +374,31 @@ export default class MedicalService extends BaseService {
       ])
 
       // Filter for available slots if requested
-      if (filter.available !== undefined) {
+      if (data.filter.available !== undefined) {
         const filteredSlots = timeSlots.filter((slot) => {
           const isBooked = slot.bookings && slot.bookings.length > 0
-          return filter.available ? !isBooked : isBooked
+          return data.filter.available ? !isBooked : isBooked
         })
 
-        return this.formatPaginationResult(filteredSlots, filteredSlots.length, page, limit)
+        return this.formatPaginationResult(filteredSlots, filteredSlots.length, data.page, data.limit)
       }
 
-      return this.formatPaginationResult(timeSlots, total, page, limit)
+      return this.formatPaginationResult(timeSlots, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getTimeSlots')
     }
   }
 
-  async getAvailableTimeSlots(departmentId?: string, serviceId?: string, date?: Date) {
+  async getAvailableTimeSlots(data: GetAvailableTimeSlotsDto) {
     try {
       const where: any = {
         fromTime: { gte: new Date() }
       }
 
-      if (date) {
-        const startOfDay = new Date(date)
+      if (data.date) {
+        const startOfDay = new Date(data.date)
         startOfDay.setHours(0, 0, 0, 0)
-        const endOfDay = new Date(date)
+        const endOfDay = new Date(data.date)
         endOfDay.setHours(23, 59, 59, 999)
 
         where.fromTime = {
@@ -434,16 +407,16 @@ export default class MedicalService extends BaseService {
         }
       }
 
-      if (departmentId) {
+      if (data.departmentId) {
         where.room = {
-          departmentId
+          departmentId: data.departmentId
         }
       }
 
-      if (serviceId) {
+      if (data.serviceId) {
         where.room = {
           ...where.room,
-          serviceId
+          serviceId: data.serviceId
         }
       }
 
@@ -460,7 +433,6 @@ export default class MedicalService extends BaseService {
         }
       })
 
-      // Filter out booked slots
       const availableSlots = timeSlots.filter((slot) => !slot.bookings || slot.bookings.length === 0)
 
       return availableSlots
@@ -497,20 +469,19 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  // Service Management
-  async createService(name: string, description?: string): Promise<Service> {
+  async createService(data: CreateServiceDto): Promise<Service> {
     try {
       // Check if service name is unique
       const existing = await prisma.service.findFirst({
-        where: { name }
+        where: { name: data.name }
       })
       if (existing) {
         throw new Error('Service name already exists')
       }
 
       const serviceData: Prisma.ServiceCreateInput = {
-        name,
-        description
+        name: data.name,
+        description: data.description
       }
 
       return await prisma.service.create({
@@ -521,19 +492,19 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  async updateService(id: string, name?: string, description?: string): Promise<Service> {
+  async updateService(data: UpdateServiceDto): Promise<Service> {
     try {
       const existing = await prisma.service.findUnique({
-        where: { id }
+        where: { id: data.id }
       })
       if (!existing) {
         throw new Error('Service not found')
       }
 
       // Check name uniqueness if changing
-      if (name && name !== existing.name) {
+      if (data.name && data.name !== existing.name) {
         const nameExists = await prisma.service.findFirst({
-          where: { name }
+          where: { name: data.name }
         })
         if (nameExists) {
           throw new Error('Service name already exists')
@@ -541,12 +512,12 @@ export default class MedicalService extends BaseService {
       }
 
       const updateData: Prisma.ServiceUpdateInput = {
-        name,
-        description
+        name: data.name,
+        description: data.description
       }
 
       return await prisma.service.update({
-        where: { id },
+        where: { id: data.id },
         data: updateData
       })
     } catch (error) {
@@ -554,9 +525,9 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  async getServices(page: number = 1, limit: number = 10) {
+  async getServices(data: GetServicesDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const [services, total] = await Promise.all([
         prisma.service.findMany({
@@ -574,7 +545,7 @@ export default class MedicalService extends BaseService {
         prisma.service.count()
       ])
 
-      return this.formatPaginationResult(services, total, page, limit)
+      return this.formatPaginationResult(services, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getServices')
     }
@@ -603,10 +574,9 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  // Medical Statistics and Analytics
-  async getMedicalStatistics(departmentId?: string) {
+  async getMedicalStatistics(data: GetMedicalStatisticsDto) {
     try {
-      const where: any = departmentId ? { departmentId } : {}
+      const where: any = data.departmentId ? { departmentId: data.departmentId } : {}
 
       await prisma.medicalRoomTime.count({})
 
@@ -614,17 +584,17 @@ export default class MedicalService extends BaseService {
         prisma.medicalRoom.count(where),
         prisma.medicalRoomTime.count({
           where: {
-            ...(departmentId ? { room: { departmentId } } : {})
+            ...(data.departmentId ? { room: { departmentId: data.departmentId } } : {})
           }
         }),
         prisma.medicalRoomTime.count({
           where: {
-            ...(departmentId ? { room: { departmentId } } : {})
+            ...(data.departmentId ? { room: { departmentId: data.departmentId } } : {})
           }
         }),
         prisma.medicalRoomTime.count({
           where: {
-            ...(departmentId ? { room: { departmentId } } : {}),
+            ...(data.departmentId ? { room: { departmentId: data.departmentId } } : {}),
             fromTime: { gte: new Date() }
           }
         }),
@@ -646,20 +616,20 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  async getRoomUtilization(roomId: string, fromDate?: Date, toDate?: Date) {
+  async getRoomUtilization(data: GetRoomUtilizationDto) {
     try {
       const room = await prisma.medicalRoom.findUnique({
-        where: { id: roomId }
+        where: { id: data.roomId }
       })
       if (!room) {
         throw new Error('Medical room not found')
       }
 
-      const where: any = { roomId }
-      if (fromDate || toDate) {
+      const where: any = { roomId: data.roomId }
+      if (data.fromDate || data.toDate) {
         where.fromTime = {}
-        if (fromDate) where.fromTime.gte = fromDate
-        if (toDate) where.fromTime.lte = toDate
+        if (data.fromDate) where.fromTime.gte = data.fromDate
+        if (data.toDate) where.fromTime.lte = data.toDate
       }
 
       const [totalSlots, bookedSlots] = await Promise.all([
@@ -673,7 +643,7 @@ export default class MedicalService extends BaseService {
       const utilizationRate = totalSlots > 0 ? (bookedSlots / totalSlots) * 100 : 0
 
       return {
-        roomId,
+        roomId: data.roomId,
         roomName: room.name,
         totalSlots,
         bookedSlots,
@@ -685,17 +655,17 @@ export default class MedicalService extends BaseService {
     }
   }
 
-  async getServicePopularity(fromDate?: Date, toDate?: Date) {
+  async getServicePopularity(data: GetServicePopularityDto) {
     try {
       const where: any = {}
-      if (fromDate || toDate) {
+      if (data.fromDate || data.toDate) {
         where.BookingTime = {
           some: {
             createdAt: {}
           }
         }
-        if (fromDate) where.BookingTime.some.createdAt.gte = fromDate
-        if (toDate) where.BookingTime.some.createdAt.lte = toDate
+        if (data.fromDate) where.BookingTime.some.createdAt.gte = data.fromDate
+        if (data.toDate) where.BookingTime.some.createdAt.lte = data.toDate
       }
 
       const serviceUsage = await prisma.service.findMany({

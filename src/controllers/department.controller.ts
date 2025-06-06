@@ -76,7 +76,11 @@ export async function getDepartmentsController(req: Request, res: Response, next
       searchTerm: searchTerm as string
     }
 
-    const result = await departmentService.getDepartments(filter, parseInt(page as string), parseInt(limit as string))
+    const result = await departmentService.getDepartments({
+      filter,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -94,11 +98,11 @@ export async function getDepartmentMedicalRoomsController(
     const { id } = req.params
     const { page = 1, limit = 10 } = req.query
 
-    const result = await departmentService.getDepartmentMedicalRooms(
-      id,
-      parseInt(page as string),
-      parseInt(limit as string)
-    )
+    const result = await departmentService.getDepartmentMedicalRooms({
+      departmentId: id,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -112,7 +116,10 @@ export async function getDepartmentStaffController(req: Request, res: Response, 
     const { id } = req.params
     const { page = 1, limit = 10 } = req.query
 
-    const result = await departmentService.getDepartmentStaff(id, parseInt(page as string), parseInt(limit as string))
+    const result = await departmentService.getDepartmentStaff(id, {
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -130,7 +137,10 @@ export async function assignStaffToDepartmentController(req: Request, res: Respo
       return res.status(400).json({ error: 'Staff ID is required' })
     }
 
-    await departmentService.assignStaffToDepartment(id, staffId)
+    await departmentService.assignStaffToDepartment({
+      departmentId: id,
+      staffId
+    })
 
     return res.status(200).json({
       message: 'Staff assigned to department successfully'
@@ -149,7 +159,10 @@ export async function removeStaffFromDepartmentController(
   try {
     const { id, staffId } = req.params
 
-    await departmentService.removeStaffFromDepartment(id, staffId)
+    await departmentService.removeStaffFromDepartment({
+      departmentId: id,
+      staffId
+    })
 
     return res.status(200).json({
       message: 'Staff removed from department successfully'
@@ -178,7 +191,11 @@ export async function deleteDepartmentController(req: Request, res: Response, ne
 export async function getDepartmentStatisticsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { id } = req.params
-    const stats = await departmentService.getDepartmentStatistics(id)
+    const stats = await departmentService.getDepartmentStatistics({
+      departmentId: id,
+      page: parseInt(req.query.page as string) || 1,
+      limit: parseInt(req.query.limit as string) || 10
+    })
 
     return res.status(200).json(stats)
   } catch (error: any) {
@@ -196,7 +213,10 @@ export async function bulkAssignStaffController(req: Request, res: Response, nex
       return res.status(400).json({ error: 'Staff IDs array is required' })
     }
 
-    await departmentService.bulkAssignStaff(id, staffIds)
+    await departmentService.bulkAssignStaff({
+      departmentId: id,
+      staffIds
+    })
 
     return res.status(200).json({
       message: 'Staff bulk assigned successfully'

@@ -3,7 +3,6 @@ import MedicalService from '~/services/medical.service'
 
 const medicalService = MedicalService.getInstance()
 
-// Medical Room Controllers
 export async function createMedicalRoomController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { departmentId, serviceId, floor, name } = req.body
@@ -75,7 +74,11 @@ export async function getMedicalRoomsController(req: Request, res: Response, nex
     if (available !== undefined) filter.available = available === 'true'
     if (searchTerm) filter.searchTerm = searchTerm as string
 
-    const result = await medicalService.getMedicalRooms(filter, Number(page), Number(limit))
+    const result = await medicalService.getMedicalRooms({
+      filter,
+      page: Number(page),
+      limit: Number(limit)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -133,7 +136,11 @@ export async function createBulkTimeSlotsController(req: Request, res: Response,
     }
 
     const dateObjects = dates.map((date) => new Date(date))
-    const createdSlots = await medicalService.createBulkTimeSlots(roomId, dateObjects, timeSlots)
+    const createdSlots = await medicalService.createBulkTimeSlots({
+      roomId,
+      dates: dateObjects,
+      timeSlots
+    })
 
     return res.status(201).json({
       message: `${createdSlots.length} time slots created successfully`,
@@ -165,7 +172,11 @@ export async function getTimeSlotsController(req: Request, res: Response, next: 
     if (toTime) filter.toTime = new Date(toTime as string)
     if (available !== undefined) filter.available = available === 'true'
 
-    const result = await medicalService.getTimeSlots(filter, Number(page), Number(limit))
+    const result = await medicalService.getTimeSlots({
+      filter,
+      page: Number(page),
+      limit: Number(limit)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -178,11 +189,11 @@ export async function getAvailableTimeSlotsController(req: Request, res: Respons
   try {
     const { departmentId, serviceId, date } = req.query
 
-    const availableSlots = await medicalService.getAvailableTimeSlots(
-      departmentId as string,
-      serviceId as string,
-      date ? new Date(date as string) : undefined
-    )
+    const availableSlots = await medicalService.getAvailableTimeSlots({
+      departmentId: departmentId as string,
+      serviceId: serviceId as string,
+      date: date ? new Date(date as string) : undefined
+    })
 
     return res.status(200).json({
       timeSlots: availableSlots,
@@ -214,7 +225,9 @@ export async function getMedicalStatisticsController(req: Request, res: Response
   try {
     const { departmentId } = req.query
 
-    const statistics = await medicalService.getMedicalStatistics(departmentId as string)
+    const statistics = await medicalService.getMedicalStatistics({
+      departmentId: departmentId as string
+    })
 
     return res.status(200).json({ statistics })
   } catch (error: any) {
@@ -228,11 +241,11 @@ export async function getRoomUtilizationController(req: Request, res: Response, 
     const { id } = req.params
     const { fromDate, toDate } = req.query
 
-    const utilization = await medicalService.getRoomUtilization(
-      id,
-      fromDate ? new Date(fromDate as string) : undefined,
-      toDate ? new Date(toDate as string) : undefined
-    )
+    const utilization = await medicalService.getRoomUtilization({
+      roomId: id,
+      fromDate: fromDate ? new Date(fromDate as string) : undefined,
+      toDate: toDate ? new Date(toDate as string) : undefined
+    })
 
     return res.status(200).json({ utilization })
   } catch (error: any) {
@@ -245,10 +258,10 @@ export async function getServicePopularityController(req: Request, res: Response
   try {
     const { fromDate, toDate } = req.query
 
-    const popularity = await medicalService.getServicePopularity(
-      fromDate ? new Date(fromDate as string) : undefined,
-      toDate ? new Date(toDate as string) : undefined
-    )
+    const popularity = await medicalService.getServicePopularity({
+      fromDate: fromDate ? new Date(fromDate as string) : undefined,
+      toDate: toDate ? new Date(toDate as string) : undefined
+    })
 
     return res.status(200).json({ popularity })
   } catch (error: any) {
@@ -275,11 +288,11 @@ export async function getMedicalRoomScheduleController(req: Request, res: Respon
       if (toDate) endDate = new Date(toDate as string)
     }
 
-    const timeSlots = await medicalService.getTimeSlots(
-      { roomId: id, fromTime: startDate, toTime: endDate },
-      1,
-      1000 // Get all slots for schedule view
-    )
+    const timeSlots = await medicalService.getTimeSlots({
+      filter: { roomId: id, fromTime: startDate, toTime: endDate },
+      page: 1,
+      limit: 1000
+    })
 
     // Group slots by date
     const schedule: { [date: string]: any[] } = {}
@@ -312,14 +325,14 @@ export async function getDepartmentScheduleController(req: Request, res: Respons
     }
 
     const selectedDate = new Date(date as string)
-    const timeSlots = await medicalService.getTimeSlots(
-      {
+    const timeSlots = await medicalService.getTimeSlots({
+      filter: {
         departmentId,
         date: selectedDate
       },
-      1,
-      1000
-    )
+      page: 1,
+      limit: 1000
+    })
 
     // Group by room
     const roomSchedule: { [roomId: string]: any } = {}
@@ -360,15 +373,15 @@ export async function checkTimeSlotAvailabilityController(
     }
 
     // Check for overlapping slots
-    const overlappingSlots = await medicalService.getTimeSlots(
-      {
+    const overlappingSlots = await medicalService.getTimeSlots({
+      filter: {
         roomId,
         fromTime: new Date(fromTime),
         toTime: new Date(toTime)
       },
-      1,
-      1
-    )
+      page: 1,
+      limit: 1
+    })
 
     const isAvailable = overlappingSlots.data.length === 0
 
@@ -417,8 +430,11 @@ export async function bulkDeleteTimeSlotsController(req: Request, res: Response,
 
 export async function getMedicalRoomTypesController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    // Get unique room types (services) with count
-    const services = await medicalService.getServices()
+    const { page = 1, limit = 1000 } = req.query
+    const services = await medicalService.getServices({
+      page: Number(page),
+      limit: Number(limit)
+    })
 
     const roomTypes = services.data.map((service: any) => ({
       id: service.id,
@@ -445,14 +461,14 @@ export async function getMedicalRoomsByFloorController(req: Request, res: Respon
       return res.status(400).json({ error: 'Department ID and floor are required' })
     }
 
-    const rooms = await medicalService.getMedicalRooms(
-      {
+    const rooms = await medicalService.getMedicalRooms({
+      filter: {
         departmentId,
         floor: parseInt(floor)
       },
-      1,
-      100 // Get all rooms on the floor
-    )
+      page: 1,
+      limit: 100
+    })
 
     return res.status(200).json({
       departmentId,
@@ -471,9 +487,11 @@ export async function updateTimeSlotController(req: Request, res: Response, next
     const { id } = req.params
     const { fromTime, toTime } = req.body
 
-    // For now, we'll delete and recreate the time slot
-    // In a more advanced implementation, you'd have an update method
-    const existingSlot = await medicalService.getTimeSlots({ roomId: id }, 1, 1)
+    const existingSlot = await medicalService.getTimeSlots({
+      filter: { roomId: id },
+      page: 1,
+      limit: 1
+    })
 
     if (existingSlot.data.length === 0) {
       return res.status(404).json({ error: 'Time slot not found' })
