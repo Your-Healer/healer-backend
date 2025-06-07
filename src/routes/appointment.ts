@@ -1,12 +1,20 @@
 import { Router } from 'express'
-import { protect } from '~/middlewares/auth'
-import { isAdmin, isDoctor, isPatient, isReceptionist } from '~/middlewares/auth/roles'
+import { protect } from '~/middlewares/auth/index'
+import { isDoctor, isDepartmentHead, isMedicalStaff, isNurse, isReceptionist } from '~/middlewares/auth/positions'
+import { isAdmin, isPatient, isStaff, isUser, hasAnyRole } from '~/middlewares/auth/roles'
 import {
   createAppointmentController,
   updateAppointmentStatusController,
   getAppointmentByIdController,
-  addDiagnosisController,
-  getAvailableTimeSlotsController
+  addDiagnosisSuggestionController,
+  cancelAppointmentController,
+  checkTimeSlotAvailabilityController,
+  completeAppointmentController,
+  getAppointmentStatisticsController,
+  getAppointmentsByStaffController,
+  getAppointmentsController,
+  getPatientAppointmentHistoryController,
+  getUpcomingAppointmentsController
 } from '~/controllers/appointment.controller'
 import { handleErrors } from '~/middlewares/validation/handleErrors'
 import {
@@ -17,20 +25,23 @@ import {
 
 const router = Router()
 
-// Public routes
-router.get('/available-slots/:medicalRoomId', getAvailableTimeSlotsController)
+router.get('/check-availability/:medicalRoomTimeId', checkTimeSlotAvailabilityController)
 
-// Protected routes
-router.post('/', protect, isPatient, appointmentValidation, handleErrors, createAppointmentController)
+router.get('/statistics', protect, isAdmin, getAppointmentStatisticsController)
+
+router.get('/staff', protect, getAppointmentsByStaffController)
+router.get('/upcoming', protect, getUpcomingAppointmentsController)
+router.get('/', protect, getAppointmentsController)
+
+router.post('/', protect, appointmentValidation, handleErrors, createAppointmentController)
+router.get('/patient/history', protect, getPatientAppointmentHistoryController)
+router.patch('/:id/cancel', protect, cancelAppointmentController)
+
+router.patch('/:id/status', protect, statusUpdateValidation, handleErrors, updateAppointmentStatusController)
+
+router.post('/:appointmentId/diagnosis', protect, diagnosisValidation, handleErrors, addDiagnosisSuggestionController)
+router.patch('/:id/complete', protect, completeAppointmentController)
+
 router.get('/:id', protect, getAppointmentByIdController)
-router.patch(
-  '/:id/status',
-  protect,
-  isReceptionist,
-  statusUpdateValidation,
-  handleErrors,
-  updateAppointmentStatusController
-)
-router.post('/:appointmentId/diagnosis', protect, isDoctor, diagnosisValidation, handleErrors, addDiagnosisController)
 
 export default router

@@ -3,23 +3,23 @@
   "version": "1.0.0",
   "main": "index.js",
   "prisma": {
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "scripts": {
-    "dev": "pnpx nodemon",
-    "dev:prod": "cross-env STAGE=production pnpx nodemon",
+    "dev": "npx nodemon",
+    "dev:prod": "cross-env STAGE=production npx nodemon",
     "build": "rimraf ./dist && tsc --noCheck && tsc-alias",
-    "start": "pnpm run build && cross-env STAGE=production node dist/index.js",
-    "start:dev": "pnpm run build && cross-env STAGE=production nodemon",
+    "start": "npm run build && cross-env STAGE=production node dist/index.js",
+    "start:dev": "npm run build && cross-env STAGE=production nodemon",
     "start:docker": "npm run build && cross-env STAGE=production node --inspect=0.0.0.0 dist/index.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
-    "db-migrate": "pnpx prisma migrate dev --name init",
-    "db-format": "pnpx prisma format",
-    "db-init": "pnpx prisma init",
-    "db-generate": "pnpx prisma generate"
+    "db-migrate": "npx prisma migrate dev --name init",
+    "db-format": "npx prisma format",
+    "db-init": "npx prisma init",
+    "db-generate": "npx prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -52,8 +52,8 @@
     "typescript-eslint": "^8.31.0"
   },
   "dependencies": {
-    "@polkadot/api": "^15.9.2",
-    "@polkadot/util-crypto": "^13.4.4",
+    "@polkadot/api": "^15.10.2",
+    "@polkadot/util-crypto": "^13.5.1",
     "@prisma/client": "^6.6.0",
     "@supabase/supabase-js": "^2.49.8",
     "base64-arraybuffer": "^1.0.2",
@@ -73,9 +73,12 @@
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
+    "mailgun.js": "^12.0.2",
     "module-alias": "^2.2.3",
     "morgan": "^1.10.0",
     "multer": "^2.0.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
     "swagger-ui-express": "^5.0.1",
     "winston": "^3.17.0"
   }

@@ -1,25 +1,44 @@
 import { Router } from 'express'
-import { protect } from '~/middlewares/auth'
-import { isAdmin, isReceptionist } from '~/middlewares/auth/roles'
+import { protect } from '~/middlewares/auth/index'
+import { isDoctor, isDepartmentHead, isMedicalStaff, isNurse, isReceptionist } from '~/middlewares/auth/positions'
+import { isAdmin, isPatient, isStaff, isUser, hasAnyRole } from '~/middlewares/auth/roles'
 import {
+  getShiftsController,
+  getShiftByIdController,
   createShiftController,
+  createBulkShiftsController,
   updateShiftController,
   deleteShiftController,
-  getShiftsForRoomController,
-  getShiftsForDepartmentController
-} from '~/controllers/shift.controller'
+  getShiftsByDepartmentController,
+  getShiftStatisticsController,
+  assignShiftController,
+  getShiftsByDateRangeController,
+  getShiftsByStaffController
+} from '~/controllers/shiftWorking.controller'
 import { handleErrors } from '~/middlewares/validation/handleErrors'
-import { shiftValidation } from '~/middlewares/validation/shiftValidation'
 
 const router = Router()
 
-// Protected routes - only admin and receptionist can manage shifts
-router.post('/', protect, isReceptionist, shiftValidation, handleErrors, createShiftController)
-router.put('/:id', protect, isReceptionist, shiftValidation, handleErrors, updateShiftController)
-router.delete('/:id', protect, isReceptionist, deleteShiftController)
+router.get('/', protect, getShiftsController)
 
-// Routes to view shifts
-router.get('/room/:roomId', protect, getShiftsForRoomController)
-router.get('/department/:departmentId', protect, getShiftsForDepartmentController)
+router.post('/', protect, handleErrors, createShiftController)
+
+router.post('/bulk', protect, isAdmin, handleErrors, createBulkShiftsController)
+
+router.post('/assign', protect, handleErrors, assignShiftController)
+
+router.get('/statistics', protect, getShiftStatisticsController)
+
+router.get('/date-range', protect, isDoctor, getShiftsByDateRangeController)
+
+router.get('/department/:departmentId', protect, getShiftsByDepartmentController)
+
+router.get('/staff/:staffId', protect, getShiftsByStaffController)
+
+router.get('/:id', protect, getShiftByIdController)
+
+router.put('/:id', protect, handleErrors, updateShiftController)
+
+router.delete('/:id', protect, deleteShiftController)
 
 export default router
