@@ -2,19 +2,7 @@ import { Account } from '@prisma/client'
 import BaseService from './base.service'
 import { compareHashedPassword, createJWT } from '~/middlewares/auth/index'
 import prisma from '~/libs/prisma/init'
-
-export interface LoginDTO {
-  identifier: string // username, email, or phone
-  password: string
-  type: 'username' | 'email' | 'phone'
-}
-
-export interface LoginResponse {
-  token: string
-  user?: any
-  staff?: any
-  account: Account
-}
+import { LoginDTO, LoginResponse } from '~/dtos/auth.dto'
 
 export default class AuthService extends BaseService {
   private static instance: AuthService
@@ -26,35 +14,57 @@ export default class AuthService extends BaseService {
     return AuthService.instance
   }
 
-  async login(identifier: string, password: string, type: 'username' | 'email' | 'phone'): Promise<LoginResponse> {
+  async login(data: LoginDTO): Promise<LoginResponse> {
     try {
-      // Find account based on login type
       let account
-      switch (type) {
+      switch (data.type) {
         case 'username':
           account = await prisma.account.findUnique({
-            where: { username: identifier },
-            include: {
-              role: true,
-              avatar: true
+            where: { username: data.identifier },
+            select: {
+              id: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              },
+              avatar: true,
+              password: true,
+              emailIsVerified: true
             }
           })
           break
         case 'email':
           account = await prisma.account.findUnique({
-            where: { email: identifier },
-            include: {
-              role: true,
-              avatar: true
+            where: { email: data.identifier },
+            select: {
+              id: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              },
+              avatar: true,
+              password: true,
+              emailIsVerified: true
             }
           })
           break
         case 'phone':
           account = await prisma.account.findFirst({
-            where: { phoneNumber: identifier },
-            include: {
-              role: true,
-              avatar: true
+            where: { phoneNumber: data.identifier },
+            select: {
+              id: true,
+              role: {
+                select: {
+                  id: true,
+                  name: true
+                }
+              },
+              password: true,
+              emailIsVerified: true
             }
           })
           break
@@ -67,7 +77,7 @@ export default class AuthService extends BaseService {
       }
 
       // Verify password
-      const isPasswordValid = await compareHashedPassword(password, account.password)
+      const isPasswordValid = await compareHashedPassword(data.password, account.password)
       if (!isPasswordValid) {
         throw new Error('Invalid credentials')
       }
@@ -76,21 +86,21 @@ export default class AuthService extends BaseService {
       const [user, staff] = await Promise.all([
         prisma.user.findUnique({
           where: { accountId: account.id },
-          include: {
-            Patient: true
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true
           }
         }),
         prisma.staff.findUnique({
           where: { accountId: account.id },
-          include: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
             positions: {
-              include: {
-                position: true
-              }
-            },
-            departments: {
-              include: {
-                department: true
+              select: {
+                positionId: true
               }
             }
           }
@@ -102,22 +112,19 @@ export default class AuthService extends BaseService {
         accountId: account.id,
         userId: user?.id,
         staffId: staff?.id,
-        role: account.role?.name
+        role: account.role?.name,
+        positions: staff?.positions.map((p) => p.positionId) || []
       }
 
       const token = createJWT(tokenPayload)
 
-      // Update last login (if you have this field)
-      // await prisma.account.update({
-      //   where: { id: account.id },
-      //   data: { lastLogin: new Date() }
-      // })
+      const { password: _, ...accountWithoutPassword } = account
 
       return {
         token,
-        user,
-        staff,
-        account
+        staff: staff || undefined,
+        user: user || undefined,
+        account: accountWithoutPassword
       }
     } catch (error) {
       this.handleError(error, 'AuthService.login')

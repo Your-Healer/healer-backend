@@ -83,7 +83,11 @@ export async function registerController(req: Request, res: Response, next: Next
 export async function loginUsernameController(req: any, res: Response, next: NextFunction): Promise<any> {
   const { username, password }: { username: string; password: string } = req.body
   try {
-    const result = await authService.login(username.toLowerCase().trim(), password, 'username')
+    const result = await authService.login({
+      identifier: username.toLowerCase().trim(),
+      password,
+      type: 'username'
+    })
 
     req.session.token = result.token
     return res.status(200).json({
@@ -93,9 +97,7 @@ export async function loginUsernameController(req: any, res: Response, next: Nex
       staff: result.staff,
       account: {
         id: result.account.id,
-        username: result.account.username,
-        email: result.account.email,
-        role: result.account.roleId,
+        role: result.account.role,
         emailIsVerified: result.account.emailIsVerified
       },
       expiresIn: '7d'
@@ -109,7 +111,11 @@ export async function loginUsernameController(req: any, res: Response, next: Nex
 export async function loginEmailController(req: any, res: Response, next: NextFunction): Promise<any> {
   const { email, password }: { email: string; password: string } = req.body
   try {
-    const result = await authService.login(email, password, 'email')
+    const result = await authService.login({
+      identifier: email,
+      password,
+      type: 'email'
+    })
 
     req.session.token = result.token
     return res.status(200).json({
@@ -119,9 +125,7 @@ export async function loginEmailController(req: any, res: Response, next: NextFu
       staff: result.staff,
       account: {
         id: result.account.id,
-        username: result.account.username,
-        email: result.account.email,
-        role: result.account.roleId,
+        role: result.account.role,
         emailIsVerified: result.account.emailIsVerified
       },
       expiresIn: '7d'
@@ -135,7 +139,11 @@ export async function loginEmailController(req: any, res: Response, next: NextFu
 export async function loginPhoneNumberController(req: any, res: Response, next: NextFunction): Promise<any> {
   const { phoneNumber, password }: { phoneNumber: string; password: string } = req.body
   try {
-    const result = await authService.login(phoneNumber, password, 'phone')
+    const result = await authService.login({
+      identifier: phoneNumber,
+      password,
+      type: 'phone'
+    })
 
     req.session.token = result.token
     return res.status(200).json({
@@ -145,9 +153,7 @@ export async function loginPhoneNumberController(req: any, res: Response, next: 
       staff: result.staff,
       account: {
         id: result.account.id,
-        username: result.account.username,
-        email: result.account.email,
-        role: result.account.roleId,
+        role: result.account.role,
         emailIsVerified: result.account.emailIsVerified
       },
       expiresIn: '7d'

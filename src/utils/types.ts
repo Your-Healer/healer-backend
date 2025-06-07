@@ -39,14 +39,6 @@ export interface LoginRequest {
   password: string
 }
 
-export interface LoginResponse {
-  token: string
-  email: string | null
-  emailIsVerified: boolean
-  name: string
-  isStaff: boolean
-}
-
 // User and Staff types
 export interface CreateUserRequest {
   roleId: string
