@@ -7,9 +7,9 @@ import {
   loginUsernameController,
   logoutController,
   refreshTokenController,
-  verifyEmailController,
-  requestPasswordResetController,
-  resetPasswordController,
+  // verifyEmailController,
+  // requestPasswordResetController,
+  // resetPasswordController,
   changePasswordController,
   getCurrentUserController
 } from '~/controllers/auth.controller'
@@ -38,11 +38,11 @@ router.post('/logout', protect, logoutController)
 
 router.post('/refresh-token', handleErrors, refreshTokenController)
 
-router.post('/verify-email', verifyEmailValidation, handleErrors, verifyEmailController)
+// router.post('/verify-email', verifyEmailValidation, handleErrors, verifyEmailController)
 
-router.post('/forgot-password', handleErrors, requestPasswordResetController)
+// router.post('/forgot-password', handleErrors, requestPasswordResetController)
 
-router.post('/reset-password', resetPasswordValidation, handleErrors, resetPasswordController)
+// router.post('/reset-password', resetPasswordValidation, handleErrors, resetPasswordController)
 
 router.get('/me', protect, getCurrentUserController)
 

@@ -187,9 +187,10 @@ export async function getTimeSlotsController(req: Request, res: Response, next: 
 
 export async function getAvailableTimeSlotsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { departmentId, serviceId, date } = req.query
+    const { roomId, departmentId, serviceId, date } = req.query
 
     const availableSlots = await medicalService.getAvailableTimeSlots({
+      roomId: roomId as string,
       departmentId: departmentId as string,
       serviceId: serviceId as string,
       date: date ? new Date(date as string) : undefined
@@ -295,13 +296,21 @@ export async function getMedicalRoomScheduleController(req: Request, res: Respon
     })
 
     // Group slots by date
-    const schedule: { [date: string]: any[] } = {}
-    timeSlots.data.forEach((slot: any) => {
-      const dateKey = new Date(slot.fromTime).toDateString()
-      if (!schedule[dateKey]) {
-        schedule[dateKey] = []
+    const schedule: {
+      [date: number]: {
+        dateString: string
+        slots: any[]
       }
-      schedule[dateKey].push(slot)
+    } = {}
+    timeSlots.data.forEach((slot: any) => {
+      const dateKey = new Date(slot.fromTime).getTime()
+      if (!schedule[dateKey]) {
+        schedule[dateKey] = {
+          dateString: new Date(slot.fromTime).toISOString().split('T')[0],
+          slots: []
+        }
+      }
+      schedule[dateKey].slots.push(slot)
     })
 
     return res.status(200).json({

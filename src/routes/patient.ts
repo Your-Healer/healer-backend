@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import { protect } from '~/middlewares/auth/index'
-import { isDoctor, isDepartmentHead, isMedicalStaff, isNurse, isReceptionist } from '~/middlewares/auth/positions'
-import { isAdmin, isPatient, isStaff, isUser, hasAnyRole } from '~/middlewares/auth/roles'
+import { isReceptionist, isDoctor, isDepartmentHead, isMedicalStaff } from '~/middlewares/auth/positions'
+import { isAdmin, isStaff, isPatient } from '~/middlewares/auth/roles'
 import {
   createPatientController,
   updatePatientController,
@@ -12,24 +12,40 @@ import {
   getPatientAppointmentHistoryController,
   getPatientStatisticsController,
   getPatientMedicalHistoryController,
-  deletePatientController
+  deletePatientController,
+  getCurrentPatientController,
+  getPatientProfileController
 } from '~/controllers/patient.controller'
 import { handleErrors } from '~/middlewares/validation/handleErrors'
 
 const router = Router()
 
-router.post('/', protect, isPatient, handleErrors, createPatientController)
-router.get('/user/:userId', protect, isPatient, getPatientsByUserIdController)
-router.patch('/:id', protect, isPatient, handleErrors, updatePatientController)
-
+// Public routes (with authentication)
 router.get('/', protect, getPatientsController)
 router.get('/search', protect, searchPatientsController)
+
+// Patient-specific routes
+router.get('/me', protect, isPatient, getCurrentPatientController)
+router.get('/profile', protect, isPatient, getPatientProfileController)
+
+// Patient management - Staff access required
+router.post('/', protect, isStaff, handleErrors, createPatientController)
+
+// Get patients by user ID - Staff or own user
+router.get('/user/:userId', protect, getPatientsByUserIdController)
+
+// Individual patient operations
 router.get('/:id', protect, getPatientByIdController)
-router.get('/:id/appointments', protect, getPatientAppointmentHistoryController)
-router.get('/:id/statistics', protect, getPatientStatisticsController)
-
-router.get('/:id/medical-history', protect, isDoctor, getPatientMedicalHistoryController)
-
+router.patch('/:id', protect, handleErrors, updatePatientController)
 router.delete('/:id', protect, isAdmin, deletePatientController)
+
+// Patient appointment history - Staff or own patient
+router.get('/:id/appointments', protect, getPatientAppointmentHistoryController)
+
+// Patient statistics - Staff access required
+router.get('/:id/statistics', protect, isStaff, getPatientStatisticsController)
+
+// Patient medical history - Doctor access required
+router.get('/:id/medical-history', protect, isDoctor, getPatientMedicalHistoryController)
 
 export default router

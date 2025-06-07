@@ -40,7 +40,10 @@ export default merge(
         host: process.env.VN_PAY_HOST,
         testMode: process.env.VN_PAY_TEST_MODE == 'true'
       },
-      zalopay: {}
+      zalopay: {},
+      mail: {
+        apiKey: process.env.MAIL_GUN_API_KEY
+      }
     }
   },
   envConfig

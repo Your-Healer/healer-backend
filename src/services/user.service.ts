@@ -1,5 +1,5 @@
 import { User, Prisma, APPOINTMENTSTATUS } from '@prisma/client'
-import { BaseService } from './base.service'
+import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
 
 export interface CreateUserData {

@@ -1,5 +1,5 @@
 import { Department, Prisma } from '@prisma/client'
-import { BaseService } from './base.service'
+import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
 import {
   AssignStaffToDepartmentDto,

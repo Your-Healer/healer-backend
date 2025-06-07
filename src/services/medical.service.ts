@@ -1,5 +1,5 @@
 import { MedicalRoom, MedicalRoomTime, Service, Department, Prisma } from '@prisma/client'
-import { BaseService } from './base.service'
+import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
 import {
   CreateBulkTimeSlotsDto,
@@ -413,6 +413,13 @@ export default class MedicalService extends BaseService {
         }
       }
 
+      if (data.roomId) {
+        where.room = {
+          ...where.room,
+          id: data.roomId
+        }
+      }
+
       if (data.serviceId) {
         where.room = {
           ...where.room,
@@ -581,7 +588,7 @@ export default class MedicalService extends BaseService {
       await prisma.medicalRoomTime.count({})
 
       const [totalRooms, totalTimeSlots, bookedSlots, availableSlots, totalServices] = await Promise.all([
-        prisma.medicalRoom.count(where),
+        prisma.medicalRoom.count({ where }),
         prisma.medicalRoomTime.count({
           where: {
             ...(data.departmentId ? { room: { departmentId: data.departmentId } } : {})

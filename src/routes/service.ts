@@ -1,58 +1,59 @@
 import { Router } from 'express'
 import { protect } from '~/middlewares/auth/index'
-import { isDoctor, isDepartmentHead, isMedicalStaff, isNurse, isReceptionist } from '~/middlewares/auth/positions'
-import { isAdmin, isPatient, isStaff, isUser, hasAnyRole } from '~/middlewares/auth/roles'
+import { isReceptionist, isDoctor, isDepartmentHead, isMedicalStaff } from '~/middlewares/auth/positions'
+import { isAdmin, isStaff } from '~/middlewares/auth/roles'
 import {
-  createBulkTimeSlotsController,
-  createMedicalRoomController,
   createServiceController,
-  createTimeSlotController,
-  deleteMedicalRoomController,
+  updateServiceController,
+  getServiceByIdController,
+  getServicesController,
   deleteServiceController,
-  deleteTimeSlotController,
-  getAvailableTimeSlotsController,
+  getAllServicesController
+} from '~/controllers/service.controller'
+import {
+  createMedicalRoomController,
+  updateMedicalRoomController,
   getMedicalRoomByIdController,
   getMedicalRoomsController,
-  getMedicalStatisticsController,
-  getServicesController,
-  getServiceByIdController,
+  deleteMedicalRoomController,
+  createTimeSlotController,
+  createBulkTimeSlotsController,
   getTimeSlotsController,
-  updateMedicalRoomController,
-  updateServiceController
-} from '~/controllers/service.controller'
+  getAvailableTimeSlotsController,
+  deleteTimeSlotController,
+  getMedicalStatisticsController
+} from '~/controllers/medical.controller'
 import { handleErrors } from '~/middlewares/validation/handleErrors'
+
 const router = Router()
 
-router.get('/', protect, handleErrors, getServicesController)
+// Public routes
+router.get('/', getServicesController)
+router.get('/all', getAllServicesController)
+router.get('/:id', getServiceByIdController)
 
-router.post('/', protect, handleErrors, createServiceController)
+// Service management - Staff access required
+router.post('/', protect, isStaff, handleErrors, createServiceController)
+router.patch('/:id', protect, isStaff, handleErrors, updateServiceController)
+router.delete('/:id', protect, isStaff, deleteServiceController)
 
-router.get('/:id', protect, handleErrors, getServiceByIdController)
+// Service time slot management - Staff access required
+router.post('/:id/timeslots', protect, isStaff, handleErrors, createTimeSlotController)
+router.post('/:id/timeslots/bulk', protect, isStaff, handleErrors, createBulkTimeSlotsController)
+router.delete('/:id/timeslots/:timeSlotId', protect, isStaff, deleteTimeSlotController)
 
-router.post('/:id/timeslots', protect, handleErrors, createTimeSlotController)
+// Medical rooms management through services
+router.get('/rooms', protect, getMedicalRoomsController)
+router.post('/rooms', protect, isStaff, handleErrors, createMedicalRoomController)
+router.get('/rooms/:id', protect, getMedicalRoomByIdController)
+router.put('/rooms/:id', protect, isStaff, handleErrors, updateMedicalRoomController)
+router.delete('/rooms/:id', protect, isStaff, deleteMedicalRoomController)
 
-router.post('/:id/timeslots/bulk', protect, handleErrors, createBulkTimeSlotsController)
+// Room statistics - Staff access required
+router.get('/rooms/:id/statistics', protect, isStaff, getMedicalStatisticsController)
 
-router.delete('/:id/timeslots/:timeSlotId', protect, handleErrors, deleteTimeSlotController)
-
-router.patch('/:id', protect, handleErrors, updateServiceController)
-
-router.delete('/:id', protect, handleErrors, deleteServiceController)
-
-router.get('/rooms', protect, handleErrors, getMedicalRoomsController)
-
-router.get('/rooms/:id', protect, handleErrors, getMedicalRoomByIdController)
-
-router.get('/rooms/:id/statistics', protect, handleErrors, getMedicalStatisticsController)
-
-router.get('/rooms/:id/timeslots', protect, handleErrors, getTimeSlotsController)
-
-router.get('/rooms/:id/timeslots/available', protect, handleErrors, getAvailableTimeSlotsController)
-
-router.post('/rooms', protect, handleErrors, createMedicalRoomController)
-
-router.put('/rooms/:id', protect, handleErrors, updateMedicalRoomController)
-
-router.delete('/rooms/:id', protect, handleErrors, deleteMedicalRoomController)
+// Room time slots
+router.get('/rooms/:id/timeslots', protect, getTimeSlotsController)
+router.get('/rooms/:id/timeslots/available', protect, getAvailableTimeSlotsController)
 
 export default router

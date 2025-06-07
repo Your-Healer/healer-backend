@@ -1,47 +1,14 @@
-import { Patient, Prisma } from '@prisma/client'
-import { BaseService } from './base.service'
+import { Appointment, Patient, Prisma } from '@prisma/client'
+import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
-
-export interface CreatePatientData {
-  userId: string
-  firstname: string
-  lastname: string
-  phoneNumber?: string
-  address?: string
-  emergencyContact?: string
-  medicalHistory?: string
-  dateOfBirth?: Date
-  gender?: string
-  bloodType?: string
-  allergies?: string
-  insurance?: string
-}
-
-export interface UpdatePatientData {
-  firstname?: string
-  lastname?: string
-  phoneNumber?: string
-  address?: string
-  emergencyContact?: string
-  medicalHistory?: string
-  dateOfBirth?: Date
-  gender?: string
-  bloodType?: string
-  allergies?: string
-  insurance?: string
-}
-
-export interface PatientFilter {
-  userId?: string
-  searchTerm?: string
-  hasAppointments?: boolean
-  ageRange?: {
-    min: number
-    max: number
-  }
-  gender?: string
-  bloodType?: string
-}
+import {
+  CreatePatientDto,
+  GetPatientAppointmentHistoryDto,
+  GetPatientsByUserIdDto,
+  GetPatientsDto,
+  SearchPatientsDto,
+  UpdatePatientDto
+} from '~/dtos/patient.dto'
 
 export default class PatientService extends BaseService {
   private static instance: PatientService
@@ -56,7 +23,7 @@ export default class PatientService extends BaseService {
     return PatientService.instance
   }
 
-  async createPatient(data: CreatePatientData): Promise<Patient> {
+  async createPatient(data: CreatePatientDto): Promise<Patient> {
     try {
       // Validate user exists
       const user = await prisma.user.findUnique({
@@ -92,7 +59,7 @@ export default class PatientService extends BaseService {
     }
   }
 
-  async updatePatient(id: string, data: UpdatePatientData): Promise<Patient> {
+  async updatePatient(id: string, data: UpdatePatientDto): Promise<Patient> {
     try {
       const existingPatient = await prisma.patient.findUnique({
         where: { id }
@@ -155,28 +122,28 @@ export default class PatientService extends BaseService {
     }
   }
 
-  async getPatients(filter: PatientFilter = {}, page: number = 1, limit: number = 10) {
+  async getPatients(data: GetPatientsDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const where: any = {}
 
-      if (filter.userId) where.userId = filter.userId
-      if (filter.gender) where.gender = filter.gender
-      if (filter.bloodType) where.bloodType = filter.bloodType
+      if (data.filter.userId) where.userId = data.filter.userId
+      if (data.filter.gender) where.gender = data.filter.gender
+      if (data.filter.bloodType) where.bloodType = data.filter.bloodType
 
-      if (filter.searchTerm) {
+      if (data.filter.searchTerm) {
         where.OR = [
-          { firstname: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { lastname: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { phoneNumber: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { address: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { user: { account: { email: { contains: filter.searchTerm, mode: 'insensitive' } } } }
+          { firstname: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { lastname: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { phoneNumber: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { address: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { user: { account: { email: { contains: data.filter.searchTerm, mode: 'insensitive' } } } }
         ]
       }
 
-      if (filter.hasAppointments !== undefined) {
-        if (filter.hasAppointments) {
+      if (data.filter.hasAppointments !== undefined) {
+        if (data.filter.hasAppointments) {
           where.Appointment = { some: {} }
         } else {
           where.Appointment = { none: {} }
@@ -205,41 +172,41 @@ export default class PatientService extends BaseService {
         prisma.patient.count({ where })
       ])
 
-      return this.formatPaginationResult(patients, total, page, limit)
+      return this.formatPaginationResult(patients, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getPatients')
     }
   }
 
-  async getPatientsByUserId(userId: string, page: number = 1, limit: number = 10) {
+  async getPatientsByUserId(data: GetPatientsByUserIdDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const patients = await prisma.patient.findMany({
-        where: { userId },
+        where: { userId: data.userId },
         skip,
         take
       })
-      const total = await prisma.patient.count({ where: { userId } })
+      const total = await prisma.patient.count({ where: { userId: data.userId } })
 
-      return this.formatPaginationResult(patients, total, page, limit)
+      return this.formatPaginationResult(patients, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getPatientsByUserId')
     }
   }
 
-  async searchPatients(searchTerm: string, page: number = 1, limit: number = 10) {
+  async searchPatients(data: SearchPatientsDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const patients = await prisma.patient.findMany({
         where: {
           OR: [
-            { firstname: { contains: searchTerm, mode: 'insensitive' } },
-            { lastname: { contains: searchTerm, mode: 'insensitive' } },
-            { phoneNumber: { contains: searchTerm, mode: 'insensitive' } },
-            { address: { contains: searchTerm, mode: 'insensitive' } },
-            { user: { account: { email: { contains: searchTerm, mode: 'insensitive' } } } }
+            { firstname: { contains: data.searchTerm, mode: 'insensitive' } },
+            { lastname: { contains: data.searchTerm, mode: 'insensitive' } },
+            { phoneNumber: { contains: data.searchTerm, mode: 'insensitive' } },
+            { address: { contains: data.searchTerm, mode: 'insensitive' } },
+            { user: { account: { email: { contains: data.searchTerm, mode: 'insensitive' } } } }
           ]
         },
         skip,
@@ -248,27 +215,27 @@ export default class PatientService extends BaseService {
       const total = await prisma.patient.count({
         where: {
           OR: [
-            { firstname: { contains: searchTerm, mode: 'insensitive' } },
-            { lastname: { contains: searchTerm, mode: 'insensitive' } },
-            { phoneNumber: { contains: searchTerm, mode: 'insensitive' } },
-            { address: { contains: searchTerm, mode: 'insensitive' } },
-            { user: { account: { email: { contains: searchTerm, mode: 'insensitive' } } } }
+            { firstname: { contains: data.searchTerm, mode: 'insensitive' } },
+            { lastname: { contains: data.searchTerm, mode: 'insensitive' } },
+            { phoneNumber: { contains: data.searchTerm, mode: 'insensitive' } },
+            { address: { contains: data.searchTerm, mode: 'insensitive' } },
+            { user: { account: { email: { contains: data.searchTerm, mode: 'insensitive' } } } }
           ]
         }
       })
 
-      return this.formatPaginationResult(patients, total, page, limit)
+      return this.formatPaginationResult(patients, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'searchPatients')
     }
   }
 
-  async getPatientAppointmentHistory(patientId: string, page: number = 1, limit: number = 10) {
+  async getPatientAppointmentHistory(data: GetPatientAppointmentHistoryDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const appointments = await prisma.appointment.findMany({
-        where: { patientId },
+        where: { patientId: data.patientId },
         skip,
         take,
         include: {
@@ -280,9 +247,9 @@ export default class PatientService extends BaseService {
           }
         }
       })
-      const total = await prisma.appointment.count({ where: { patientId } })
+      const total = await prisma.appointment.count({ where: { patientId: data.patientId } })
 
-      return this.formatPaginationResult(appointments, total, page, limit)
+      return this.formatPaginationResult(appointments, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getPatientAppointmentHistory')
     }

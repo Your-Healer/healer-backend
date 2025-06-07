@@ -21,7 +21,7 @@ export async function createPatientController(req: Request, res: Response, next:
     } = req.body
 
     if (!userId || !firstname || !lastname) {
-      return res.status(400).json({ error: 'Missing required fields' })
+      return res.status(400).json({ error: 'UserId, firstname, and lastname are required' })
     }
 
     const patient = await patientService.createPatient({
@@ -108,24 +108,28 @@ export async function getPatientByIdController(req: Request, res: Response, next
 
 export async function getPatientsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { userId, searchTerm, hasAppointments, minAge, maxAge, gender, bloodType, page = 1, limit = 10 } = req.query
+    const { page = 1, limit = 10, userId, searchTerm, hasAppointments, gender, bloodType, minAge, maxAge } = req.query
 
-    const filter = {
+    const filter: any = {
       userId: userId as string,
       searchTerm: searchTerm as string,
-      hasAppointments: hasAppointments === 'true' ? true : hasAppointments === 'false' ? false : undefined,
-      ageRange:
-        minAge || maxAge
-          ? {
-              min: minAge ? parseInt(minAge as string) : 0,
-              max: maxAge ? parseInt(maxAge as string) : 150
-            }
-          : undefined,
+      hasAppointments: hasAppointments ? hasAppointments === 'true' : undefined,
       gender: gender as string,
       bloodType: bloodType as string
     }
 
-    const result = await patientService.getPatients(filter, parseInt(page as string), parseInt(limit as string))
+    if (minAge || maxAge) {
+      filter.ageRange = {
+        min: minAge ? parseInt(minAge as string) : undefined,
+        max: maxAge ? parseInt(maxAge as string) : undefined
+      }
+    }
+
+    const result = await patientService.getPatients({
+      filter,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -139,7 +143,11 @@ export async function getPatientsByUserIdController(req: Request, res: Response,
     const { userId } = req.params
     const { page = 1, limit = 10 } = req.query
 
-    const result = await patientService.getPatientsByUserId(userId, parseInt(page as string), parseInt(limit as string))
+    const result = await patientService.getPatientsByUserId({
+      userId,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -150,18 +158,17 @@ export async function getPatientsByUserIdController(req: Request, res: Response,
 
 export async function searchPatientsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { searchTerm } = req.query
-    const { page = 1, limit = 10 } = req.query
+    const { searchTerm, page = 1, limit = 10 } = req.query
 
     if (!searchTerm) {
       return res.status(400).json({ error: 'Search term is required' })
     }
 
-    const result = await patientService.searchPatients(
-      searchTerm as string,
-      parseInt(page as string),
-      parseInt(limit as string)
-    )
+    const result = await patientService.searchPatients({
+      searchTerm: searchTerm as string,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -176,14 +183,14 @@ export async function getPatientAppointmentHistoryController(
   next: NextFunction
 ): Promise<any> {
   try {
-    const { id } = req.params
+    const { id: patientId } = req.params
     const { page = 1, limit = 10 } = req.query
 
-    const result = await patientService.getPatientAppointmentHistory(
-      id,
-      parseInt(page as string),
-      parseInt(limit as string)
-    )
+    const result = await patientService.getPatientAppointmentHistory({
+      patientId,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -194,10 +201,15 @@ export async function getPatientAppointmentHistoryController(
 
 export async function getPatientStatisticsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.params
-    const stats = await patientService.getPatientStatistics(id)
+    const { id: patientId } = req.params
 
-    return res.status(200).json(stats)
+    const statistics = await patientService.getPatientStatistics(patientId)
+
+    if (!statistics) {
+      return res.status(404).json({ error: 'Patient not found' })
+    }
+
+    return res.status(200).json(statistics)
   } catch (error: any) {
     console.error('Error fetching patient statistics:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -210,10 +222,11 @@ export async function getPatientMedicalHistoryController(
   next: NextFunction
 ): Promise<any> {
   try {
-    const { id } = req.params
-    const history = await patientService.getPatientMedicalHistory(id)
+    const { id: patientId } = req.params
 
-    return res.status(200).json(history)
+    const medicalHistory = await patientService.getPatientMedicalHistory(patientId)
+
+    return res.status(200).json(medicalHistory)
   } catch (error: any) {
     console.error('Error fetching patient medical history:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
@@ -231,6 +244,62 @@ export async function deletePatientController(req: Request, res: Response, next:
     })
   } catch (error: any) {
     console.error('Error deleting patient:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getCurrentPatientController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { userId } = (req as any)?.user
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' })
+    }
+
+    const result = await patientService.getPatientsByUserId({
+      userId,
+      page: 1,
+      limit: 1
+    })
+
+    if (result.data.length === 0) {
+      return res.status(404).json({ error: 'Patient profile not found' })
+    }
+
+    return res.status(200).json(result.data[0])
+  } catch (error: any) {
+    console.error('Error fetching current patient:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getPatientProfileController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { userId } = (req as any)?.user
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' })
+    }
+
+    const result = await patientService.getPatientsByUserId({
+      userId,
+      page: 1,
+      limit: 1
+    })
+
+    if (result.data.length === 0) {
+      return res.status(404).json({ error: 'Patient profile not found' })
+    }
+
+    const patient = result.data[0]
+    const statistics = await patientService.getPatientStatistics(patient.id)
+
+    return res.status(200).json({
+      ...patient,
+      statistics
+    })
+  } catch (error: any) {
+    console.error('Error fetching patient profile:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }

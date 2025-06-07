@@ -2,63 +2,50 @@ import { Router } from 'express'
 import { protect } from '~/middlewares/auth/index'
 import { isAdmin } from '~/middlewares/auth/roles'
 import {
+  checkAccountExistsController,
+  resetPasswordController,
+  getMyAccountController,
+  updateMyAccountController,
+  changeMyPasswordController,
+  updateMyAvatarController,
+  removeMyAvatarController,
+  getMyWalletController,
+  regenerateMyWalletController,
+  getAllAccountsController,
   createAccountController,
-  getAccountByIdController,
+  getAccountStatisticsController,
   getAccountByUsernameController,
   getAccountByEmailController,
-  updateAccountController,
-  changePasswordController,
-  resetPasswordController,
-  verifyEmailController,
-  getAccountsController,
-  deleteAccountController,
-  getAccountStatisticsController,
-  checkAccountExistsController,
-  updateAvatarController,
-  removeAvatarController,
-  getWalletInfoController,
-  regenerateWalletController,
-  searchAccountsController,
-  getAccountActivityController,
-  bulkUpdateAccountsController,
-  bulkDeleteAccountsController
+  getAccountByIdController,
+  updateAccountByIdController,
+  deleteAccountByIdController,
+  verifyEmailController
 } from '~/controllers/account.controller'
-import { handleErrors } from '~/middlewares/validation/handleErrors'
-import {
-  accountValidation,
-  updateAccountValidation,
-  changePasswordValidation,
-  resetPasswordValidation
-} from '~/middlewares/validation/accountValidation'
 
 const router = Router()
 
 // Public routes
 router.post('/check-exists', checkAccountExistsController)
-router.post('/reset-password', resetPasswordValidation, handleErrors, resetPasswordController)
+router.post('/reset-password', resetPasswordController)
 
 // Protected routes - User access
-router.get('/me', protect, getAccountByIdController)
-router.patch('/me', protect, updateAccountValidation, handleErrors, updateAccountController)
-router.patch('/me/password', protect, changePasswordValidation, handleErrors, changePasswordController)
-router.patch('/me/avatar', protect, updateAvatarController)
-router.delete('/me/avatar', protect, removeAvatarController)
-router.get('/me/wallet', protect, getWalletInfoController)
-router.post('/me/wallet/regenerate', protect, regenerateWalletController)
+router.get('/me', protect, getMyAccountController)
+router.patch('/me', protect, updateMyAccountController)
+router.patch('/me/password', protect, changeMyPasswordController)
+router.patch('/me/avatar', protect, updateMyAvatarController)
+router.delete('/me/avatar', protect, removeMyAvatarController)
+router.get('/me/wallet', protect, getMyWalletController)
+router.post('/me/wallet/regenerate', protect, regenerateMyWalletController)
 
 // Protected routes - Admin access
-router.post('/', protect, isAdmin, accountValidation, handleErrors, createAccountController)
-router.get('/', protect, isAdmin, getAccountsController)
+router.get('/', protect, isAdmin, getAllAccountsController)
+router.post('/', protect, isAdmin, createAccountController)
 router.get('/statistics', protect, isAdmin, getAccountStatisticsController)
 router.get('/username/:username', protect, isAdmin, getAccountByUsernameController)
 router.get('/email/:email', protect, isAdmin, getAccountByEmailController)
 router.get('/:id', protect, isAdmin, getAccountByIdController)
-router.patch('/:id', protect, isAdmin, updateAccountValidation, handleErrors, updateAccountController)
+router.patch('/:id', protect, isAdmin, updateAccountByIdController)
+router.delete('/:id', protect, isAdmin, deleteAccountByIdController)
 router.patch('/:id/verify-email', protect, isAdmin, verifyEmailController)
-router.delete('/:id', protect, isAdmin, deleteAccountController)
-router.get('/search', protect, isAdmin, searchAccountsController)
-router.get('/:id/activity', protect, isAdmin, getAccountActivityController)
-router.patch('/bulk-update', protect, isAdmin, bulkUpdateAccountsController)
-router.delete('/bulk-delete', protect, isAdmin, bulkDeleteAccountsController)
 
 export default router

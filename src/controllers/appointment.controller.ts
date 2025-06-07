@@ -6,7 +6,7 @@ const appointmentService = AppointmentService.getInstance()
 
 export async function createAppointmentController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id: userId } = req.user
+    const { userId } = req.user
     const { patientId, medicalRoomTimeId, notes } = req.body
 
     if (!patientId || !medicalRoomTimeId) {
@@ -129,8 +129,10 @@ export async function getAppointmentsController(req: Request, res: Response, nex
 
 export async function getUpcomingAppointmentsController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id: userId } = req.user
+    const { userId } = req.user
     const { limit = 5 } = req.query
+
+    console.log(limit)
 
     const appointments = await appointmentService.getUpcomingAppointments(userId, parseInt(limit as string))
 
@@ -234,7 +236,7 @@ export async function getPatientAppointmentHistoryController(
 ): Promise<any> {
   try {
     const { patientId } = req.params
-    const { page = 1, limit = 10 } = req.query
+    const { page = 1, limit = 10, status } = req.query
 
     const result = await appointmentService.getPatientAppointmentHistory(
       patientId,

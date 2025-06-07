@@ -1,4 +1,4 @@
-export abstract class BaseService {
+export default abstract class BaseService {
   protected handleError(error: any, operation: string): never {
     console.error(`Error in ${operation}:`, error)
     throw error

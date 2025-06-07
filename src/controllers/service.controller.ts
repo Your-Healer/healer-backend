@@ -1,72 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import MedicalService from '~/services/medical.service'
+import ServiceService from '~/services/service.services'
 
 const medicalService = MedicalService.getInstance()
-
-export async function createServiceController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { name, description } = req.body
-
-    if (!name) {
-      return res.status(400).json({ error: 'Service name is required' })
-    }
-
-    const service = await medicalService.createService(name, description)
-
-    return res.status(201).json({
-      message: 'Service created successfully',
-      service
-    })
-  } catch (error: any) {
-    console.error('Error creating service:', error)
-    return res.status(500).json({ error: error.message || 'Internal server error' })
-  }
-}
-
-export async function updateServiceController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { id } = req.params
-    const { name, description } = req.body
-
-    const service = await medicalService.updateService(id, name, description)
-
-    return res.status(200).json({
-      message: 'Service updated successfully',
-      service
-    })
-  } catch (error: any) {
-    console.error('Error updating service:', error)
-    return res.status(500).json({ error: error.message || 'Internal server error' })
-  }
-}
-
-export async function getServicesController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { page = 1, limit = 10 } = req.query
-
-    const result = await medicalService.getServices(parseInt(page as string), parseInt(limit as string))
-
-    return res.status(200).json(result)
-  } catch (error: any) {
-    console.error('Error fetching services:', error)
-    return res.status(500).json({ error: error.message || 'Internal server error' })
-  }
-}
-
-export async function deleteServiceController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { id } = req.params
-
-    await medicalService.deleteService(id)
-
-    return res.status(200).json({
-      message: 'Service deleted successfully'
-    })
-  } catch (error: any) {
-    console.error('Error deleting service:', error)
-    return res.status(500).json({ error: error.message || 'Internal server error' })
-  }
-}
+const serviceService = ServiceService.getInstance()
 
 export async function createMedicalRoomController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
@@ -126,7 +63,11 @@ export async function getMedicalRoomsController(req: Request, res: Response, nex
       searchTerm: searchTerm as string
     }
 
-    const result = await medicalService.getMedicalRooms(filter, parseInt(page as string), parseInt(limit as string))
+    const result = await medicalService.getMedicalRooms({
+      filter,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -199,7 +140,11 @@ export async function createBulkTimeSlotsController(req: Request, res: Response,
     }
 
     const dateObjects = dates.map((date) => new Date(date))
-    const slots = await medicalService.createBulkTimeSlots(roomId, dateObjects, timeSlots)
+    const slots = await medicalService.createBulkTimeSlots({
+      roomId,
+      dates: dateObjects,
+      timeSlots
+    })
 
     return res.status(201).json({
       message: 'Bulk time slots created successfully',
@@ -225,7 +170,11 @@ export async function getTimeSlotsController(req: Request, res: Response, next: 
       available: available === 'true' ? true : available === 'false' ? false : undefined
     }
 
-    const result = await medicalService.getTimeSlots(filter, parseInt(page as string), parseInt(limit as string))
+    const result = await medicalService.getTimeSlots({
+      filter,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -238,11 +187,11 @@ export async function getAvailableTimeSlotsController(req: Request, res: Respons
   try {
     const { departmentId, serviceId, date } = req.query
 
-    const availableSlots = await medicalService.getAvailableTimeSlots(
-      departmentId as string,
-      serviceId as string,
-      date ? new Date(date as string) : undefined
-    )
+    const availableSlots = await medicalService.getAvailableTimeSlots({
+      departmentId: departmentId as string,
+      serviceId: serviceId as string,
+      date: date ? new Date(date as string) : undefined
+    })
 
     return res.status(200).json(availableSlots)
   } catch (error: any) {
@@ -269,7 +218,9 @@ export async function deleteTimeSlotController(req: Request, res: Response, next
 export async function getMedicalStatisticsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { departmentId } = req.query
-    const stats = await medicalService.getMedicalStatistics(departmentId as string)
+    const stats = await medicalService.getMedicalStatistics({
+      departmentId: departmentId as string
+    })
 
     return res.status(200).json(stats)
   } catch (error: any) {
@@ -278,10 +229,58 @@ export async function getMedicalStatisticsController(req: Request, res: Response
   }
 }
 
+// Service controllers
+export async function createServiceController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { name, description, durationTime, price } = req.body
+
+    if (!name) {
+      return res.status(400).json({ error: 'Service name is required' })
+    }
+
+    const service = await serviceService.createService({
+      name,
+      description,
+      durationTime,
+      price
+    })
+
+    return res.status(201).json({
+      message: 'Service created successfully',
+      service
+    })
+  } catch (error: any) {
+    console.error('Error creating service:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function updateServiceController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+    const { name, description, durationTime, price } = req.body
+
+    const service = await serviceService.updateService(id, {
+      name,
+      description,
+      durationTime,
+      price
+    })
+
+    return res.status(200).json({
+      message: 'Service updated successfully',
+      service
+    })
+  } catch (error: any) {
+    console.error('Error updating service:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
 export async function getServiceByIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { id } = req.params
-    const service = await medicalService.getServiceById(id)
+    const service = await serviceService.getServiceById(id)
 
     if (!service) {
       return res.status(404).json({ error: 'Service not found' })
@@ -290,6 +289,58 @@ export async function getServiceByIdController(req: Request, res: Response, next
     return res.status(200).json(service)
   } catch (error: any) {
     console.error('Error fetching service:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getServicesController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { searchTerm, minPrice, maxPrice, page = 1, limit = 10 } = req.query
+
+    const filter = {
+      searchTerm: searchTerm as string,
+      minPrice: minPrice ? parseFloat(minPrice as string) : undefined,
+      maxPrice: maxPrice ? parseFloat(maxPrice as string) : undefined
+    }
+
+    const result = await serviceService.getServices({
+      filter,
+      page: parseInt(page as string),
+      limit: parseInt(limit as string)
+    })
+
+    return res.status(200).json(result)
+  } catch (error: any) {
+    console.error('Error fetching services:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function deleteServiceController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+
+    await serviceService.deleteService(id)
+
+    return res.status(200).json({
+      message: 'Service deleted successfully'
+    })
+  } catch (error: any) {
+    console.error('Error deleting service:', error)
+    return res.status(500).json({ error: error.message || 'Internal server error' })
+  }
+}
+
+export async function getAllServicesController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const services = await serviceService.getAllServices()
+
+    return res.status(200).json({
+      services,
+      total: services.length
+    })
+  } catch (error: any) {
+    console.error('Error fetching all services:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }

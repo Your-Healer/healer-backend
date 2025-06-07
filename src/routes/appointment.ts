@@ -25,44 +25,23 @@ import {
 
 const router = Router()
 
-// Public routes
 router.get('/check-availability/:medicalRoomTimeId', checkTimeSlotAvailabilityController)
 
-// Protected routes - Admin access (place before generic routes)
 router.get('/statistics', protect, isAdmin, getAppointmentStatisticsController)
 
-// Protected routes - Staff access
 router.get('/staff', protect, getAppointmentsByStaffController)
 router.get('/upcoming', protect, getUpcomingAppointmentsController)
 router.get('/', protect, getAppointmentsController)
 
-// Protected routes - Patient access
-router.post('/', protect, isPatient, appointmentValidation, handleErrors, createAppointmentController)
-router.get('/patient/history', protect, isPatient, getPatientAppointmentHistoryController)
-router.patch('/:id/cancel', protect, isPatient, cancelAppointmentController)
+router.post('/', protect, appointmentValidation, handleErrors, createAppointmentController)
+router.get('/patient/history', protect, getPatientAppointmentHistoryController)
+router.patch('/:id/cancel', protect, cancelAppointmentController)
 
-// Protected routes - Receptionist access
-router.patch(
-  '/:id/status',
-  protect,
-  isReceptionist,
-  statusUpdateValidation,
-  handleErrors,
-  updateAppointmentStatusController
-)
+router.patch('/:id/status', protect, statusUpdateValidation, handleErrors, updateAppointmentStatusController)
 
-// Protected routes - Doctor access
-router.post(
-  '/:appointmentId/diagnosis',
-  protect,
-  isDoctor,
-  diagnosisValidation,
-  handleErrors,
-  addDiagnosisSuggestionController
-)
-router.patch('/:id/complete', protect, isDoctor, completeAppointmentController)
+router.post('/:appointmentId/diagnosis', protect, diagnosisValidation, handleErrors, addDiagnosisSuggestionController)
+router.patch('/:id/complete', protect, completeAppointmentController)
 
-// Generic routes (place last to avoid conflicts)
 router.get('/:id', protect, getAppointmentByIdController)
 
 export default router

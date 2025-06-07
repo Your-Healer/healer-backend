@@ -1,6 +1,6 @@
 import { Account } from '@prisma/client'
-import { BaseService } from './base.service'
-import { compareHashedPassword, createJWT } from '~/middlewares/auth'
+import BaseService from './base.service'
+import { compareHashedPassword, createJWT } from '~/middlewares/auth/index'
 import prisma from '~/libs/prisma/init'
 
 export interface LoginDTO {

@@ -1,31 +1,23 @@
 import { Service, Prisma } from '@prisma/client'
-import { BaseService } from './base.service'
+import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
-
-export interface CreateServiceData {
-  name: string
-  description?: string
-  durationTime?: number
-  price?: number
-}
-
-export interface UpdateServiceData {
-  name?: string
-  description?: string
-  durationTime?: number
-  price?: number
-}
-
-export interface ServiceFilter {
-  searchTerm?: string
-  minPrice?: number
-  maxPrice?: number
-}
+import { CreateServiceDto, GetServicesDto, UpdateServiceDto } from '~/dtos/service.dto'
 
 export default class ServiceService extends BaseService {
-  async createService(data: CreateServiceData): Promise<Service> {
+  private static instance: ServiceService
+  private constructor() {
+    super()
+  }
+
+  static getInstance(): ServiceService {
+    if (!ServiceService.instance) {
+      ServiceService.instance = new ServiceService()
+    }
+    return ServiceService.instance
+  }
+
+  async createService(data: CreateServiceDto): Promise<Service> {
     try {
-      // Check if service name is unique
       const existing = await prisma.service.findFirst({
         where: { name: data.name }
       })
@@ -48,7 +40,7 @@ export default class ServiceService extends BaseService {
     }
   }
 
-  async updateService(id: string, data: UpdateServiceData): Promise<Service> {
+  async updateService(id: string, data: UpdateServiceDto): Promise<Service> {
     try {
       const existing = await prisma.service.findUnique({
         where: { id }
@@ -57,7 +49,6 @@ export default class ServiceService extends BaseService {
         throw new Error('Service not found')
       }
 
-      // Check name uniqueness if changing
       if (data.name && data.name !== existing.name) {
         const nameExists = await prisma.service.findFirst({
           where: { name: data.name }
@@ -81,25 +72,25 @@ export default class ServiceService extends BaseService {
     }
   }
 
-  async getServices(filter: ServiceFilter = {}, page: number = 1, limit: number = 10) {
+  async getServices(data: GetServicesDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
       const where: any = {}
 
-      if (filter.searchTerm) {
+      if (data.filter.searchTerm) {
         where.OR = [
-          { name: { contains: filter.searchTerm, mode: 'insensitive' } },
-          { description: { contains: filter.searchTerm, mode: 'insensitive' } }
+          { name: { contains: data.filter.searchTerm, mode: 'insensitive' } },
+          { description: { contains: data.filter.searchTerm, mode: 'insensitive' } }
         ]
       }
 
-      if (filter.minPrice !== undefined) {
-        where.price = { ...where.price, gte: filter.minPrice }
+      if (data.filter.minPrice !== undefined) {
+        where.price = { ...where.price, gte: data.filter.minPrice }
       }
 
-      if (filter.maxPrice !== undefined) {
-        where.price = { ...where.price, lte: filter.maxPrice }
+      if (data.filter.maxPrice !== undefined) {
+        where.price = { ...where.price, lte: data.filter.maxPrice }
       }
 
       const [services, total] = await Promise.all([
@@ -118,7 +109,7 @@ export default class ServiceService extends BaseService {
         prisma.service.count({ where })
       ])
 
-      return this.formatPaginationResult(services, total, page, limit)
+      return this.formatPaginationResult(services, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getServices')
     }

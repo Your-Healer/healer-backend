@@ -1,5 +1,5 @@
 import { Account, Prisma } from '@prisma/client'
-import { BaseService } from './base.service'
+import BaseService from './base.service'
 import { createHashedPassword, compareHashedPassword } from '~/middlewares/auth/index'
 import BlockchainService from './blockchain.service'
 import cryptoJs from 'crypto-js'

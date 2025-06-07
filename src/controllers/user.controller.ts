@@ -5,8 +5,8 @@ const userService = UserService.getInstance()
 
 export async function getUserProfileController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.user
-    const user = await userService.getUserById(id)
+    const { userId } = req.user
+    const user = await userService.getUserById(userId)
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' })
@@ -21,10 +21,10 @@ export async function getUserProfileController(req: any, res: Response, next: Ne
 
 export async function updateUserProfileController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.user
+    const { userId } = req.user
     const { firstname, lastname, phoneNumber, address } = req.body
 
-    const user = await userService.updateUser(id, {
+    const user = await userService.updateUser(userId, {
       firstname,
       lastname,
       phoneNumber,
@@ -77,10 +77,10 @@ export async function getUserByIdController(req: Request, res: Response, next: N
 
 export async function getAppointmentHistoryController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.user
+    const { userId } = req.user
     const { page = 1, limit = 10 } = req.query
 
-    const result = await userService.getUserAppointments(id, parseInt(page as string), parseInt(limit as string))
+    const result = await userService.getUserAppointments(userId, parseInt(page as string), parseInt(limit as string))
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -91,10 +91,10 @@ export async function getAppointmentHistoryController(req: any, res: Response, n
 
 export async function getUserPatientsController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.user
+    const { userId } = req.user
     const { page = 1, limit = 10 } = req.query
 
-    const result = await userService.getUserPatients(id, parseInt(page as string), parseInt(limit as string))
+    const result = await userService.getUserPatients(userId, parseInt(page as string), parseInt(limit as string))
 
     return res.status(200).json(result)
   } catch (error: any) {

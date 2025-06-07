@@ -1,10 +1,14 @@
 import { Request, Response, NextFunction } from 'express'
+import BlockchainService from '~/services/blockchain.service'
 
-export function checkHealerNetworkController(req: any, res: Response, next: NextFunction): any {
-  return {
-    status: 'Healer Network is operational',
+const blockchainService = BlockchainService.getInstance()
+
+export async function checkHealerNetworkController(req: any, res: Response, next: NextFunction): Promise<any> {
+  const status = await blockchainService.checkConnection()
+  return res.status(200).json({
+    status: status.status ? status.message : 'Healer Network is not connected',
     timestamp: new Date().toISOString()
-  }
+  })
 }
 export function uploadSingleFileController(req: any, res: Response, next: NextFunction): any {
   return {
@@ -20,11 +24,12 @@ export function uploadMultipleFilesController(req: any, res: Response, next: Nex
     timestamp: new Date().toISOString()
   }
 }
-export function getExtrinsicStatusController(req: any, res: Response, next: NextFunction): any {
-  return {
-    status: 'Extrinsic is pending',
-    timestamp: new Date().toISOString()
-  }
+export async function getExtrinsicStatusController(req: any, res: Response, next: NextFunction): Promise<any> {
+  const extrinsic = await blockchainService.getExtrinsic()
+  console.log(extrinsic)
+  res.status(200).json({
+    extrinsic
+  })
 }
 
 export const pingController = (req: Request, res: Response) => {

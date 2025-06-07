@@ -54,7 +54,6 @@ export const protect = async (req: any, res: Response, next: NextFunction): Prom
       return res.status(401).json({ message: 'Invalid token' })
     }
 
-    // Attach user info to request
     req.user = {
       accountId: account.id,
       userId: account.user?.id,

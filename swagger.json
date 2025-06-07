@@ -254,6 +254,20 @@
           },
           "serviceId": {
             "type": "string"
+          },
+          "department": {
+            "$ref": "#/components/schemas/Department"
+          },
+          "service": {
+            "$ref": "#/components/schemas/Service"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },
@@ -329,23 +343,1771 @@
             "type": "string"
           }
         }
+      },
+      "Account": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "0901234567"
+          },
+          "emailIsVerified": {
+            "type": "boolean",
+            "example": false
+          },
+          "walletAddress": {
+            "type": "string",
+            "example": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+          },
+          "role": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "example": "Người dùng"
+              }
+            }
+          },
+          "avatar": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              }
+            }
+          },
+          "user": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Patient"
+              }
+            ],
+            "nullable": true
+          },
+          "staff": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Staff"
+              }
+            ],
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateAccountDto": {
+        "type": "object",
+        "required": ["roleId", "username", "password", "email"],
+        "properties": {
+          "roleId": {
+            "type": "string",
+            "example": "role-123"
+          },
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "example": "johndoe"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 6,
+            "example": "securePassword123"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "pattern": "^[0-9]{10,11}$",
+            "example": "0901234567"
+          }
+        }
+      },
+      "UpdateAccountDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "example": "johndoe_updated"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.updated@example.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "pattern": "^[0-9]{10,11}$",
+            "example": "0987654321"
+          },
+          "avatarId": {
+            "type": "string",
+            "example": "avatar-123"
+          },
+          "emailIsVerified": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "ChangePasswordDto": {
+        "type": "object",
+        "required": ["currentPassword", "newPassword"],
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "format": "password",
+            "example": "currentPassword123"
+          },
+          "newPassword": {
+            "type": "string",
+            "format": "password",
+            "minLength": 6,
+            "example": "newSecurePassword456"
+          }
+        }
+      },
+      "CheckAccountExistsDto": {
+        "type": "object",
+        "required": ["username"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john.doe@example.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "0901234567"
+          }
+        }
+      },
+      "AccountExistsResponse": {
+        "type": "object",
+        "properties": {
+          "usernameExists": {
+            "type": "boolean",
+            "example": false
+          },
+          "emailExists": {
+            "type": "boolean",
+            "example": false
+          },
+          "phoneExists": {
+            "type": "boolean",
+            "example": false
+          }
+        }
+      },
+      "AccountStatistics": {
+        "type": "object",
+        "properties": {
+          "totalAccounts": {
+            "type": "integer",
+            "example": 1250
+          },
+          "verifiedAccounts": {
+            "type": "integer",
+            "example": 890
+          },
+          "unverifiedAccounts": {
+            "type": "integer",
+            "example": 360
+          },
+          "userAccounts": {
+            "type": "integer",
+            "example": 1000
+          },
+          "staffAccounts": {
+            "type": "integer",
+            "example": 200
+          },
+          "adminAccounts": {
+            "type": "integer",
+            "example": 50
+          },
+          "verificationRate": {
+            "type": "number",
+            "example": 71.2
+          }
+        }
+      },
+      "WalletInfo": {
+        "type": "object",
+        "properties": {
+          "walletAddress": {
+            "type": "string",
+            "example": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
+          },
+          "walletMnemonic": {
+            "type": "string",
+            "example": "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about"
+          }
+        }
+      },
+      "BulkUpdateAccountsDto": {
+        "type": "object",
+        "required": ["accountIds", "updateData"],
+        "properties": {
+          "accountIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["account-1", "account-2", "account-3"]
+          },
+          "updateData": {
+            "$ref": "#/components/schemas/UpdateAccountDto"
+          }
+        }
+      },
+      "BulkOperationResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Bulk operation completed. 3 accounts processed."
+          },
+          "processedCount": {
+            "type": "integer",
+            "example": 3
+          },
+          "totalRequested": {
+            "type": "integer",
+            "example": 3
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": []
+          }
+        }
+      },
+      "HealthStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "healthy"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00.000Z"
+          },
+          "uptime": {
+            "type": "number",
+            "example": 3600.5,
+            "description": "Server uptime in seconds"
+          },
+          "message": {
+            "type": "string",
+            "example": "Server is running properly"
+          }
+        }
+      },
+      "HealerNetworkStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "Healer Network is operational"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00.000Z"
+          }
+        }
+      },
+      "FileUploadResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Single file uploaded successfully"
+          },
+          "file": {
+            "type": "object",
+            "properties": {
+              "fieldname": {
+                "type": "string",
+                "example": "file"
+              },
+              "originalname": {
+                "type": "string",
+                "example": "document.pdf"
+              },
+              "encoding": {
+                "type": "string",
+                "example": "7bit"
+              },
+              "mimetype": {
+                "type": "string",
+                "example": "application/pdf"
+              },
+              "size": {
+                "type": "integer",
+                "example": 1024000
+              },
+              "filename": {
+                "type": "string",
+                "example": "1234567890-document.pdf"
+              },
+              "path": {
+                "type": "string",
+                "example": "/uploads/1234567890-document.pdf"
+              }
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00.000Z"
+          }
+        }
+      },
+      "MultipleFileUploadResponse": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Multiple files uploaded successfully"
+          },
+          "files": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fieldname": {
+                  "type": "string",
+                  "example": "files"
+                },
+                "originalname": {
+                  "type": "string",
+                  "example": "document1.pdf"
+                },
+                "encoding": {
+                  "type": "string",
+                  "example": "7bit"
+                },
+                "mimetype": {
+                  "type": "string",
+                  "example": "application/pdf"
+                },
+                "size": {
+                  "type": "integer",
+                  "example": 1024000
+                },
+                "filename": {
+                  "type": "string",
+                  "example": "1234567890-document1.pdf"
+                },
+                "path": {
+                  "type": "string",
+                  "example": "/uploads/1234567890-document1.pdf"
+                }
+              }
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:30:00.000Z"
+          }
+        }
+      },
+      "ExtrinsicStatus": {
+        "type": "object",
+        "properties": {
+          "extrinsic": {
+            "type": "object",
+            "properties": {
+              "hash": {
+                "type": "string",
+                "example": "0x1234567890abcdef..."
+              },
+              "status": {
+                "type": "string",
+                "enum": ["pending", "inBlock", "finalized", "failed"],
+                "example": "finalized"
+              },
+              "blockHash": {
+                "type": "string",
+                "example": "0xabcdef1234567890..."
+              },
+              "blockNumber": {
+                "type": "integer",
+                "example": 1000000
+              },
+              "events": {
+                "type": "array",
+                "items": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      },
+      "CreateAppointmentDto": {
+        "type": "object",
+        "required": ["userId", "patientId", "medicalRoomTimeId"],
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "patientId": {
+            "type": "string",
+            "example": "patient-123"
+          },
+          "medicalRoomTimeId": {
+            "type": "string",
+            "example": "roomtime-123"
+          },
+          "notes": {
+            "type": "string",
+            "example": "Patient has chest pain and shortness of breath"
+          }
+        }
+      },
+      "UpdateAppointmentStatusDto": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["BOOKED", "PAID", "CANCEL"],
+            "example": "PAID"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Patient completed payment"
+          }
+        }
+      },
+      "DiagnosisSuggestionDto": {
+        "type": "object",
+        "required": ["disease", "confidence"],
+        "properties": {
+          "suggestedByAI": {
+            "type": "boolean",
+            "example": true
+          },
+          "disease": {
+            "type": "string",
+            "example": "Hypertension"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 85.5
+          },
+          "description": {
+            "type": "string",
+            "example": "Based on symptoms and medical history, patient shows signs of hypertension"
+          }
+        }
+      },
+      "DiagnosisSuggestion": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "appointmentId": {
+            "type": "string"
+          },
+          "suggestedByAI": {
+            "type": "boolean",
+            "example": true
+          },
+          "disease": {
+            "type": "string",
+            "example": "Hypertension"
+          },
+          "confidence": {
+            "type": "number",
+            "example": 85.5
+          },
+          "description": {
+            "type": "string",
+            "example": "Based on symptoms and medical history"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AppointmentWithDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Appointment"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "account": {
+                    "type": "object",
+                    "properties": {
+                      "username": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "patient": {
+                "$ref": "#/components/schemas/Patient"
+              },
+              "medicalRoom": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/MedicalRoom"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "service": {
+                        "$ref": "#/components/schemas/Service"
+                      },
+                      "department": {
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/Department"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "location": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string"
+                                  },
+                                  "name": {
+                                    "type": "string",
+                                    "example": "Main Building"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              },
+              "bookingTime": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "medicalRoomTime": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "fromTime": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "toTime": {
+                        "type": "string",
+                        "format": "date-time"
+                      }
+                    }
+                  }
+                }
+              },
+              "statusLogs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["BOOKED", "PAID", "CANCEL"]
+                    },
+                    "updatedAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              },
+              "suggestions": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/DiagnosisSuggestion"
+                }
+              }
+            }
+          }
+        ]
+      },
+      "AppointmentStatistics": {
+        "type": "object",
+        "properties": {
+          "totalAppointments": {
+            "type": "integer",
+            "example": 1250
+          },
+          "bookedAppointments": {
+            "type": "integer",
+            "example": 850
+          },
+          "paidAppointments": {
+            "type": "integer",
+            "example": 300
+          },
+          "cancelledAppointments": {
+            "type": "integer",
+            "example": 100
+          },
+          "completionRate": {
+            "type": "number",
+            "example": 76.8
+          },
+          "cancellationRate": {
+            "type": "number",
+            "example": 8.0
+          },
+          "monthlyTrend": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "month": {
+                  "type": "string",
+                  "example": "2024-01"
+                },
+                "count": {
+                  "type": "integer",
+                  "example": 125
+                }
+              }
+            }
+          }
+        }
+      },
+      "TimeSlotAvailability": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "timeSlot": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "fromTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "toTime": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "room": {
+                "$ref": "#/components/schemas/MedicalRoom"
+              }
+            }
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true,
+            "example": "Time slot is already booked"
+          }
+        }
+      },
+      "CreateMedicalRoomDto": {
+        "type": "object",
+        "required": ["departmentId", "serviceId", "floor", "name"],
+        "properties": {
+          "departmentId": {
+            "type": "string",
+            "example": "dept-123"
+          },
+          "serviceId": {
+            "type": "string",
+            "example": "service-123"
+          },
+          "floor": {
+            "type": "integer",
+            "example": 2
+          },
+          "name": {
+            "type": "string",
+            "example": "Cardiology Room 201"
+          }
+        }
+      },
+      "UpdateMedicalRoomDto": {
+        "type": "object",
+        "properties": {
+          "departmentId": {
+            "type": "string",
+            "example": "dept-456"
+          },
+          "serviceId": {
+            "type": "string",
+            "example": "service-456"
+          },
+          "floor": {
+            "type": "integer",
+            "example": 3
+          },
+          "name": {
+            "type": "string",
+            "example": "Updated Room Name"
+          }
+        }
+      },
+      "TimeSlot": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "roomId": {
+            "type": "string"
+          },
+          "fromTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T09:00:00.000Z"
+          },
+          "toTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T09:30:00.000Z"
+          },
+          "room": {
+            "$ref": "#/components/schemas/MedicalRoom"
+          },
+          "bookings": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateTimeSlotDto": {
+        "type": "object",
+        "required": ["roomId", "fromTime", "toTime"],
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "example": "room-123"
+          },
+          "fromTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T09:00:00.000Z"
+          },
+          "toTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T09:30:00.000Z"
+          }
+        }
+      },
+      "BulkTimeSlotDto": {
+        "type": "object",
+        "required": ["roomId", "dates", "timeSlots"],
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "example": "room-123"
+          },
+          "dates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": ["2024-01-15", "2024-01-16", "2024-01-17"]
+          },
+          "timeSlots": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "startHour": {
+                  "type": "number",
+                  "example": 9
+                },
+                "endHour": {
+                  "type": "number",
+                  "example": 17
+                },
+                "slotDuration": {
+                  "type": "number",
+                  "example": 30,
+                  "description": "Duration in minutes"
+                }
+              }
+            }
+          }
+        }
+      },
+      "MedicalStatistics": {
+        "type": "object",
+        "properties": {
+          "totalRooms": {
+            "type": "integer",
+            "example": 50
+          },
+          "totalTimeSlots": {
+            "type": "integer",
+            "example": 1200
+          },
+          "bookedSlots": {
+            "type": "integer",
+            "example": 800
+          },
+          "availableSlots": {
+            "type": "integer",
+            "example": 400
+          },
+          "totalServices": {
+            "type": "integer",
+            "example": 15
+          },
+          "utilizationRate": {
+            "type": "number",
+            "example": 66.67
+          }
+        }
+      },
+      "RoomUtilization": {
+        "type": "object",
+        "properties": {
+          "roomId": {
+            "type": "string"
+          },
+          "roomName": {
+            "type": "string",
+            "example": "Room 101"
+          },
+          "totalSlots": {
+            "type": "integer",
+            "example": 100
+          },
+          "bookedSlots": {
+            "type": "integer",
+            "example": 75
+          },
+          "availableSlots": {
+            "type": "integer",
+            "example": 25
+          },
+          "utilizationRate": {
+            "type": "number",
+            "example": 75.0
+          }
+        }
+      },
+      "ServicePopularity": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "name": {
+              "type": "string",
+              "example": "General Consultation"
+            },
+            "description": {
+              "type": "string"
+            },
+            "_count": {
+              "type": "object",
+              "properties": {
+                "medicalRooms": {
+                  "type": "integer",
+                  "example": 25
+                }
+              }
+            }
+          }
+        }
+      },
+      "CheckAvailabilityDto": {
+        "type": "object",
+        "required": ["roomId", "fromTime", "toTime"],
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "example": "room-123"
+          },
+          "fromTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T09:00:00.000Z"
+          },
+          "toTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T09:30:00.000Z"
+          }
+        }
+      },
+      "AvailabilityResponse": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean",
+            "example": true
+          },
+          "conflicts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSlot"
+            }
+          },
+          "message": {
+            "type": "string",
+            "example": "Time slot is available"
+          }
+        }
+      },
+      "BulkDeleteTimeSlotsDto": {
+        "type": "object",
+        "required": ["timeSlotIds"],
+        "properties": {
+          "timeSlotIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["slot-1", "slot-2", "slot-3"]
+          }
+        }
+      },
+      "CreateServiceDto": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "General Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Basic medical consultation and health checkup"
+          },
+          "durationTime": {
+            "type": "integer",
+            "example": 30,
+            "description": "Duration in minutes"
+          },
+          "price": {
+            "type": "number",
+            "example": 150000,
+            "description": "Service price in VND"
+          }
+        }
+      },
+      "UpdateServiceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Updated General Consultation"
+          },
+          "description": {
+            "type": "string",
+            "example": "Updated medical consultation service"
+          },
+          "durationTime": {
+            "type": "integer",
+            "example": 45
+          },
+          "price": {
+            "type": "number",
+            "example": 200000
+          }
+        }
+      },
+      "ServiceWithStats": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Service"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "_count": {
+                "type": "object",
+                "properties": {
+                  "medicalRooms": {
+                    "type": "integer",
+                    "example": 5
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ServiceDetailed": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Service"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "medicalRooms": {
+                "type": "array",
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/MedicalRoom"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "department": {
+                          "$ref": "#/components/schemas/Department"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        ]
+      },
+      "CreateStaffDto": {
+        "type": "object",
+        "required": ["username", "password", "email", "firstname", "lastname", "educationLevel"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 50,
+            "example": "dr_johnsmith"
+          },
+          "password": {
+            "type": "string",
+            "format": "password",
+            "minLength": 6,
+            "example": "securePassword123"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "dr.john.smith@hospital.com"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "pattern": "^[0-9]{10,11}$",
+            "example": "0901234567"
+          },
+          "firstname": {
+            "type": "string",
+            "example": "Dr. John"
+          },
+          "lastname": {
+            "type": "string",
+            "example": "Smith"
+          },
+          "introduction": {
+            "type": "string",
+            "example": "Experienced cardiologist with 10+ years of practice"
+          },
+          "educationLevel": {
+            "type": "string",
+            "enum": ["HIGHSCHOOL", "BACHELOR", "MASTER", "DOCTORATE"],
+            "example": "DOCTORATE"
+          },
+          "positionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["position-1", "position-2"]
+          },
+          "departmentIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["dept-1", "dept-2"]
+          }
+        }
+      },
+      "UpdateStaffDto": {
+        "type": "object",
+        "properties": {
+          "firstname": {
+            "type": "string",
+            "example": "Dr. John Updated"
+          },
+          "lastname": {
+            "type": "string",
+            "example": "Smith Updated"
+          },
+          "introduction": {
+            "type": "string",
+            "example": "Updated introduction text"
+          },
+          "educationLevel": {
+            "type": "string",
+            "enum": ["HIGHSCHOOL", "BACHELOR", "MASTER", "DOCTORATE"],
+            "example": "DOCTORATE"
+          },
+          "positionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["position-1", "position-3"]
+          },
+          "departmentIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["dept-1", "dept-3"]
+          }
+        }
+      },
+      "StaffDetailed": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Staff"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "account": {
+                "$ref": "#/components/schemas/Account"
+              },
+              "positions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "position": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "example": "Doctor"
+                        },
+                        "description": {
+                          "type": "string",
+                          "example": "Medical doctor position"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "departments": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "department": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/Department"
+                        },
+                        {
+                          "type": "object",
+                          "properties": {
+                            "location": {
+                              "type": "object",
+                              "properties": {
+                                "id": {
+                                  "type": "string"
+                                },
+                                "name": {
+                                  "type": "string",
+                                  "example": "Main Building"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "StaffStatistics": {
+        "type": "object",
+        "properties": {
+          "totalStaff": {
+            "type": "integer",
+            "example": 150
+          },
+          "doctorCount": {
+            "type": "integer",
+            "example": 45
+          },
+          "nurseCount": {
+            "type": "integer",
+            "example": 80
+          },
+          "receptionistCount": {
+            "type": "integer",
+            "example": 25
+          },
+          "departmentDistribution": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "departmentId": { "type": "string" },
+                "departmentName": { "type": "string" },
+                "staffCount": { "type": "integer" }
+              }
+            },
+            "example": [
+              { "departmentId": "dept-1", "departmentName": "Cardiology", "staffCount": 25 },
+              { "departmentId": "dept-2", "departmentName": "Neurology", "staffCount": 20 }
+            ]
+          },
+          "educationLevelDistribution": {
+            "type": "object",
+            "properties": {
+              "HIGHSCHOOL": { "type": "integer", "example": 10 },
+              "BACHELOR": { "type": "integer", "example": 60 },
+              "MASTER": { "type": "integer", "example": 50 },
+              "DOCTORATE": { "type": "integer", "example": 30 }
+            }
+          }
+        }
+      },
+      "StaffWorkload": {
+        "type": "object",
+        "properties": {
+          "staffId": {
+            "type": "string"
+          },
+          "staffName": {
+            "type": "string",
+            "example": "Dr. John Smith"
+          },
+          "totalShifts": {
+            "type": "integer",
+            "example": 24
+          },
+          "totalHours": {
+            "type": "number",
+            "example": 168.5
+          },
+          "averageShiftDuration": {
+            "type": "number",
+            "example": 7.02
+          },
+          "upcomingShifts": {
+            "type": "integer",
+            "example": 12
+          },
+          "completedShifts": {
+            "type": "integer",
+            "example": 12
+          }
+        }
+      },
+      "StaffWorkloadResponse": {
+        "type": "object",
+        "properties": {
+          "workload": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StaffWorkload"
+            }
+          },
+          "summary": {
+            "type": "object",
+            "properties": {
+              "totalStaff": { "type": "integer" },
+              "averageHours": { "type": "number" },
+              "mostBusyStaff": { "type": "string" },
+              "leastBusyStaff": { "type": "string" }
+            }
+          }
+        }
+      },
+      "BulkStaffOperationDto": {
+        "type": "object",
+        "required": ["staffIds"],
+        "properties": {
+          "staffIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["staff-1", "staff-2", "staff-3"]
+          },
+          "departmentId": {
+            "type": "string",
+            "example": "dept-123"
+          },
+          "positionIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["position-1", "position-2"]
+          }
+        }
+      },
+      "BulkUpdateStaffDto": {
+        "type": "object",
+        "required": ["staffIds", "updateData"],
+        "properties": {
+          "staffIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["staff-1", "staff-2", "staff-3"]
+          },
+          "updateData": {
+            "$ref": "#/components/schemas/UpdateStaffDto"
+          }
+        }
+      },
+      "CheckShiftConflictsDto": {
+        "type": "object",
+        "properties": {
+          "staffId": {
+            "type": "string",
+            "example": "staff-1"
+          },
+          "roomId": {
+            "type": "string",
+            "example": "room-1"
+          },
+          "departmentId": {
+            "type": "string",
+            "example": "dept-1"
+          },
+          "fromTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T09:00:00.000Z"
+          },
+          "toTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T17:00:00.000Z"
+          }
+        }
+      },
+      "ShiftConflictCheck": {
+        "type": "object",
+        "properties": {
+          "conflict": {
+            "type": "boolean",
+            "example": false
+          },
+          "existingShifts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "fromTime": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "toTime": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "room": {
+                  "$ref": "#/components/schemas/MedicalRoom"
+                },
+                "staff": {
+                  "$ref": "#/components/schemas/Staff"
+                }
+              }
+            }
+          }
+        }
+      },
+      "ShiftStatistics": {
+        "type": "object",
+        "properties": {
+          "totalShifts": {
+            "type": "integer",
+            "example": 500
+          },
+          "upcomingShifts": {
+            "type": "integer",
+            "example": 200
+          },
+          "activeShifts": {
+            "type": "integer",
+            "example": 250
+          },
+          "completedShifts": {
+            "type": "integer",
+            "example": 50
+          },
+          "cancellationRate": {
+            "type": "number",
+            "example": 10.5
+          },
+          "averageShiftDuration": {
+            "type": "number",
+            "example": 8.5
+          }
+        }
+      },
+      "CreateShiftDto": {
+        "type": "object",
+        "required": ["doctorId", "roomId", "fromTime", "toTime"],
+        "properties": {
+          "doctorId": {
+            "type": "string",
+            "example": "doctor-123"
+          },
+          "roomId": {
+            "type": "string",
+            "example": "room-123"
+          },
+          "fromTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T09:00:00.000Z"
+          },
+          "toTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T17:00:00.000Z"
+          }
+        }
+      },
+      "UpdateShiftDto": {
+        "type": "object",
+        "properties": {
+          "doctorId": {
+            "type": "string",
+            "example": "doctor-456"
+          },
+          "roomId": {
+            "type": "string",
+            "example": "room-456"
+          },
+          "fromTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T10:00:00.000Z"
+          },
+          "toTime": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-15T18:00:00.000Z"
+          }
+        }
       }
     }
   },
   "paths": {
     "/ping": {
       "get": {
-        "summary": "Server Health Check",
-        "description": "Check if the server is up and running",
+        "summary": "Basic server ping",
+        "description": "Simple endpoint to check if the server is responding",
         "tags": ["System"],
         "responses": {
           "200": {
-            "description": "Server is operational",
+            "description": "Server is responding",
             "content": {
               "text/plain": {
                 "schema": {
                   "type": "string",
                   "example": "Hello World!"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping/health": {
+      "get": {
+        "summary": "Detailed health check",
+        "description": "Get comprehensive server health information including uptime and status",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Server health information retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthStatus"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server health check failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping/healer-network": {
+      "get": {
+        "summary": "Check Healer Network status",
+        "description": "Verify the status of the Healer Network blockchain connection",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Healer Network status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealerNetworkStatus"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Healer Network is unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping/healer-network/extrinsic": {
+      "get": {
+        "summary": "Get blockchain extrinsic status",
+        "description": "Retrieve the current status of blockchain extrinsics and transactions",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "Extrinsic status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtrinsicStatus"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Failed to retrieve extrinsic status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping/upload/single": {
+      "post": {
+        "summary": "Upload single file",
+        "description": "Upload a single file to the server for testing purposes",
+        "tags": ["System"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "File to upload"
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FileUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid file or missing file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "File too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping/upload/multiple": {
+      "post": {
+        "summary": "Upload multiple files",
+        "description": "Upload multiple files to the server for testing purposes",
+        "tags": ["System"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "files": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    },
+                    "description": "Multiple files to upload"
+                  }
+                },
+                "required": ["files"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Files uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MultipleFileUploadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid files or missing files",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Files too large",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -472,18 +2234,31 @@
                 }
               }
             }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Login successful",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/LoginResponse"
-                }
-              }
+          },
+          "createdShifts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Shift"
             }
+          },
+          "totalRequested": {
+            "type": "integer",
+            "example": 15
+          },
+          "totalCreated": {
+            "type": "integer",
+            "example": 12
+          },
+          "skipped": {
+            "type": "integer",
+            "example": 3
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": ["Conflict detected for 2024-01-16", "Staff not available on 2024-01-18"]
           }
         }
       }
@@ -884,13 +2659,9 @@
     "/appointments": {
       "get": {
         "summary": "Get appointments",
-        "description": "Retrieve a list of appointments",
+        "description": "Retrieve a list of appointments with filtering and pagination",
         "tags": ["Appointments"],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
+        "security": [{ "bearerAuth": [] }],
         "parameters": [
           {
             "name": "page",
@@ -922,6 +2693,29 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "patientId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -935,7 +2729,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Appointment"
+                        "$ref": "#/components/schemas/AppointmentWithDetails"
                       }
                     },
                     "meta": {
@@ -945,16 +2739,320 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
           }
         }
       },
       "post": {
-        "summary": "Create appointment",
-        "description": "Book a new appointment",
+        "summary": "Create appointment (Patient only)",
+        "description": "Book a new appointment - Patient access required",
         "tags": ["Appointments"],
-        "security": [
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAppointmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Appointment created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Appointment booked successfully"
+                    },
+                    "appointment": {
+                      "$ref": "#/components/schemas/AppointmentWithDetails"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or time slot not available"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Patient access required"
+          }
+        }
+      }
+    },
+    "/appointments/check-availability/{medicalRoomTimeId}": {
+      "get": {
+        "summary": "Check time slot availability",
+        "description": "Check if a specific medical room time slot is available for booking",
+        "tags": ["Appointments"],
+        "parameters": [
           {
-            "bearerAuth": []
+            "name": "medicalRoomTimeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Medical room time slot ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Availability check completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimeSlotAvailability"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Time slot not found"
+          }
+        }
+      }
+    },
+    "/appointments/statistics": {
+      "get": {
+        "summary": "Get appointment statistics (Admin only)",
+        "description": "Retrieve comprehensive appointment statistics - Admin access required",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Start date for statistics"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "End date for statistics"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by department"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statistics": {
+                      "$ref": "#/components/schemas/AppointmentStatistics"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/appointments/staff": {
+      "get": {
+        "summary": "Get appointments for staff",
+        "description": "Retrieve appointments assigned to the authenticated staff member",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter by specific date"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["BOOKED", "PAID", "CANCEL"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff appointments retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AppointmentWithDetails"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/appointments/upcoming": {
+      "get": {
+        "summary": "Get upcoming appointments",
+        "description": "Retrieve upcoming appointments for the authenticated user",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 5,
+              "maximum": 20
+            },
+            "description": "Number of upcoming appointments to retrieve"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Upcoming appointments retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AppointmentWithDetails"
+                      }
+                    },
+                    "count": {
+                      "type": "integer",
+                      "example": 3
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/appointments/{id}": {
+      "get": {
+        "summary": "Get appointment by ID",
+        "description": "Retrieve detailed information about a specific appointment",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Appointment retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "appointment": {
+                      "$ref": "#/components/schemas/AppointmentWithDetails"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Appointment not found"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update appointment status (Receptionist only)",
+        "description": "Update appointment status - Receptionist access required",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -962,20 +3060,246 @@
           "content": {
             "application/json": {
               "schema": {
+                "$ref": "#/components/schemas/UpdateAppointmentStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Appointment status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Appointment status updated successfully"
+                    },
+                    "appointment": {
+                      "$ref": "#/components/schemas/Appointment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status update"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Receptionist access required"
+          },
+          "404": {
+            "description": "Appointment not found"
+          }
+        }
+      }
+    },
+    "/appointments/{appointmentId}/diagnosis": {
+      "post": {
+        "summary": "Add diagnosis suggestion (Doctor only)",
+        "description": "Add AI or manual diagnosis suggestion to appointment - Doctor access required",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnosisSuggestionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Diagnosis suggestion added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Diagnosis suggestion added successfully"
+                    },
+                    "suggestion": {
+                      "$ref": "#/components/schemas/DiagnosisSuggestion"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid diagnosis data"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Doctor access required"
+          },
+          "404": {
+            "description": "Appointment not found"
+          }
+        }
+      }
+    },
+    "/appointments/{id}/complete": {
+      "patch": {
+        "summary": "Complete appointment (Doctor only)",
+        "description": "Mark appointment as completed - Doctor access required",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Appointment completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Appointment completed successfully"
+                    },
+                    "appointment": {
+                      "$ref": "#/components/schemas/Appointment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot complete appointment"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Doctor access required"
+          },
+          "404": {
+            "description": "Appointment not found"
+          }
+        }
+      }
+    },
+    "/appointments/patient/history": {
+      "get": {
+        "summary": "Get patient appointment history (Patient only)",
+        "description": "Retrieve appointment history for the authenticated patient",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["BOOKED", "PAID", "CANCEL"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Patient history retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AppointmentWithDetails"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Patient access required"
+          }
+        }
+      }
+    },
+    "/appointments/{id}/cancel": {
+      "patch": {
+        "summary": "Cancel appointment (Patient only)",
+        "description": "Cancel an appointment - Patient access required",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
                 "type": "object",
-                "required": ["userId", "patientId", "medicalRoomTimeId"],
                 "properties": {
-                  "userId": {
-                    "type": "string"
-                  },
-                  "patientId": {
-                    "type": "string"
-                  },
-                  "medicalRoomTimeId": {
-                    "type": "string"
-                  },
-                  "notes": {
-                    "type": "string"
+                  "reason": {
+                    "type": "string",
+                    "example": "Schedule conflict - unable to attend"
                   }
                 }
               }
@@ -983,8 +3307,97 @@
           }
         },
         "responses": {
-          "201": {
-            "description": "Appointment created successfully"
+          "200": {
+            "description": "Appointment cancelled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Appointment cancelled successfully"
+                    },
+                    "appointment": {
+                      "$ref": "#/components/schemas/Appointment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot cancel appointment"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Patient access required"
+          },
+          "404": {
+            "description": "Appointment not found"
+          }
+        }
+      }
+    },
+    "/appointments/{id}/status": {
+      "patch": {
+        "summary": "Update appointment status (Receptionist only)",
+        "description": "Update appointment status - Receptionist access required",
+        "tags": ["Appointments"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAppointmentStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Appointment status updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Appointment status updated successfully"
+                    },
+                    "appointment": {
+                      "$ref": "#/components/schemas/Appointment"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid status update"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Receptionist access required"
+          },
+          "404": {
+            "description": "Appointment not found"
           }
         }
       }
@@ -992,7 +3405,7 @@
     "/medical/rooms": {
       "get": {
         "summary": "Get medical rooms",
-        "description": "Retrieve a list of medical rooms",
+        "description": "Retrieve a list of medical rooms with filtering and pagination",
         "tags": ["Medical"],
         "parameters": [
           {
@@ -1004,6 +3417,14 @@
             }
           },
           {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
             "name": "departmentId",
             "in": "query",
             "schema": {
@@ -1012,6 +3433,27 @@
           },
           {
             "name": "serviceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "floor",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "searchTerm",
             "in": "query",
             "schema": {
               "type": "string"
@@ -1043,65 +3485,62 @@
         }
       },
       "post": {
-        "summary": "Create medical room",
-        "description": "Create a new medical room",
+        "summary": "Create medical room (Receptionist only)",
+        "description": "Create a new medical room - Receptionist access required",
         "tags": ["Medical"],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
+        "security": [{ "bearerAuth": [] }],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["departmentId", "serviceId", "name", "floor"],
-                "properties": {
-                  "departmentId": {
-                    "type": "string"
-                  },
-                  "serviceId": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string",
-                    "example": "Room 101"
-                  },
-                  "floor": {
-                    "type": "integer",
-                    "example": 1
-                  }
-                }
+                "$ref": "#/components/schemas/CreateMedicalRoomDto"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Medical room created successfully"
+            "description": "Medical room created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Medical room created successfully"
+                    },
+                    "room": {
+                      "$ref": "#/components/schemas/MedicalRoom"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or room already exists"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Receptionist access required"
           }
         }
       }
     },
-    "/services": {
+    "/medical/rooms/{id}": {
       "get": {
-        "summary": "Get services",
-        "description": "Retrieve a list of medical services",
-        "tags": ["Services"],
+        "summary": "Get medical room by ID",
+        "description": "Retrieve detailed information about a specific medical room",
+        "tags": ["Medical"],
         "parameters": [
           {
-            "name": "page",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "default": 1
-            }
-          },
-          {
-            "name": "searchTerm",
-            "in": "query",
+            "name": "id",
+            "in": "path",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -1109,35 +3548,33 @@
         ],
         "responses": {
           "200": {
-            "description": "Services retrieved successfully",
+            "description": "Medical room retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/Service"
-                      }
-                    },
-                    "meta": {
-                      "$ref": "#/components/schemas/PaginationMeta"
-                    }
-                  }
+                  "$ref": "#/components/schemas/MedicalRoom"
                 }
               }
             }
+          },
+          "404": {
+            "description": "Medical room not found"
           }
         }
       },
-      "post": {
-        "summary": "Create service",
-        "description": "Create a new medical service",
-        "tags": ["Services"],
-        "security": [
+      "patch": {
+        "summary": "Update medical room (Receptionist only)",
+        "description": "Update medical room information - Receptionist access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
           {
-            "bearerAuth": []
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1145,47 +3582,97 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "required": ["name"],
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "example": "General Consultation"
-                  },
-                  "description": {
-                    "type": "string",
-                    "example": "Basic medical consultation"
-                  },
-                  "durationTime": {
-                    "type": "integer",
-                    "example": 30
-                  },
-                  "price": {
-                    "type": "number",
-                    "example": 100000
-                  }
-                }
+                "$ref": "#/components/schemas/UpdateMedicalRoomDto"
               }
             }
           }
         },
         "responses": {
-          "201": {
-            "description": "Service created successfully"
+          "200": {
+            "description": "Medical room updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Medical room updated successfully"
+                    },
+                    "room": {
+                      "$ref": "#/components/schemas/MedicalRoom"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Receptionist access required"
+          },
+          "404": {
+            "description": "Medical room not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete medical room (Admin only)",
+        "description": "Delete a medical room - Admin access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Medical room deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Medical room deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete room with active time slots"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          },
+          "404": {
+            "description": "Medical room not found"
           }
         }
       }
     },
-    "/shifts": {
+    "/medical/time-slots": {
       "get": {
-        "summary": "Get shifts",
-        "description": "Retrieve a list of work shifts",
-        "tags": ["Shifts"],
-        "security": [
-          {
-            "bearerAuth": []
-          }
-        ],
+        "summary": "Get time slots",
+        "description": "Retrieve a list of time slots with filtering and pagination",
+        "tags": ["Medical"],
         "parameters": [
           {
             "name": "page",
@@ -1196,7 +3683,15 @@
             }
           },
           {
-            "name": "doctorId",
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "roomId",
             "in": "query",
             "schema": {
               "type": "string"
@@ -1216,11 +3711,34 @@
               "type": "string",
               "format": "date"
             }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Shifts retrieved successfully",
+            "description": "Time slots retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -1229,7 +3747,7 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Shift"
+                        "$ref": "#/components/schemas/TimeSlot"
                       }
                     },
                     "meta": {
@@ -1243,12 +3761,249 @@
         }
       },
       "post": {
-        "summary": "Create shift",
-        "description": "Create a new work shift",
-        "tags": ["Shifts"],
-        "security": [
+        "summary": "Create time slot (Receptionist only)",
+        "description": "Create a new time slot - Receptionist access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTimeSlotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Time slot created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Time slot created successfully"
+                    },
+                    "timeSlot": {
+                      "$ref": "#/components/schemas/TimeSlot"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid time slot or conflicts with existing slots"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Receptionist access required"
+          }
+        }
+      }
+    },
+    "/medical/time-slots/available": {
+      "get": {
+        "summary": "Get available time slots",
+        "description": "Retrieve available time slots for booking",
+        "tags": ["Medical"],
+        "parameters": [
           {
-            "bearerAuth": []
+            "name": "roomId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "serviceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available time slots retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeSlotAvailability"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/medical/time-slots/bulk": {
+      "post": {
+        "summary": "Create bulk time slots (Receptionist only)",
+        "description": "Create multiple time slots for multiple dates - Receptionist access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkTimeSlotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bulk time slots created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Bulk time slots created successfully"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "example": 15
+                    },
+                    "timeSlots": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TimeSlot"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or bulk creation failed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Receptionist access required"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Bulk delete time slots (Admin only)",
+        "description": "Delete multiple time slots - Admin access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkDeleteTimeSlotsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk delete completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkOperationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/medical/time-slots/check-availability": {
+      "post": {
+        "summary": "Check time slot availability",
+        "description": "Check if a time slot is available for booking",
+        "tags": ["Medical"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckAvailabilityDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Availability check completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          }
+        }
+      }
+    },
+    "/medical/time-slots/{id}": {
+      "patch": {
+        "summary": "Update time slot (Receptionist only)",
+        "description": "Update a time slot - Receptionist access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -1257,14 +4012,8 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["doctorId", "roomId", "fromTime", "toTime"],
+                "required": ["fromTime", "toTime"],
                 "properties": {
-                  "doctorId": {
-                    "type": "string"
-                  },
-                  "roomId": {
-                    "type": "string"
-                  },
                   "fromTime": {
                     "type": "string",
                     "format": "date-time"
@@ -1279,35 +4028,3600 @@
           }
         },
         "responses": {
+          "200": {
+            "description": "Time slot updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Time slot updated successfully"
+                    },
+                    "timeSlot": {
+                      "$ref": "#/components/schemas/TimeSlot"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot update booked time slot"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Receptionist access required"
+          },
+          "404": {
+            "description": "Time slot not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete time slot (Receptionist only)",
+        "description": "Delete a time slot - Receptionist access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time slot deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Time slot deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete time slot with bookings"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Receptionist access required"
+          },
+          "404": {
+            "description": "Time slot not found"
+          }
+        }
+      }
+    },
+    "/medical/statistics": {
+      "get": {
+        "summary": "Get medical statistics (Admin only)",
+        "description": "Retrieve comprehensive medical statistics - Admin access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Medical statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statistics": {
+                      "$ref": "#/components/schemas/MedicalStatistics"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/medical/rooms/{id}/utilization": {
+      "get": {
+        "summary": "Get room utilization (Admin only)",
+        "description": "Get utilization statistics for a specific room - Admin access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room utilization retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "utilization": {
+                      "$ref": "#/components/schemas/RoomUtilization"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/medical/services/popularity": {
+      "get": {
+        "summary": "Get service popularity (Admin only)",
+        "description": "Get service usage popularity statistics - Admin access required",
+        "tags": ["Medical"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service popularity retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "popularity": {
+                      "$ref": "#/components/schemas/ServicePopularity"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/medical/rooms/{id}/schedule": {
+      "get": {
+        "summary": "Get medical room schedule",
+        "description": "Get schedule for a specific medical room",
+        "tags": ["Medical"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room schedule retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "roomId": {
+                      "type": "string"
+                    },
+                    "schedule": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ShiftWithDetails"
+                        }
+                      }
+                    },
+                    "totalSlots": {
+                      "type": "integer",
+                      "example": 32
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/medical/departments/{departmentId}/schedule": {
+      "get": {
+        "summary": "Get department schedule",
+        "description": "Get schedule for all rooms in a department",
+        "tags": ["Medical"],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Department schedule retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "departmentId": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "roomSchedule": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                          "room": {
+                            "$ref": "#/components/schemas/MedicalRoom"
+                          },
+                          "slots": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/TimeSlot"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "totalRooms": {
+                      "type": "integer",
+                      "example": 5
+                    },
+                    "totalSlots": {
+                      "type": "integer",
+                      "example": 40
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Date parameter is required"
+          }
+        }
+      }
+    },
+    "/medical/room-types": {
+      "get": {
+        "summary": "Get medical room types",
+        "description": "Get available medical room types (services)",
+        "tags": ["Medical"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room types retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "roomTypes": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string",
+                            "example": "General Consultation"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "roomCount": {
+                            "type": "integer",
+                            "example": 5
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "example": 10
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/medical/departments/{departmentId}/floors/{floor}/rooms": {
+      "get": {
+        "summary": "Get rooms by department and floor",
+        "description": "Get all medical rooms in a specific department and floor",
+        "tags": ["Medical"],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "floor",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rooms retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "departmentId": {
+                      "type": "string"
+                    },
+                    "floor": {
+                      "type": "integer"
+                    },
+                    "rooms": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MedicalRoom"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "example": 8
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Department ID and floor are required"
+          }
+        }
+      }
+    },
+    "/shifts": {
+      "get": {
+        "summary": "Get shifts",
+        "description": "Retrieve a list of work shifts with filtering and pagination",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "staffId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by staff member"
+          },
+          {
+            "name": "roomId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by medical room"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by department"
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter by specific date"
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter from date"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter to date"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["upcoming", "active", "completed"]
+            },
+            "description": "Filter by shift status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shifts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShiftWithDetails"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create shift (Admin/Department Head only)",
+        "description": "Create a new work shift - Admin or Department Head access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
           "201": {
-            "description": "Shift created successfully"
+            "description": "Shift created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Shift created successfully"
+                    },
+                    "shift": {
+                      "$ref": "#/components/schemas/ShiftWithDetails"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or shift conflicts detected"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin or Department Head access required"
+          }
+        }
+      }
+    },
+    "/shifts/bulk": {
+      "post": {
+        "summary": "Create bulk shifts (Admin/Department Head only)",
+        "description": "Create multiple shifts for multiple dates - Admin or Department Head access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkShiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bulk shifts created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkShiftResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or bulk creation failed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin or Department Head access required"
+          }
+        }
+      }
+    },
+    "/shifts/recurring": {
+      "post": {
+        "summary": "Create recurring shifts (Admin only)",
+        "description": "Create recurring shifts for a specific pattern - Admin access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecurringShiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Recurring shifts created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkShiftResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or recurring shift creation failed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/shifts/assign": {
+      "post": {
+        "summary": "Assign shift to staff (Admin/Department Head only)",
+        "description": "Assign a shift to a staff member - Admin or Department Head access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignShiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Shift assigned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Shift assigned successfully"
+                    },
+                    "shift": {
+                      "$ref": "#/components/schemas/ShiftWithDetails"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid assignment or conflicts detected"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin or Department Head access required"
+          }
+        }
+      }
+    },
+    "/shifts/check-conflicts": {
+      "post": {
+        "summary": "Check shift conflicts",
+        "description": "Check if a shift assignment would create conflicts with existing shifts",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckShiftConflictsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Conflict check completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftConflictCheck"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/shifts/statistics": {
+      "get": {
+        "summary": "Get shift statistics (Admin only)",
+        "description": "Retrieve comprehensive shift statistics - Admin access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Start date for statistics"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "End date for statistics"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by department"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "statistics": {
+                      "$ref": "#/components/schemas/ShiftStatistics"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/shifts/staff/{staffId}": {
+      "get": {
+        "summary": "Get shifts for specific staff member",
+        "description": "Retrieve shifts assigned to a specific staff member",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "staffId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["upcoming", "active", "completed"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff shifts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShiftWithDetails"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Staff member not found"
+          }
+        }
+      }
+    },
+    "/shifts/my-shifts": {
+      "get": {
+        "summary": "Get my shifts (Staff only)",
+        "description": "Retrieve shifts for the authenticated staff member",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["upcoming", "active", "completed"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "My shifts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShiftWithDetails"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/shifts/upcoming": {
+      "get": {
+        "summary": "Get upcoming shifts",
+        "description": "Retrieve upcoming shifts for all staff or specific filters",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 50
+            },
+            "description": "Number of upcoming shifts to retrieve"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "hours",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 24,
+              "maximum": 168
+            },
+            "description": "Number of hours ahead to look for shifts"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Upcoming shifts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShiftWithDetails"
+                      }
+                    },
+                    "count": {
+                      "type": "integer",
+                      "example": 15
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/shifts/room/{roomId}": {
+      "get": {
+        "summary": "Get shifts for specific room",
+        "description": "Retrieve shifts assigned to a specific medical room",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room shifts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShiftWithDetails"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/shifts/department/{departmentId}": {
+      "get": {
+        "summary": "Get shifts for department",
+        "description": "Retrieve shifts for all staff in a specific department",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Department shifts retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ShiftWithDetails"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Department not found"
+          }
+        }
+      }
+    },
+    "/shifts/{id}": {
+      "get": {
+        "summary": "Get shift by ID",
+        "description": "Retrieve detailed information about a specific shift",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shift retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftWithDetails"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Shift not found"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update shift (Admin/Department Head only)",
+        "description": "Update shift information - Admin or Department Head access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateShiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shift updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Shift updated successfully"
+                    },
+                    "shift": {
+                      "$ref": "#/components/schemas/ShiftWithDetails"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or shift conflicts"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin or Department Head access required"
+          },
+          "404": {
+            "description": "Shift not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete shift (Admin only)",
+        "description": "Delete a shift - Admin access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shift deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Shift deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete active or completed shift"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          },
+          "404": {
+            "description": "Shift not found"
+          }
+        }
+      }
+    },
+    "/shifts/{id}/reassign": {
+      "patch": {
+        "summary": "Reassign shift to different staff (Admin/Department Head only)",
+        "description": "Reassign a shift to a different staff member - Admin or Department Head access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignShiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shift reassigned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Shift reassigned successfully"
+                    },
+                    "shift": {
+                      "$ref": "#/components/schemas/ShiftWithDetails"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid reassignment or conflicts detected"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin or Department Head access required"
+          },
+          "404": {
+            "description": "Shift not found"
+          }
+        }
+      }
+    },
+    "/shifts/bulk-update": {
+      "patch": {
+        "summary": "Bulk update shifts (Admin only)",
+        "description": "Update multiple shifts at once - Admin access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUpdateShiftDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk update completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkOperationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or bulk update failed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/shifts/bulk-delete": {
+      "delete": {
+        "summary": "Bulk delete shifts (Admin only)",
+        "description": "Delete multiple shifts at once - Admin access required",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["shiftIds"],
+                "properties": {
+                  "shiftIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": ["shift-1", "shift-2", "shift-3"]
+                  },
+                  "reason": {
+                    "type": "string",
+                    "example": "Department restructuring"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk delete completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkOperationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or cannot delete active shifts"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/shifts/schedule": {
+      "get": {
+        "summary": "Get shift schedule overview",
+        "description": "Get a comprehensive schedule view for all shifts",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Specific date for schedule"
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Start date for schedule range"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "End date for schedule range"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "view",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["day", "week", "month"],
+              "default": "week"
+            },
+            "description": "Schedule view type"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Schedule retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "schedule": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "$ref": "#/components/schemas/ShiftWithDetails"
+                        }
+                      }
+                    },
+                    "totalShifts": {
+                      "type": "integer",
+                      "example": 84
+                    },
+                    "dateRange": {
+                      "type": "object",
+                      "properties": {
+                        "from": {
+                          "type": "string",
+                          "format": "date"
+                        },
+                        "to": {
+                          "type": "string",
+                          "format": "date"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/shifts/coverage": {
+      "get": {
+        "summary": "Get shift coverage analysis",
+        "description": "Analyze shift coverage for departments and time periods",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coverage analysis retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "coverage": {
+                      "type": "object",
+                      "properties": {
+                        "totalHours": {
+                          "type": "number",
+                          "example": 168.0
+                        },
+                        "coveredHours": {
+                          "type": "number",
+                          "example": 140.5
+                        },
+                        "coveragePercentage": {
+                          "type": "number",
+                          "example": 83.6
+                        },
+                        "gaps": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "date": {
+                                "type": "string",
+                                "format": "date"
+                              },
+                              "timeSlot": {
+                                "type": "string",
+                                "example": "14:00-16:00"
+                              },
+                              "department": {
+                                "type": "string",
+                                "example": "Emergency"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/services": {
+      "get": {
+        "summary": "Get services",
+        "description": "Retrieve a list of medical services with pagination and filtering",
+        "tags": ["Services"],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Number of services per page"
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Search term to filter services by name or description"
+          },
+          {
+            "name": "minPrice",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            },
+            "description": "Minimum price filter"
+          },
+          {
+            "name": "maxPrice",
+            "in": "query",
+            "schema": {
+              "type": "number"
+            },
+            "description": "Maximum price filter"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Services retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ServiceWithStats"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create service (Staff only)",
+        "description": "Create a new medical service - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateServiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Service created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Service created successfully"
+                    },
+                    "account": {
+                      "$ref": "#/components/schemas/Account"
+                    },
+                    "staff": {
+                      "$ref": "#/components/schemas/StaffDetailed"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or service name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/services/all": {
+      "get": {
+        "summary": "Get all services",
+        "description": "Retrieve all medical services without pagination",
+        "tags": ["Services"],
+        "responses": {
+          "200": {
+            "description": "All services retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "services": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Service"
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "example": 25
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/services/{id}": {
+      "get": {
+        "summary": "Get service by ID",
+        "description": "Retrieve detailed information about a specific medical service",
+        "tags": ["Services"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Service ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceDetailed"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Service not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update service (Staff only)",
+        "description": "Update medical service information - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Service ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateServiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Service updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Service updated successfully"
+                    },
+                    "service": {
+                      "$ref": "#/components/schemas/Service"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or service name already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          },
+          "404": {
+            "description": "Service not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete service (Staff only)",
+        "description": "Delete a medical service - Staff access required. Cannot delete service with associated medical rooms.",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Service deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Service deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete service with medical rooms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          },
+          "404": {
+            "description": "Service not found"
+          }
+        }
+      }
+    },
+    "/services/{id}/timeslots": {
+      "post": {
+        "summary": "Create time slot for service (Staff only)",
+        "description": "Create a new time slot for a service - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTimeSlotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Time slot created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Time slot created successfully"
+                    },
+                    "timeSlot": {
+                      "$ref": "#/components/schemas/TimeSlot"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid time slot or conflicts with existing slots"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/services/{id}/timeslots/bulk": {
+      "post": {
+        "summary": "Create bulk time slots for service (Staff only)",
+        "description": "Create multiple time slots for a service - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkTimeSlotDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Bulk time slots created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Bulk time slots created successfully"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "example": 15
+                    },
+                    "timeSlots": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TimeSlot"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or bulk creation failed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/services/{id}/timeslots/{timeSlotId}": {
+      "delete": {
+        "summary": "Delete time slot for service (Staff only)",
+        "description": "Delete a time slot for a service - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timeSlotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Time slot deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Time slot deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete time slot with bookings"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          },
+          "404": {
+            "description": "Time slot not found"
+          }
+        }
+      }
+    },
+    "/services/rooms": {
+      "get": {
+        "summary": "Get medical rooms through services",
+        "description": "Retrieve medical rooms through service endpoint",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "serviceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "floor",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Medical rooms retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MedicalRoom"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create medical room through services (Staff only)",
+        "description": "Create a new medical room through service endpoint - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMedicalRoomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Medical room created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Medical room created successfully"
+                    },
+                    "room": {
+                      "$ref": "#/components/schemas/MedicalRoom"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or room already exists"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/services/rooms/{id}": {
+      "get": {
+        "summary": "Get medical room by ID through services",
+        "description": "Retrieve detailed information about a specific medical room through service endpoint",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Medical room retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalRoom"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Medical room not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update medical room through services (Staff only)",
+        "description": "Update medical room information through service endpoint - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMedicalRoomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Medical room updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Medical room updated successfully"
+                    },
+                    "room": {
+                      "$ref": "#/components/schemas/MedicalRoom"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          },
+          "404": {
+            "description": "Medical room not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete medical room through services (Staff only)",
+        "description": "Delete a medical room through service endpoint - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Medical room deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Medical room deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete room with active time slots"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          },
+          "404": {
+            "description": "Medical room not found"
+          }
+        }
+      }
+    },
+    "/services/rooms/{id}/statistics": {
+      "get": {
+        "summary": "Get room statistics through services (Staff only)",
+        "description": "Get utilization statistics for a specific room through service endpoint - Staff access required",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by department"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MedicalStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/services/rooms/{id}/timeslots": {
+      "get": {
+        "summary": "Get room time slots through services",
+        "description": "Retrieve time slots for a specific room through service endpoint",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "available",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room time slots retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TimeSlot"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Room not found"
+          }
+        }
+      }
+    },
+    "/services/rooms/{id}/timeslots/available": {
+      "get": {
+        "summary": "Get available room time slots through services",
+        "description": "Retrieve available time slots for a specific room through service endpoint",
+        "tags": ["Services"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "serviceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Available time slots retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TimeSlotAvailability"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Room not found"
           }
         }
       }
     },
     "/staff": {
       "get": {
-        "summary": "Get staff",
-        "description": "Retrieve a list of staff members",
+        "summary": "Get all staff (Admin only)",
+        "description": "Retrieve a list of all staff members with pagination and filtering - Admin access required",
         "tags": ["Staff"],
-        "security": [
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
           {
-            "bearerAuth": []
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Number of staff members per page"
+          },
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by department"
+          },
+          {
+            "name": "positionId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by position"
+          },
+          {
+            "name": "educationLevel",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["HIGHSCHOOL", "BACHELOR", "MASTER", "DOCTORATE"]
+            },
+            "description": "Filter by education level"
           }
         ],
         "responses": {
           "200": {
-            "description": "Staff retrieved successfully",
+            "description": "Staff list retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StaffDetailed"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create staff (Admin only)",
+        "description": "Create a new staff member - Admin access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStaffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Staff created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Staff created successfully"
+                    },
+                    "account": {
+                      "$ref": "#/components/schemas/Account"
+                    },
+                    "staff": {
+                      "$ref": "#/components/schemas/StaffDetailed"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or staff already exists"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/staff/{id}": {
+      "get": {
+        "summary": "Get staff by ID",
+        "description": "Retrieve detailed information about a specific staff member",
+        "tags": ["Staff"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff member retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffDetailed"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Staff member not found"
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update staff (Admin only)",
+        "description": "Update staff member information - Admin access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStaffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Staff member updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffDetailed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          },
+          "404": {
+            "description": "Staff member not found"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete staff (Admin only)",
+        "description": "Delete a staff member - Admin access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff member deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Staff member deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot delete staff with active assignments"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          },
+          "404": {
+            "description": "Staff member not found"
+          }
+        }
+      }
+    },
+    "/staff/search": {
+      "get": {
+        "summary": "Search staff (Staff only)",
+        "description": "Search for staff members by name or username - Staff access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "Search query (name or username)"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Number of results per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StaffDetailed"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid search query"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/staff/profile": {
+      "get": {
+        "summary": "Get staff profile (Staff only)",
+        "description": "Retrieve the authenticated staff member's profile - Staff access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Staff profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffDetailed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          },
+          "404": {
+            "description": "Staff profile not found"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update staff profile (Staff only)",
+        "description": "Update the authenticated staff member's profile - Staff access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStaffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Profile updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffDetailed"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/staff/shifts": {
+      "get": {
+        "summary": "Get staff shifts (Staff only)",
+        "description": "Retrieve shifts for the authenticated staff member",
+        "tags": ["Shifts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter shifts from date"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter shifts to date"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff shifts retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/Staff"
+                    "$ref": "#/components/schemas/Shift"
                   }
                 }
               }
             }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/staff/appointments": {
+      "get": {
+        "summary": "Get staff appointments (Staff only)",
+        "description": "Retrieve appointments for the authenticated staff member - Staff access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Number of appointments per page"
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Filter by specific date"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": ["BOOKED", "PAID", "CANCEL"]
+            },
+            "description": "Filter by appointment status"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff appointments retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AppointmentWithDetails"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Staff access required"
+          }
+        }
+      }
+    },
+    "/staff/statistics": {
+      "get": {
+        "summary": "Get staff statistics (Admin only)",
+        "description": "Retrieve comprehensive staff statistics - Admin access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter statistics by department"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffStatistics"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/staff/workload": {
+      "get": {
+        "summary": "Get staff workload analysis (Admin only)",
+        "description": "Retrieve workload analysis for all staff members - Admin access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Filter by department"
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Start date for workload analysis"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "End date for workload analysis"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff workload retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffWorkloadResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/staff/bulk-assign": {
+      "post": {
+        "summary": "Bulk assign staff (Admin only)",
+        "description": "Assign multiple staff members to departments or positions - Admin access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkStaffOperationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk assignment completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkOperationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or assignment failed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/staff/bulk-update": {
+      "patch": {
+        "summary": "Bulk update staff (Admin only)",
+        "description": "Update multiple staff members at once - Admin access required",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BulkUpdateStaffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk update completed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BulkOperationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid input or update failed"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        }
+      }
+    },
+    "/staff/departments/{departmentId}": {
+      "get": {
+        "summary": "Get staff by department",
+        "description": "Retrieve all staff members in a specific department",
+        "tags": ["Staff"],
+        "parameters": [
+          {
+            "name": "departmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "description": "Page number for pagination"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10
+            },
+            "description": "Number of staff members per page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Department staff retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/StaffDetailed"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/PaginationMeta"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Department not found"
+          }
+        }
+      }
+    },
+    "/staff/{id}/schedule": {
+      "get": {
+        "summary": "Get staff schedule",
+        "description": "Retrieve schedule for a specific staff member",
+        "tags": ["Staff"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Start date for schedule"
+          },
+          {
+            "name": "toDate",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "End date for schedule"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Staff schedule retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "shifts": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Shift"
+                      }
+                    },
+                    "appointments": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/AppointmentWithDetails"
+                      }
+                    },
+                    "summary": {
+                      "type": "object",
+                      "properties": {
+                        "totalShifts": {
+                          "type": "integer",
+                          "example": 12
+                        },
+                        "totalAppointments": {
+                          "type": "integer",
+                          "example": 45
+                        },
+                        "totalHours": {
+                          "type": "number",
+                          "example": 84.5
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "404": {
+            "description": "Staff member not found"
           }
         }
       }
@@ -1349,6 +7663,10 @@
     {
       "name": "Staff",
       "description": "Hospital staff management"
+    },
+    {
+      "name": "Accounts",
+      "description": "Account management and administration"
     }
   ]
 }

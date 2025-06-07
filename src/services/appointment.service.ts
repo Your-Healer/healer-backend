@@ -1,5 +1,5 @@
 import { Appointment, APPOINTMENTSTATUS, DiagnosisSuggestion, BookingTime, Prisma } from '@prisma/client'
-import { BaseService } from './base.service'
+import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
 
 export interface CreateAppointmentData {
@@ -315,7 +315,12 @@ export default class AppointmentService extends BaseService {
     }
   }
 
-  async getPatientAppointmentHistory(patientId: string, page: number = 1, limit: number = 10) {
+  async getPatientAppointmentHistory(
+    patientId: string,
+    page: number = 1,
+    limit: number = 10,
+    status?: APPOINTMENTSTATUS
+  ) {
     try {
       const { skip, take } = this.calculatePagination(page, limit)
 
@@ -451,10 +456,19 @@ export default class AppointmentService extends BaseService {
       }
 
       const [total, booked, paid, cancelled] = await Promise.all([
-        prisma.appointment.count(where),
-        prisma.appointment.count({ ...where, status: APPOINTMENTSTATUS.BOOKED }),
-        prisma.appointment.count({ ...where, status: APPOINTMENTSTATUS.PAID }),
-        prisma.appointment.count({ ...where, status: APPOINTMENTSTATUS.CANCEL })
+        prisma.appointment.count({ where }),
+        prisma.appointment.count({
+          where: {
+            ...where,
+            status: APPOINTMENTSTATUS.BOOKED
+          }
+        }),
+        prisma.appointment.count({
+          where: { ...where, status: APPOINTMENTSTATUS.PAID }
+        }),
+        prisma.appointment.count({
+          where: { ...where, status: APPOINTMENTSTATUS.CANCEL }
+        })
       ])
 
       const completionRate = total > 0 ? (paid / total) * 100 : 0

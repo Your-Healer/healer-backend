@@ -37,6 +37,7 @@ export interface GetTimeSlotsDto {
 }
 
 export interface GetAvailableTimeSlotsDto {
+  roomId?: string
   departmentId?: string
   serviceId?: string
   date?: Date
