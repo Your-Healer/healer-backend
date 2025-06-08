@@ -66,7 +66,7 @@ export async function getShiftByIdController(req: Request, res: Response, next: 
   try {
     const { id } = req.params
 
-    const shift = await shiftService.getShiftById(id)
+    const shift = await shiftService.getShiftById({ id })
     if (!shift) {
       return res.status(404).json({ error: 'Shift not found' })
     }
@@ -90,31 +90,15 @@ export async function getShiftsController(req: Request, res: Response, next: Nex
     if (fromDate) filter.fromDate = new Date(fromDate as string)
     if (toDate) filter.toDate = new Date(toDate as string)
 
-    const result = await shiftService.getShifts(filter, Number(page), Number(limit))
+    const result = await shiftService.getShifts({
+      ...filter,
+      page: Number(page),
+      limit: Number(limit)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
     console.error('Error getting shifts:', error)
-    return res.status(500).json({ error: 'Internal server error' })
-  }
-}
-
-export async function getShiftsByDoctorController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { staffId } = req.params
-    const { page = 1, limit = 10, fromDate, toDate } = req.query
-
-    const result = await shiftService.getShiftsByDoctor(
-      staffId,
-      fromDate ? new Date(fromDate as string) : undefined,
-      toDate ? new Date(toDate as string) : undefined,
-      Number(page),
-      Number(limit)
-    )
-
-    return res.status(200).json(result)
-  } catch (error: any) {
-    console.error('Error getting shifts by doctor:', error)
     return res.status(500).json({ error: 'Internal server error' })
   }
 }
@@ -124,13 +108,13 @@ export async function getShiftsByRoomController(req: Request, res: Response, nex
     const { roomId } = req.params
     const { page = 1, limit = 10, fromDate, toDate } = req.query
 
-    const result = await shiftService.getShiftsByRoom(
+    const result = await shiftService.getShifts({
       roomId,
-      fromDate ? new Date(fromDate as string) : undefined,
-      toDate ? new Date(toDate as string) : undefined,
-      Number(page),
-      Number(limit)
-    )
+      fromDate: fromDate ? new Date(fromDate as string) : undefined,
+      toDate: toDate ? new Date(toDate as string) : undefined,
+      page: Number(page),
+      limit: Number(limit)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -144,13 +128,13 @@ export async function getShiftsByDepartmentController(req: Request, res: Respons
     const { departmentId } = req.params
     const { page = 1, limit = 10, fromDate, toDate } = req.query
 
-    const result = await shiftService.getShiftsByDepartment(
+    const result = await shiftService.getShifts({
       departmentId,
-      fromDate ? new Date(fromDate as string) : undefined,
-      toDate ? new Date(toDate as string) : undefined,
-      Number(page),
-      Number(limit)
-    )
+      fromDate: fromDate ? new Date(fromDate as string) : undefined,
+      toDate: toDate ? new Date(toDate as string) : undefined,
+      page: Number(page),
+      limit: Number(limit)
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
@@ -172,10 +156,10 @@ export async function createBulkShiftsController(req: Request, res: Response, ne
     })
 
     return res.status(201).json({
-      message: `${shifts.length} shifts created successfully`,
+      message: `${shifts.totalCreated} shifts created successfully`,
       shifts,
-      totalRequested: dates.length * ((morningShift ? 1 : 0) + (afternoonShift ? 1 : 0)),
-      totalCreated: shifts.length
+      totalRequested: shifts.totalRequested,
+      totalCreated: shifts.totalCreated
     })
   } catch (error: any) {
     console.error('Error creating bulk shifts:', error)
@@ -183,29 +167,29 @@ export async function createBulkShiftsController(req: Request, res: Response, ne
   }
 }
 
-export async function createRecurringShiftsController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { staffId, roomId, startDate, endDate, daysOfWeek, timeSlots } = req.body
+// export async function createRecurringShiftsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+//   try {
+//     const { staffId, roomId, startDate, endDate, daysOfWeek, timeSlots } = req.body
 
-    const shifts = await shiftService.createRecurringShifts({
-      staffId,
-      roomId,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      daysOfWeek,
-      timeSlots
-    })
+//     const shifts = await shiftService.createRecurringShifts({
+//       staffId,
+//       roomId,
+//       startDate: new Date(startDate),
+//       endDate: new Date(endDate),
+//       daysOfWeek,
+//       timeSlots
+//     })
 
-    return res.status(201).json({
-      message: `${shifts.length} recurring shifts created successfully`,
-      shifts,
-      totalCreated: shifts.length
-    })
-  } catch (error: any) {
-    console.error('Error creating recurring shifts:', error)
-    return res.status(400).json({ error: error.message || 'Failed to create recurring shifts' })
-  }
-}
+//     return res.status(201).json({
+//       message: `${shifts.length} recurring shifts created successfully`,
+//       shifts,
+//       totalCreated: shifts.length
+//     })
+//   } catch (error: any) {
+//     console.error('Error creating recurring shifts:', error)
+//     return res.status(400).json({ error: error.message || 'Failed to create recurring shifts' })
+//   }
+// }
 
 export async function getShiftStatisticsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
@@ -230,15 +214,15 @@ export async function checkShiftConflictsController(req: Request, res: Response,
   try {
     const { staffId, fromTime, toTime, excludeShiftId } = req.body
 
-    const conflicts = await shiftService.checkShiftConflicts(
+    const conflicts = await shiftService.checkShiftConflicts({
       staffId,
-      new Date(fromTime),
-      new Date(toTime),
+      fromTime: new Date(fromTime),
+      toTime: new Date(toTime),
       excludeShiftId
-    )
+    })
 
     return res.status(200).json({
-      hasConflicts: conflicts.length > 0,
+      hasConflicts: conflicts.conflicts.length > 0,
       conflicts
     })
   } catch (error: any) {
@@ -247,24 +231,29 @@ export async function checkShiftConflictsController(req: Request, res: Response,
   }
 }
 
-export async function assignShiftController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { roomId, staffId, fromDate, toDate } = req.body
-    const shift = await shiftService.assignShift(roomId, staffId, new Date(fromDate), new Date(toDate))
-    return res.status(200).json({
-      message: 'Shift assigned successfully',
-      shift
-    })
-  } catch (error: any) {
-    console.error('Error assigning shift:', error)
-    return res.status(500).json({ error: 'Internal server error' })
-  }
-}
+// export async function assignShiftController(req: Request, res: Response, next: NextFunction): Promise<any> {
+//   try {
+//     const { roomId, staffId, fromDate, toDate } = req.body
+//     const shift = await shiftService.assignShift(roomId, staffId, new Date(fromDate), new Date(toDate))
+//     return res.status(200).json({
+//       message: 'Shift assigned successfully',
+//       shift
+//     })
+//   } catch (error: any) {
+//     console.error('Error assigning shift:', error)
+//     return res.status(500).json({ error: 'Internal server error' })
+//   }
+// }
 
 export async function getShiftsByDateRangeController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { fromDate, toDate } = req.body
-    const shifts = await shiftService.getShiftsByDateRange(new Date(fromDate as string), new Date(toDate as string))
+    const shifts = await shiftService.getShifts({
+      page: 1,
+      limit: 1000,
+      fromDate: new Date(fromDate as string),
+      toDate: new Date(toDate as string)
+    })
 
     return res.status(200).json({
       ...shifts
@@ -279,13 +268,13 @@ export async function getShiftsByStaffController(req: Request, res: Response, ne
   try {
     const { staffId } = req.params
     const { page = 1, limit = 10, fromDate, toDate } = req.query
-    const result = await shiftService.getShiftsByStaff(
+    const result = await shiftService.getShifts({
       staffId,
-      fromDate ? new Date(fromDate as string) : undefined,
-      toDate ? new Date(toDate as string) : undefined,
-      Number(page),
-      Number(limit)
-    )
+      fromDate: fromDate ? new Date(fromDate as string) : undefined,
+      toDate: toDate ? new Date(toDate as string) : undefined,
+      page: Number(page),
+      limit: Number(limit)
+    })
     return res.status(200).json(result)
   } catch (error: any) {
     console.error('Error getting shifts by staff:', error)

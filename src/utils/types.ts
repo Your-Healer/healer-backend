@@ -1,5 +1,6 @@
 import { SubmittableExtrinsicFunction } from '@polkadot/api/types'
 import { APPOINTMENTSTATUS, EDUCATIONLEVEL } from '@prisma/client'
+import { GENDER } from './enum'
 
 // Common interfaces
 export interface PaginationOptions {
@@ -272,8 +273,96 @@ export interface TimeRange {
 // Export all Prisma enums for convenience
 export { APPOINTMENTSTATUS, EDUCATIONLEVEL }
 
+/* ------------------------------- Blockchain ------------------------------- */
+
 export type AllExtrinsics = {
   [palletName: string]: {
     [methodName: string]: SubmittableExtrinsicFunction<'promise'>
   }
+}
+
+export interface BlockchainWalletDto {
+  walletMnemonic: string
+  walletAddress: string
+}
+
+export interface BlockchainCreatePatientDto extends BlockchainWalletDto {
+  accountId: string
+  patientName: string
+  dateOfBirth: string
+  gender: string
+  address?: string
+  phoneNumber?: string
+  emergencyContact?: string
+}
+
+export interface BlockchainUpdatePatientDto extends BlockchainWalletDto {
+  accountId: string
+  patientId: number
+  patientName?: string
+  dateOfBirth?: string
+  gender?: string
+  address?: string
+  phoneNumber?: string
+  emergencyContact?: string
+}
+
+export interface BlockchainDeletePatientDto extends BlockchainWalletDto {
+  accountId: string
+  patientId: number
+}
+
+export interface BlockchainSearchPatientByNameDto extends BlockchainWalletDto {
+  patientName: string
+}
+
+export interface BlockchainCreateClinicalTestDto extends BlockchainWalletDto {
+  patientId: number
+  testType: string
+  testDate: string
+  result: string
+  notes: string
+}
+
+export interface BlockchainUpdateClinicalTestDto extends BlockchainWalletDto {
+  testId: number
+  testType?: string
+  testDate?: string
+  result?: string
+  notes?: string
+}
+
+export interface BlockchainDeleteClinicalTestDto extends BlockchainWalletDto {
+  testId: number
+}
+
+export interface BlockchainCreateDiseaseProgressionDto extends BlockchainWalletDto {
+  patientId: number
+  visitDate: string
+  symptoms: string
+  diagnosis: string
+  treatment: string
+  prescription: string
+  nextAppointment: string
+}
+
+export interface BlockchainUpdateDiseaseProgressionDto extends BlockchainWalletDto {
+  progressionId: number
+  visitDate?: Date
+  symptoms?: string
+  diagnosis?: string
+  treatment?: string
+  prescription?: string
+  nextAppointment?: Date
+}
+
+export interface BlockchainDeleteDiseaseProgressionDto extends BlockchainWalletDto {
+  progressionId: number
+}
+
+export interface BlockchainCreateMedicalRecordDto extends BlockchainWalletDto {
+  patientId: number
+  diagnosis: string
+  treatment: string
+  dataPointer?: number
 }

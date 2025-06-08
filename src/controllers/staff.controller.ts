@@ -5,6 +5,7 @@ import prisma from '~/libs/prisma/init'
 import StaffService from '~/services/staff.service'
 import BlockchainService from '~/services/blockchain.service'
 import config from '~/configs/env'
+import { encryptString } from '~/utils/helpers'
 
 const staffService = StaffService.getInstance()
 const blockchainService = BlockchainService.getInstance()
@@ -45,7 +46,7 @@ export async function createStaffController(req: Request, res: Response, next: N
     }
 
     walletAddress = pair.address
-    encryptedMnemonic = cryptoJs.AES.encrypt(mnemonic, config.secrets.secretKey).toString()
+    encryptedMnemonic = encryptString(mnemonic, config.secrets.secretKey)
 
     const { account, staff } = await staffService.createStaff({
       username,

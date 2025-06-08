@@ -10,8 +10,8 @@ import {
   updateShiftController,
   deleteShiftController,
   getShiftsByDepartmentController,
+  getShiftsByRoomController,
   getShiftStatisticsController,
-  assignShiftController,
   getShiftsByDateRangeController,
   getShiftsByStaffController
 } from '~/controllers/shiftWorking.controller'
@@ -25,13 +25,13 @@ router.post('/', protect, handleErrors, createShiftController)
 
 router.post('/bulk', protect, isAdmin, handleErrors, createBulkShiftsController)
 
-router.post('/assign', protect, handleErrors, assignShiftController)
-
 router.get('/statistics', protect, getShiftStatisticsController)
 
 router.get('/date-range', protect, isDoctor, getShiftsByDateRangeController)
 
 router.get('/department/:departmentId', protect, getShiftsByDepartmentController)
+
+router.get('/room/:roomId', protect, getShiftsByRoomController)
 
 router.get('/staff/:staffId', protect, getShiftsByStaffController)
 
