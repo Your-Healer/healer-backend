@@ -85,6 +85,8 @@ export default class StaffService extends BaseService {
           }
         })
 
+        await this.blockchainService.forceSetBalance(data.walletAddress, BigInt(1000000000))
+
         // Assign positions if provided
         if (data.positionIds && data.positionIds.length > 0) {
           await tx.positionStaff.createMany({

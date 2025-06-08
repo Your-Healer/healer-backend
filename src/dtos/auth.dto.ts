@@ -1,6 +1,6 @@
 import { Position, PositionStaff } from '@prisma/client'
 
-export interface LoginDTO {
+export interface LoginDto {
   identifier: string // username, email, or phone
   password: string
   type: 'username' | 'email' | 'phone'
@@ -28,4 +28,15 @@ export interface LoginResponse {
     avatar?: string
     emailIsVerified: boolean
   }
+}
+
+export interface RegisterDto {
+  username: string
+  firstname: string
+  lastname: string
+  email: string
+  phoneNumber: string
+  password: string
+  confirmPassword: string
+  roleId?: string
 }

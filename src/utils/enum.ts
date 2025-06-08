@@ -12,3 +12,8 @@ export enum APPOINTMENTSTATUS {
   PAID,
   CANCEL
 }
+
+export enum GENDER {
+  MALE,
+  FEMALE
+}

@@ -122,6 +122,10 @@ export interface GetShiftWorkingDto {
   status?: 'upcoming' | 'active' | 'completed'
 }
 
+export interface GetShiftWorkingByIdDto {
+  id: string
+}
+
 export interface BulkShiftWorkingDto {
   staffId: string
   roomId: string

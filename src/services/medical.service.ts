@@ -640,10 +640,14 @@ export default class MedicalService extends BaseService {
       }
 
       const [totalSlots, bookedSlots] = await Promise.all([
-        prisma.medicalRoomTime.count(where),
+        prisma.medicalRoomTime.count({ where }),
         prisma.medicalRoomTime.count({
-          ...where,
-          BookingTime: { some: {} }
+          where: {
+            ...where,
+            bookings: {
+              some: {}
+            }
+          }
         })
       ])
 

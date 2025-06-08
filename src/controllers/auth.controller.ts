@@ -3,8 +3,6 @@ import prisma from '~/libs/prisma/init'
 import { createHashedPassword, compareHashedPassword, createJWT } from '~/middlewares/auth/index'
 import {} from '~/services/auth.service'
 import BlockchainService from '~/services/blockchain.service'
-import cryptoJs from 'crypto-js'
-import config from '~/configs/env'
 import AuthService from '~/services/auth.service'
 
 const blockchainService = BlockchainService.getInstance()
@@ -14,65 +12,9 @@ export async function registerController(req: Request, res: Response, next: Next
   try {
     const { username, password, email, phoneNumber, firstname, lastname, address } = req.body
 
-    // Check if user already exists
-    const existingAccount = await prisma.account.findFirst({
-      where: {
-        OR: [{ username: username.toLowerCase().trim() }, { email: email }, ...(phoneNumber ? [{ phoneNumber }] : [])]
-      }
-    })
-
-    if (existingAccount) {
-      return res.status(400).json({ error: 'User already exists with this username, email or phone number' })
-    }
-
-    // Create blockchain wallet
-    const { mnemonic, isValidMnemonic, pair } = await blockchainService.createNewWallet()
-    const address_wallet = pair.address
-
-    if (!mnemonic || !isValidMnemonic) {
-      return res.status(400).json({ error: 'Invalid mnemonic' })
-    }
-
-    // Find user role
-    const userRole = await prisma.role.findFirst({
-      where: { name: 'Người dùng' }
-    })
-    if (!userRole) {
-      return res.status(400).json({ error: 'User role not found' })
-    }
-
-    // Hash password and encrypt mnemonic
-    const hashedPassword = await createHashedPassword(password)
-    const encryptedMnemonic = cryptoJs.AES.encrypt(mnemonic, config.secrets.secretKey).toString()
-
-    // Create account
-    const account = await prisma.account.create({
-      data: {
-        roleId: userRole.id,
-        username: username.toLowerCase().trim(),
-        password: hashedPassword,
-        email,
-        phoneNumber,
-        walletAddress: address_wallet,
-        walletMnemonic: encryptedMnemonic,
-        emailIsVerified: false
-      }
-    })
-
-    // Create user
-    const user = await prisma.user.create({
-      data: {
-        accountId: account.id,
-        firstname,
-        lastname,
-        phoneNumber,
-        address
-      }
-    })
-
     return res.status(201).json({
       message: 'Registration successful',
-      userId: user.id
+      userId: result.user.id
     })
   } catch (error) {
     console.error('Error registration:', error)

@@ -9,7 +9,8 @@ import {
   RecurringShiftWorkingDto,
   AssignShiftWorkingDto,
   CheckShiftConflictsDto,
-  ShiftWorkingStatisticsDto
+  ShiftWorkingStatisticsDto,
+  GetShiftWorkingByIdDto
 } from '~/dtos/shiftWorking.dto'
 
 export default class ShiftWorkingService extends BaseService {
@@ -144,7 +145,7 @@ export default class ShiftWorkingService extends BaseService {
 
       const where: any = {}
 
-      if (data.staffId) where.doctorId = data.staffId
+      if (data.staffId) where.staffId = data.staffId
       if (data.roomId) where.roomId = data.roomId
 
       if (data.departmentId) {
@@ -218,6 +219,39 @@ export default class ShiftWorkingService extends BaseService {
       return this.formatPaginationResult(shifts, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getShifts')
+    }
+  }
+
+  async getShiftById(data: GetShiftWorkingByIdDto) {
+    try {
+      const shift = await prisma.shiftWorking.findUnique({
+        where: { id: data.id },
+        include: {
+          staff: {
+            include: {
+              account: true
+            }
+          },
+          room: {
+            include: {
+              department: {
+                include: {
+                  location: true
+                }
+              },
+              service: true
+            }
+          }
+        }
+      })
+
+      if (!shift) {
+        throw new Error('ShiftWorking not found')
+      }
+
+      return shift
+    } catch (error) {
+      this.handleError(error, 'getShiftById')
     }
   }
 
@@ -318,7 +352,7 @@ export default class ShiftWorkingService extends BaseService {
   async checkShiftConflicts(data: CheckShiftConflictsDto) {
     try {
       const where: any = {
-        doctorId: data.staffId,
+        staffId: data.staffId,
         AND: [{ fromTime: { lt: data.toTime } }, { toTime: { gt: data.fromTime } }]
       }
 

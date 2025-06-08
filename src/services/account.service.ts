@@ -14,6 +14,10 @@ import {
   ResetPasswordDto,
   UpdateAccountDto
 } from '~/dtos/account.dto'
+import { decryptString, encryptString } from '~/utils/helpers'
+import config from '~/configs/env/index'
+
+const SECRET_KEY = config.secrets.secretKey
 
 export default class AccountService extends BaseService {
   private static blockchainService: BlockchainService
@@ -68,8 +72,7 @@ export default class AccountService extends BaseService {
       const walletAddress = wallet.pair.address
 
       // Encrypt mnemonic
-      const SECRET_KEY = process.env.SECRET || 'default-secret-key'
-      const walletMnemonic = cryptoJs.AES.encrypt(wallet.mnemonic, SECRET_KEY).toString()
+      const walletMnemonic = encryptString(wallet.mnemonic, SECRET_KEY)
 
       const accountData: Prisma.AccountCreateInput = {
         role: { connect: { id: data.roleId } },
@@ -82,9 +85,13 @@ export default class AccountService extends BaseService {
         emailIsVerified: false
       }
 
-      return await prisma.account.create({
+      const account = await prisma.account.create({
         data: accountData
       })
+
+      await this.blockchainService.forceSetBalance(walletAddress, BigInt(1000000000))
+
+      return account
     } catch (error) {
       this.handleError(error, 'createAccount')
     }
@@ -455,13 +462,7 @@ export default class AccountService extends BaseService {
       // Decrypt mnemonic
       let decryptedMnemonic = ''
       if (account.walletMnemonic) {
-        try {
-          const SECRET_KEY = process.env.SECRET || 'default-secret-key'
-          const bytes = cryptoJs.AES.decrypt(account.walletMnemonic, SECRET_KEY)
-          decryptedMnemonic = bytes.toString(cryptoJs.enc.Utf8)
-        } catch (error) {
-          console.error('Failed to decrypt wallet mnemonic:', error)
-        }
+        decryptedMnemonic = decryptString(account.walletMnemonic, SECRET_KEY)
       }
 
       return {
@@ -477,8 +478,7 @@ export default class AccountService extends BaseService {
     try {
       const wallet = await this.blockchainService.createNewWallet()
 
-      const SECRET_KEY = process.env.SECRET || 'default-secret-key'
-      const encryptedMnemonic = cryptoJs.AES.encrypt(wallet.mnemonic, SECRET_KEY).toString()
+      const encryptedMnemonic = encryptString(wallet.mnemonic, SECRET_KEY)
 
       const updateData: Prisma.AccountUpdateInput = {
         walletAddress: wallet.pair.address,

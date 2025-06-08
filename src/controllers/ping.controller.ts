@@ -24,13 +24,6 @@ export function uploadMultipleFilesController(req: any, res: Response, next: Nex
     timestamp: new Date().toISOString()
   }
 }
-export async function getExtrinsicStatusController(req: any, res: Response, next: NextFunction): Promise<any> {
-  const extrinsic = await blockchainService.getExtrinsic()
-  console.log(extrinsic)
-  res.status(200).json({
-    extrinsic
-  })
-}
 
 export const pingController = (req: Request, res: Response) => {
   res.status(200).send('Hello World!')
