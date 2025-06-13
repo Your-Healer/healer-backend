@@ -96,10 +96,6 @@ restore:
 ssl-init:
 	@echo "Initializing SSL certificates..."
 	@mkdir -p ./certbot/conf ./certbot/www
-	@if [ -z "$(DOMAIN)" ] || [ -z "$(SSL_EMAIL)" ]; then \
-		echo "Error: DOMAIN and SSL_EMAIL must be set in .env file"; \
-		exit 1; \
-	fi
 	@echo "Generating temporary self-signed certificate..."
 	docker run --rm -v "$(PWD)/certbot/conf:/etc/letsencrypt" certbot/certbot \
 		certonly --standalone --register-unsafely-without-email \
