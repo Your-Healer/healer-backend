@@ -82,7 +82,6 @@ if [ "$ENVIRONMENT" = "production" ]; then
         docker compose run --rm certbot certonly \
             --webroot \
             --webroot-path /var/www/certbot \
-            --email $SSL_EMAIL \
             --agree-tos \
             --no-eff-email \
             -d $DOMAIN \
