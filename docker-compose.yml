@@ -1,107 +1,56 @@
 services:
-  # Main Application
+  # Node.js Backend Application
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      target: production
-    container_name: healer-app
-    restart: unless-stopped
     env_file:
       - .env
     environment:
       - NODE_ENV=production
-      # Explicitly pass through critical variables to ensure they're available
-      - DATABASE_URL=${DATABASE_URL}
-      - DIRECT_URL=${DIRECT_URL}
-      - SECRET=${SECRET}
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_USERNAME=${REDIS_USERNAME:-default}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - SUBSTRATE_HOST=${SUBSTRATE_HOST:-ws://127.0.0.1:9944}
-      - PORT=${PORT:-3000}
-    ports:
-      - '${PORT:-3000}:${PORT:-3000}'
+    expose:
+      - '3000'
     volumes:
       - ./uploads:/app/uploads
-      - ./logs:/app/logs
-    networks:
-      - healer-backend-network
+    restart: unless-stopped
+    command: node dist/index.js
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:${PORT:-3000}/api/v1/ping']
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:3000/api/v1/ping']
       interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 120s
-    command: >
-      sh -c "
-        echo '=== HEALER BACKEND STARTUP ===' &&
-        echo 'Environment Check:' &&
-        echo 'NODE_ENV: ${NODE_ENV}' &&
-        echo 'PORT: ${PORT:-3000}' &&
-        echo 'DATABASE_URL: ${DATABASE_URL:0:30}...' &&
-        echo 'DIRECT_URL: ${DIRECT_URL:0:30}...' &&
-        echo '' &&
-        echo 'Installing system dependencies...' &&
-        apk add --no-cache postgresql-client &&
-        echo '' &&
-        echo 'Testing database connection with retries...' &&
-        max_attempts=10 &&
-        attempt=1 &&
-        while [ \$attempt -le \$max_attempts ]; do
-          echo \"Database connection attempt \$attempt/\$max_attempts\" &&
-          if echo 'SELECT 1;' | npx prisma db execute --stdin; then
-            echo '✅ Database connection successful' &&
-            break
-          else
-            echo \"❌ Database connection failed (attempt \$attempt)\" &&
-            if [ \$attempt -eq \$max_attempts ]; then
-              echo '❌ All database connection attempts failed' &&
-              exit 1
-            fi &&
-            echo 'Waiting 5 seconds before retry...' &&
-            sleep 5 &&
-            attempt=\$((attempt + 1))
-          fi
-        done &&
-        echo '' &&
-        echo 'Running database migrations...' &&
-        npx prisma migrate deploy &&
-        echo '✅ Database migration completed' &&
-        echo '' &&
-        echo 'Generating Prisma client...' &&
-        npx prisma generate &&
-        echo '✅ Prisma client generated' &&
-        echo '' &&
-        echo 'Starting application on port ${PORT:-3000}...' &&
-        echo 'Application startup complete. Listening for requests...' &&
-        node dist/index.js
-      "
+      retries: 3
+      start_period: 10s
+    networks:
+      - healer-network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
 
   nginx:
     image: nginx:alpine
     container_name: healer-nginx
-    restart: unless-stopped
     ports:
       - '80:80'
-      - '443:443'
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d:/etc/nginx/conf.d:ro
-      - ./nginx/logs:/var/log/nginx
-      - ./uploads:/app/uploads:ro
+      - ./nginx/conf.d/ip-only.conf:/etc/nginx/conf.d/default.conf:ro
+      - nginx_logs:/var/log/nginx
     depends_on:
-      app:
-        condition: service_healthy
+      - app
+    restart: unless-stopped
     networks:
-      - healer-backend-network
-    healthcheck:
-      test: ['CMD', 'nginx', '-t']
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      - healer-network
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
 
 networks:
-  healer-backend-network:
+  healer-network:
     driver: bridge
+
+volumes:
+  nginx_logs:

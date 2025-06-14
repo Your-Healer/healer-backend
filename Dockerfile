@@ -57,8 +57,8 @@ RUN npm ci --omit=dev && npm cache clean --force
 # Generate Prisma client in production stage
 RUN npx prisma generate
 
-# Install necessary runtime tools including wget for health checks and postgresql-client for database operations
-RUN apk add --no-cache dumb-init curl wget postgresql-client
+# Install only necessary runtime tools
+RUN apk add --no-cache dumb-init curl
 
 # Copy build artifacts from builder stage
 COPY --from=builder /app/dist ./dist
@@ -66,7 +66,7 @@ COPY --from=builder /app/swagger.json ./swagger.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 # Create directories with proper permissions
-RUN mkdir -p /app/uploads /app/logs && \
+RUN mkdir -p /app/uploads && \
   chown -R appuser:appgroup /app
 
 # Verify the production image structure
