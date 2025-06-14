@@ -92,7 +92,7 @@ create_directories() {
     print_status "Creating necessary directories..."
     
     mkdir -p uploads
-    # mkdir -p nginx/conf.d
+    mkdir -p nginx/conf.d
     
     print_success "Directories created!"
 }
@@ -168,7 +168,7 @@ show_status() {
     print_status "Useful commands:"
     echo "  View logs:           docker compose -f docker-compose.yml logs -f"
     echo "  View app logs:       docker compose -f docker-compose.yml logs -f app"
-    # echo "  View nginx logs:     docker compose -f docker-compose.yml logs -f nginx"
+    echo "  View nginx logs:     docker compose -f docker-compose.yml logs -f nginx"
     echo "  Stop services:       docker compose -f docker-compose.yml down"
     echo "  Restart services:    docker compose -f docker-compose.yml restart"
     echo ""
