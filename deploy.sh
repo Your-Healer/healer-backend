@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Healer Backend Deployment Script for VPS
-# This script will help you deploy your application with SSL certificates
+# Simple deployment script for IP-only VPS deployment
+# This script deploys without SSL certificates and domain configuration
 
 set -e
 
@@ -11,11 +11,6 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
-
-# Configuration
-DOMAIN=""
-EMAIL=""
-COMPOSE_FILE="docker compose.prod.yml"
 
 # Function to print colored output
 print_status() {
@@ -51,141 +46,113 @@ check_requirements() {
     print_success "All requirements met!"
 }
 
-# Function to get domain and email from user
-get_user_input() {
-    if [ -z "$DOMAIN" ]; then
-        read -p "Enter your domain name (e.g., api.example.com): " DOMAIN
+# Function to get VPS IP address
+get_server_ip() {
+    print_status "Detecting server IP address..."
+    
+    # Try multiple methods to get public IP
+    SERVER_IP=$(curl -s ifconfig.me 2>/dev/null || curl -s ipinfo.io/ip 2>/dev/null || curl -s icanhazip.com 2>/dev/null || echo "")
+    
+    if [ -z "$SERVER_IP" ]; then
+        print_warning "Could not automatically detect IP address."
+        read -p "Please enter your VPS IP address: " SERVER_IP
     fi
     
-    if [ -z "$EMAIL" ]; then
-        read -p "Enter your email for SSL certificate: " EMAIL
-    fi
-    
-    print_status "Domain: $DOMAIN"
-    print_status "Email: $EMAIL"
+    print_success "Server IP: $SERVER_IP"
 }
 
-# Function to update configuration files
-update_config() {
-    print_status "Updating configuration files..."
+# Function to check if .env file exists
+check_env_file() {
+    print_status "Checking environment configuration..."
     
-    # Update Nginx configuration
-    sed -i "s/your-domain\.com/$DOMAIN/g" nginx/conf.d/default.conf
-    sed -i "s/your-email@example\.com/$EMAIL/g" $COMPOSE_FILE
-    
-    print_success "Configuration files updated!"
+    if [ ! -f ".env" ]; then
+        print_warning ".env file not found. Creating from template..."
+        
+        if [ -f ".env.template" ]; then
+            cp .env.template .env
+            print_status "Please edit .env file with your production settings:"
+            print_warning "nano .env"
+            read -p "Press Enter when you've finished editing .env file..."
+        elif [ -f ".env.example" ]; then
+            cp .env.example .env
+            print_status "Please edit .env file with your production settings:"
+            print_warning "nano .env"
+            read -p "Press Enter when you've finished editing .env file..."
+        else
+            print_error ".env.template or .env.example file not found. Please create .env file manually."
+            exit 1
+        fi
+    else
+        print_success ".env file found!"
+    fi
 }
 
 # Function to create necessary directories
 create_directories() {
     print_status "Creating necessary directories..."
     
-    mkdir -p certbot/conf
-    mkdir -p certbot/www
+    mkdir -p uploads
     mkdir -p nginx/conf.d
     
     print_success "Directories created!"
 }
 
-# Function to start services without SSL first
-start_without_ssl() {
-    print_status "Starting services without SSL for initial setup..."
+# Function to stop existing services
+stop_existing_services() {
+    print_status "Stopping any existing services..."
     
-    # Comment out SSL-related lines in Nginx config temporarily
-    cp nginx/conf.d/default.conf nginx/conf.d/default.conf.backup
+    docker compose -f docker-compose.yml down 2>/dev/null || true
+    docker compose down 2>/dev/null || true
     
-    # Create a temporary config without SSL
-    cat > nginx/conf.d/default.conf << EOF
-upstream healer_backend {
-    server app:3000;
-    keepalive 32;
+    print_success "Existing services stopped!"
 }
 
-server {
-    listen 80;
-    server_name $DOMAIN www.$DOMAIN;
+# Function to build and start services
+start_services() {
+    print_status "Building and starting services..."
     
-    client_max_body_size 50M;
+    # Build the application
+    docker compose -f docker-compose.yml build
     
-    location /.well-known/acme-challenge/ {
-        root /var/www/certbot;
-        allow all;
-    }
+    # Start services
+    docker compose -f docker-compose.yml up -d
     
-    location /api/ {
-        proxy_pass http://healer_backend;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-    }
-    
-    location /health {
-        proxy_pass http://healer_backend/api/v1/ping;
-        access_log off;
-    }
-}
-EOF
-    
-    docker compose -f $COMPOSE_FILE up -d nginx app
-    
-    print_success "Services started without SSL!"
+    print_success "Services started!"
 }
 
-# Function to obtain SSL certificate
-obtain_ssl() {
-    print_status "Obtaining SSL certificate..."
+# Function to wait for services to be ready
+wait_for_services() {
+    print_status "Waiting for services to be ready..."
     
-    docker compose -f $COMPOSE_FILE run --rm certbot certonly \
-        --webroot \
-        --webroot-path /var/www/certbot \
-        --email $EMAIL \
-        --agree-tos \
-        --no-eff-email \
-        -d $DOMAIN \
-        -d www.$DOMAIN
+    sleep 10
     
-    if [ $? -eq 0 ]; then
-        print_success "SSL certificate obtained successfully!"
-        return 0
+    # Check if services are running
+    if docker compose -f docker-compose.yml ps | grep -q "Up"; then
+        print_success "Services are running!"
     else
-        print_error "Failed to obtain SSL certificate!"
-        return 1
+        print_error "Some services failed to start. Check logs:"
+        docker compose -f docker-compose.yml logs
+        exit 1
     fi
 }
 
-# Function to restore full Nginx configuration
-restore_ssl_config() {
-    print_status "Restoring full Nginx configuration with SSL..."
+# Function to test the deployment
+test_deployment() {
+    print_status "Testing deployment..."
     
-    mv nginx/conf.d/default.conf.backup nginx/conf.d/default.conf
+    # Test health endpoint
+    if curl -s -f "http://localhost/health" >/dev/null; then
+        print_success "Health check passed!"
+    else
+        print_warning "Health check failed. Service might still be starting..."
+    fi
     
-    docker compose -f $COMPOSE_FILE restart nginx
-    
-    print_success "Full configuration restored!"
-}
-
-# Function to set up SSL certificate renewal
-setup_renewal() {
-    print_status "Setting up SSL certificate renewal..."
-    
-    # Create renewal script
-    cat > ssl-renew.sh << 'EOF'
-#!/bin/bash
-docker compose -f docker compose.prod.yml run --rm certbot renew --quiet
-docker compose -f docker compose.prod.yml restart nginx
-EOF
-    
-    chmod +x ssl-renew.sh
-    
-    print_status "SSL renewal script created. Add this to your crontab:"
-    print_warning "0 12 * * * /path/to/your/project/ssl-renew.sh"
-    
-    print_success "SSL renewal setup complete!"
+    # Test API endpoint
+    if curl -s -f "http://localhost/api/v1/ping" >/dev/null; then
+        print_success "API endpoint is responding!"
+    else
+        print_warning "API endpoint test failed. Check logs if needed."
+    fi
 }
 
 # Function to show final status
@@ -193,44 +160,53 @@ show_status() {
     print_status "Deployment completed successfully!"
     echo ""
     print_success "Your application is now running at:"
-    print_success "  HTTP:  http://$DOMAIN"
-    print_success "  HTTPS: https://$DOMAIN"
-    print_success "  API:   https://$DOMAIN/api/v1/"
-    print_success "  Docs:  https://$DOMAIN/api/v1/swagger/api-docs/"
+    print_success "  HTTP:        http://$SERVER_IP"
+    print_success "  API Base:    http://$SERVER_IP/api/v1/"
+    print_success "  Swagger:     http://$SERVER_IP/api/v1/swagger/api-docs/"
+    print_success "  Health:      http://$SERVER_IP/health"
     echo ""
     print_status "Useful commands:"
-    echo "  View logs:           docker compose -f $COMPOSE_FILE logs -f"
-    echo "  Stop services:       docker compose -f $COMPOSE_FILE down"
-    echo "  Restart services:    docker compose -f $COMPOSE_FILE restart"
-    echo "  Renew SSL:           ./ssl-renew.sh"
+    echo "  View logs:           docker compose -f docker-compose.yml logs -f"
+    echo "  View app logs:       docker compose -f docker-compose.yml logs -f app"
+    echo "  View nginx logs:     docker compose -f docker-compose.yml logs -f nginx"
+    echo "  Stop services:       docker compose -f docker-compose.yml down"
+    echo "  Restart services:    docker compose -f docker-compose.yml restart"
+    echo ""
+    print_warning "Note: This deployment uses HTTP only. For production with SSL, you'll need a domain name."
+}
+
+# Function to setup firewall (optional)
+setup_firewall() {
+    print_status "Checking firewall configuration..."
+    
+    if command -v ufw &> /dev/null; then
+        print_status "UFW detected. Ensuring port 80 is open..."
+        sudo ufw allow 80/tcp 2>/dev/null || true
+        print_success "Port 80 is now open!"
+    elif command -v firewall-cmd &> /dev/null; then
+        print_status "Firewalld detected. Ensuring port 80 is open..."
+        sudo firewall-cmd --permanent --add-port=80/tcp 2>/dev/null || true
+        sudo firewall-cmd --reload 2>/dev/null || true
+        print_success "Port 80 is now open!"
+    else
+        print_warning "No firewall management tool detected. Make sure port 80 is open manually."
+    fi
 }
 
 # Main deployment function
 main() {
-    print_status "Starting Healer Backend deployment..."
+    print_status "Starting IP-only deployment for Healer Backend..."
     
     check_requirements
-    get_user_input
+    get_server_ip
+    check_env_file
     create_directories
-    update_config
-    
-    print_status "Starting deployment process..."
-    
-    # Start without SSL first
-    start_without_ssl
-    
-    # Wait a bit for services to be ready
-    sleep 10
-    
-    # Obtain SSL certificate
-    if obtain_ssl; then
-        restore_ssl_config
-        setup_renewal
-        show_status
-    else
-        print_error "SSL setup failed. Your application is running on HTTP only."
-        print_status "You can access it at: http://$DOMAIN"
-    fi
+    stop_existing_services
+    start_services
+    wait_for_services
+    test_deployment
+    setup_firewall
+    show_status
 }
 
 # Run main function

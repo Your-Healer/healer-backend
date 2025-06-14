@@ -27,10 +27,10 @@ COPY . .
 
 # Build TypeScript code with verbose output
 RUN echo "Building TypeScript files..." && \
-    npm run build && \
-    echo "Build completed. Checking dist directory:" && \
-    ls -la dist && \
-    if [ -f "dist/index.js" ]; then echo "✅ dist/index.js exists"; else echo "❌ dist/index.js not found"; fi
+  npm run build && \
+  echo "Build completed. Checking dist directory:" && \
+  ls -la dist && \
+  if [ -f "dist/index.js" ]; then echo "✅ dist/index.js exists"; else echo "❌ dist/index.js not found"; fi
 
 # Production stage - Also using Node 20
 FROM node:20-alpine AS production
@@ -67,13 +67,13 @@ COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 # Create directories with proper permissions
 RUN mkdir -p /app/uploads && \
-    chown -R appuser:appgroup /app
+  chown -R appuser:appgroup /app
 
 # Verify the production image structure
 RUN echo "Checking production dist directory:" && \
-    ls -la dist && \
-    echo "Checking Prisma client in node_modules:" && \
-    ls -la node_modules/@prisma/client || echo "Prisma client not found in node_modules!"
+  ls -la dist && \
+  echo "Checking Prisma client in node_modules:" && \
+  ls -la node_modules/@prisma/client || echo "Prisma client not found in node_modules!"
 
 # Set user to non-root
 USER appuser
