@@ -16,6 +16,13 @@ ENVIRONMENT=${1:-production}
 
 echo -e "${GREEN}🚀 Starting deployment for environment: $ENVIRONMENT${NC}"
 
+if ! command -v crontab &> /dev/null; then
+  echo -e "${RED}❌ Cron not found. Please install cron to enable auto-renewal.${NC}"
+else
+  echo -e "${GREEN}✅ Cron is installed${NC}"
+fi
+
+
 # Check if required files exist
 required_files=(".env" "docker-compose.yml" "Dockerfile")
 for file in "${required_files[@]}"; do
@@ -53,19 +60,20 @@ fi
 echo -e "${YELLOW}📁 Creating necessary directories...${NC}"
 mkdir -p nginx/conf.d nginx/logs certbot/conf certbot/www uploads logs backups
 
-# Create nginx configuration if it doesn't exist
-if [ ! -f "nginx/nginx.conf" ] || [ ! -f "nginx/conf.d/default.conf" ]; then
-    echo -e "${YELLOW}📝 Creating nginx configuration files...${NC}"
-    
-    # Run setup script to create nginx configs
-    if [ -f "setup.sh" ]; then
-        chmod +x setup.sh
-        ./setup.sh
-    else
-        echo -e "${RED}❌ nginx configuration files missing and setup.sh not found${NC}"
-        exit 1
-    fi
+if [ ! -f "certbot/conf/ssl-dhparams.pem" ]; then
+  echo "🔐 Creating ssl-dhparams.pem"
+  openssl dhparam -out certbot/conf/ssl-dhparams.pem 2048
 fi
+
+# Generate default.conf from template
+if [ -f "nginx/conf.d/default.conf.template" ]; then
+  echo -e "${YELLOW}⚙️ Generating nginx/conf.d/default.conf from template...${NC}"
+  envsubst '${DOMAIN}' < nginx/conf.d/default.conf.template > nginx/conf.d/default.conf
+else
+  echo -e "${RED}❌ nginx/conf.d/default.conf.template not found${NC}"
+  exit 1
+fi
+
 
 # Stop existing services
 echo -e "${YELLOW}🛑 Stopping existing services...${NC}"

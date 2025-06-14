@@ -16,6 +16,9 @@ RUN npm install --package-lock-only
 # Copy prisma schema first for better layer caching
 COPY prisma ./prisma
 
+COPY .env ./
+
+
 # Install dependencies using npm
 RUN npm install
 
