@@ -81,40 +81,6 @@ fi
 echo -e "${YELLOW}🏗️ Building Docker images...${NC}"
 docker compose build --no-cache app
 
-# Start database and redis first
-echo -e "${YELLOW}🗄️ Starting database services...${NC}"
-docker compose up -d postgres redis
-
-# Wait for database
-echo -e "${YELLOW}⏳ Waiting for database to be ready...${NC}"
-timeout=60
-counter=0
-until docker compose exec postgres pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-healer} 2>/dev/null; do
-    counter=$((counter + 1))
-    if [ $counter -gt $timeout ]; then
-        echo -e "${RED}❌ Database failed to start within $timeout seconds${NC}"
-        docker compose logs postgres
-        exit 1
-    fi
-    echo "Waiting for database... ($counter/$timeout)"
-    sleep 1
-done
-
-# Wait for Redis
-echo -e "${YELLOW}⏳ Waiting for Redis to be ready...${NC}"
-timeout=30
-counter=0
-until docker compose exec redis redis-cli ping 2>/dev/null | grep -q PONG; do
-    counter=$((counter + 1))
-    if [ $counter -gt $timeout ]; then
-        echo -e "${RED}❌ Redis failed to start within $timeout seconds${NC}"
-        docker compose logs redis
-        exit 1
-    fi
-    echo "Waiting for Redis... ($counter/$timeout)"
-    sleep 1
-done
-
 # Start application
 echo -e "${YELLOW}🚀 Starting application...${NC}"
 docker compose up -d app
@@ -184,7 +150,7 @@ fi
 echo -e "${YELLOW}🏥 Running health checks...${NC}"
 
 # Check if all services are running
-services=("postgres" "redis" "app" "nginx")
+services=("app" "nginx")
 for service in "${services[@]}"; do
     if ! docker compose ps $service | grep -q "Up"; then
         echo -e "${RED}❌ Service $service is not running${NC}"
@@ -259,10 +225,6 @@ DATE=$(date +%Y%m%d_%H%M%S)
 
 # Create backup directory
 mkdir -p $BACKUP_DIR
-
-# Backup database
-echo "Backing up database..."
-docker compose exec postgres pg_dump -U ${DB_USER:-postgres} ${DB_NAME:-healer} > $BACKUP_DIR/db_backup_$DATE.sql
 
 # Backup uploads
 echo "Backing up uploads..."
