@@ -28,29 +28,28 @@ services:
         max-size: '10m'
         max-file: '3'
 
-  nginx:
-    image: nginx:alpine
-    container_name: healer-nginx
-    ports:
-      - '80:80'
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/conf.d/ip-only.conf:/etc/nginx/conf.d/default.conf:ro
-      - nginx_logs:/var/log/nginx
-    depends_on:
-      - app
-    restart: unless-stopped
-    networks:
-      - healer-network
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: healer-nginx
+  #   ports:
+  #     - '80:80'
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/conf.d/ip-only.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - nginx_logs:/var/log/nginx
+  #   depends_on:
+  #     - app
+  #   restart: unless-stopped
+  #   networks:
+  #     - healer-network
+  #   logging:
+  #     driver: 'json-file'
+  #     options:
+  #       max-size: '10m'
+  #       max-file: '3'
 
 networks:
   healer-network:
     driver: bridge
-
-volumes:
-  nginx_logs:
+# volumes:
+#   nginx_logs:
