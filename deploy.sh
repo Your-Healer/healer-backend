@@ -89,7 +89,7 @@ docker compose up -d app
 echo -e "${YELLOW}⏳ Waiting for application to be ready...${NC}"
 timeout=120
 counter=0
-until docker compose exec app curl -f http://localhost:3000/api/v1/ping 2>/dev/null; do
+until docker compose exec app curl -f http://localhost:3000 2>/dev/null; do
     counter=$((counter + 1))
     if [ $counter -gt $timeout ]; then
         echo -e "${RED}❌ Application failed to start within $timeout seconds${NC}"
