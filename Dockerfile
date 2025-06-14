@@ -16,8 +16,6 @@ RUN npm install --package-lock-only
 # Copy prisma schema first for better layer caching
 COPY prisma ./prisma
 
-COPY .env ./
-
 # Install dependencies using npm
 RUN npm install
 
@@ -53,17 +51,14 @@ COPY --from=builder /app/package-lock.json ./
 # Copy prisma schema
 COPY --from=builder /app/prisma ./prisma
 
-# Copy .env file
-COPY --from=builder /app/.env ./
-
 # Install production dependencies - use --omit=dev instead of deprecated --only=production
 RUN npm ci --omit=dev && npm cache clean --force
 
 # Generate Prisma client in production stage
 RUN npx prisma generate
 
-# Install only necessary runtime tools
-RUN apk add --no-cache dumb-init curl
+# Install necessary runtime tools including wget for health checks and postgresql-client for database operations
+RUN apk add --no-cache dumb-init curl wget postgresql-client
 
 # Copy build artifacts from builder stage
 COPY --from=builder /app/dist ./dist
@@ -71,7 +66,7 @@ COPY --from=builder /app/swagger.json ./swagger.json
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
 # Create directories with proper permissions
-RUN mkdir -p /app/uploads && \
+RUN mkdir -p /app/uploads /app/logs && \
   chown -R appuser:appgroup /app
 
 # Verify the production image structure
