@@ -80,9 +80,9 @@ check_requirements() {
         exit 1
     fi
     
-    # Check if docker-compose is available
-    if ! command -v docker-compose &> /dev/null; then
-        error "docker-compose is not installed"
+    # Check if docker compose is available
+    if ! command -v docker compose &> /dev/null; then
+        error "docker compose is not installed"
         exit 1
     fi
     
@@ -197,11 +197,11 @@ build_images() {
     
     # Pull latest base images
     log "Pulling latest base images..."
-    docker-compose pull || warning "Some base images could not be pulled"
+    docker compose pull || warning "Some base images could not be pulled"
     
     # Build with no cache to ensure fresh build and pass build args
     log "Building application images..."
-    docker-compose build --no-cache --build-arg NODE_ENV=production
+    docker compose build --no-cache --build-arg NODE_ENV=production
     
     success "Images built successfully"
 }
@@ -212,11 +212,11 @@ deploy() {
     
     # Stop existing containers
     log "Stopping existing containers..."
-    docker-compose down --remove-orphans || true
+    docker compose down --remove-orphans || true
     
     # Start new containers with explicit env file
     log "Starting new containers..."
-    docker-compose --env-file "$ENV_FILE" up -d
+    docker compose --env-file "$ENV_FILE" up -d
     
     success "Containers started"
 }
@@ -232,7 +232,7 @@ health_check() {
         log "Health check attempt $attempt/$max_attempts"
         
         # Check if containers are running
-        local app_status=$(docker-compose ps app --format "table {{.State}}" 2>/dev/null | tail -n 1 || echo "unknown")
+        local app_status=$(docker compose ps app --format "table {{.State}}" 2>/dev/null | tail -n 1 || echo "unknown")
         
         if [[ "$app_status" == *"Up"* ]]; then
             # Try multiple health check methods
@@ -256,16 +256,16 @@ health_check() {
             # Show logs if container is failing
             if [[ "$app_status" == *"Exit"* ]] || [[ "$app_status" == *"Restarting"* ]]; then
                 log "Container issue detected. Recent logs:"
-                docker-compose logs app --tail=10
+                docker compose logs app --tail=10
             fi
         fi
         
         # Show progress and logs periodically
         if [[ $((attempt % 20)) -eq 0 ]]; then
             log "Still waiting... Current status:"
-            docker-compose ps
+            docker compose ps
             log "Recent application logs:"
-            docker-compose logs app --tail=10
+            docker compose logs app --tail=10
         fi
         
         sleep 5
@@ -275,9 +275,9 @@ health_check() {
     error "Health check failed after $max_attempts attempts (10 minutes)"
     log "Final diagnosis:"
     log "Container status:"
-    docker-compose ps
+    docker compose ps
     log "Application logs (last 50 lines):"
-    docker-compose logs app --tail=50
+    docker compose logs app --tail=50
     log "System resources:"
     docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}"
     return 1
@@ -288,7 +288,7 @@ rollback() {
     error "Deployment failed, initiating rollback..."
     
     log "Stopping failed containers..."
-    docker-compose down --remove-orphans || true
+    docker compose down --remove-orphans || true
     
     error "Rollback completed. Please check logs and fix issues before redeploying."
     exit 1
@@ -311,9 +311,9 @@ cleanup() {
 show_status() {
     log "Deployment Status:"
     echo
-    docker-compose ps
+    docker compose ps
     echo
-    docker-compose logs --tail=20
+    docker compose logs --tail=20
 }
 
 # Main deployment function
@@ -357,19 +357,19 @@ case "${1:-deploy}" in
         main
         ;;
     "logs")
-        docker-compose logs -f
+        docker compose logs -f
         ;;
     "status")
-        docker-compose ps
+        docker compose ps
         ;;
     "stop")
         log "Stopping all containers..."
-        docker-compose down
+        docker compose down
         success "All containers stopped"
         ;;
     "restart")
         log "Restarting containers..."
-        docker-compose restart
+        docker compose restart
         success "Containers restarted"
         ;;
     "rollback")
@@ -389,12 +389,12 @@ esac
         ;;
     "stop")
         log "Stopping all containers..."
-        docker-compose down
+        docker compose down
         success "All containers stopped"
         ;;
     "restart")
         log "Restarting containers..."
-        docker-compose restart
+        docker compose restart
         success "Containers restarted"
         ;;
     "rollback")
