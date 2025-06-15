@@ -38,14 +38,14 @@ router.get('/me/wallet', protect, getMyWalletController)
 router.post('/me/wallet/regenerate', protect, regenerateMyWalletController)
 
 // Protected routes - Admin access
-router.get('/', protect, isAdmin, getAllAccountsController)
-router.post('/', protect, isAdmin, createAccountController)
-router.get('/statistics', protect, isAdmin, getAccountStatisticsController)
-router.get('/username/:username', protect, isAdmin, getAccountByUsernameController)
-router.get('/email/:email', protect, isAdmin, getAccountByEmailController)
-router.get('/:id', protect, isAdmin, getAccountByIdController)
-router.patch('/:id', protect, isAdmin, updateAccountByIdController)
-router.delete('/:id', protect, isAdmin, deleteAccountByIdController)
-router.patch('/:id/verify-email', protect, isAdmin, verifyEmailController)
+router.get('/', protect, getAllAccountsController)
+router.post('/', protect, createAccountController)
+router.get('/statistics', protect, getAccountStatisticsController)
+router.get('/username/:username', protect, getAccountByUsernameController)
+router.get('/email/:email', protect, getAccountByEmailController)
+router.get('/:id', protect, getAccountByIdController)
+router.patch('/:id', protect, updateAccountByIdController)
+router.delete('/:id', protect, deleteAccountByIdController)
+router.patch('/:id/verify-email', protect, verifyEmailController)
 
 export default router

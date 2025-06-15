@@ -21,15 +21,15 @@ const router = Router()
 
 router.get('/', getDepartmentsController)
 
-router.post('/', protect, isAdmin, handleErrors, createDepartmentController)
+router.post('/', protect, handleErrors, createDepartmentController)
 
 router.get('/:id', getDepartmentByIdController)
 
-router.put('/:id', protect, isAdmin, handleErrors, updateDepartmentController)
+router.put('/:id', protect, handleErrors, updateDepartmentController)
 
-router.delete('/:id', protect, isAdmin, deleteDepartmentController)
+router.delete('/:id', protect, deleteDepartmentController)
 
-router.get('/:id/staff', protect, isStaff, getDepartmentStaffController)
+router.get('/:id/staff', protect, getDepartmentStaffController)
 
 router.post('/:id/staff', protect, assignStaffToDepartmentController)
 
@@ -39,6 +39,6 @@ router.delete('/:id/staff/:staffId', protect, removeStaffFromDepartmentControlle
 
 router.get('/:id/rooms', getDepartmentMedicalRoomsController)
 
-router.get('/:id/statistics', protect, isStaff, getDepartmentStatisticsController)
+router.get('/:id/statistics', protect, getDepartmentStatisticsController)
 
 export default router
