@@ -103,6 +103,15 @@ export default class ServiceService extends BaseService {
               select: {
                 medicalRooms: true
               }
+            },
+            medicalRooms: {
+              include: {
+                department: true,
+                appointments: true,
+                service: true,
+                shifts: true,
+                times: true
+              }
             }
           }
         }),
