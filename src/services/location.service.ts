@@ -47,7 +47,7 @@ export default class LocationService extends BaseService {
       ])
 
       return {
-        locations,
+        data: locations,
         total,
         page,
         limit
