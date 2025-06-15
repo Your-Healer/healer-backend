@@ -14,7 +14,8 @@ import {
   GetServicesDto,
   GetTimeSlotsDto,
   UpdateMedicalRoomDto,
-  UpdateServiceDto
+  UpdateServiceDto,
+  UpdateTimeSlotDto
 } from '~/dtos/medical.dto'
 
 export default class MedicalService extends BaseService {
@@ -323,6 +324,8 @@ export default class MedicalService extends BaseService {
 
       const where: any = {}
 
+      if (data.filter.id) where.id = data.filter.id
+
       if (data.filter.roomId) where.roomId = data.filter.roomId
       if (data.filter.departmentId) {
         where.room = {
@@ -473,6 +476,66 @@ export default class MedicalService extends BaseService {
       })
     } catch (error) {
       this.handleError(error, 'deleteTimeSlot')
+    }
+  }
+
+  async updateTimeSlot(id: string, data: UpdateTimeSlotDto) {
+    try {
+      const existingSlot = await prisma.medicalRoomTime.findUnique({
+        where: { id }
+      })
+      if (!existingSlot) {
+        throw new Error('Time slot not found')
+      }
+
+      // Validate room exists if changing
+      if (data.roomId && data.roomId !== existingSlot.roomId) {
+        const room = await prisma.medicalRoom.findUnique({
+          where: { id: data.roomId }
+        })
+        if (!room) {
+          throw new Error('Medical room not found')
+        }
+      }
+
+      // Validate time slot
+      if (data.fromTime && data.toTime && data.fromTime >= data.toTime) {
+        throw new Error('Start time must be before end time')
+      }
+
+      let overlappingWhere: any = {}
+
+      if (data.fromTime && data.toTime) {
+        overlappingWhere.AND = [
+          { fromTime: { lt: data.toTime || existingSlot.toTime } },
+          { toTime: { gt: data.fromTime || existingSlot.fromTime } },
+          { id: { not: id } }
+        ]
+      }
+
+      // Check for overlapping time slots
+      const overlapping = await prisma.medicalRoomTime.findMany({
+        where: {
+          roomId: data.roomId || existingSlot.roomId,
+          ...overlappingWhere
+        }
+      })
+      if (overlapping.length > 0) {
+        throw new Error('Time slot overlaps with existing time slot')
+      }
+
+      const updateData: Prisma.MedicalRoomTimeUpdateInput = {
+        room: data.roomId ? { connect: { id: data.roomId } } : undefined,
+        fromTime: data.fromTime || existingSlot.fromTime,
+        toTime: data.toTime || existingSlot.toTime
+      }
+
+      return await prisma.medicalRoomTime.update({
+        where: { id },
+        data: updateData
+      })
+    } catch (error) {
+      this.handleError(error, 'updateTimeSlot')
     }
   }
 
