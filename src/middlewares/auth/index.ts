@@ -18,7 +18,7 @@ export const createJWT = (payload: any): string => {
   return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
 }
 
-export const verifyJWT = (token: string): any => {
+export const verifyJWT = (token: string) => {
   return jwt.verify(token, JWT_SECRET)
 }
 
@@ -30,7 +30,7 @@ export const protect = async (req: any, res: Response, next: NextFunction): Prom
     }
 
     const token = authHeader.substring(7)
-    const decoded = verifyJWT(token)
+    const decoded = verifyJWT(token) as any
 
     // Get account with role information
     const account = await prisma.account.findUnique({
@@ -87,7 +87,7 @@ export const optionalAuth = async (req: any, res: Response, next: NextFunction):
     }
 
     const token = authHeader.substring(7)
-    const decoded = verifyJWT(token)
+    const decoded = verifyJWT(token) as any
 
     const account = await prisma.account.findUnique({
       where: { id: decoded.accountId },
