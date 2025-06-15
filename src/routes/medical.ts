@@ -25,12 +25,6 @@ import {
   getMedicalRoomsByFloorController
 } from '~/controllers/medical.controller'
 import { handleErrors } from '~/middlewares/validation/handleErrors'
-import {
-  medicalRoomValidation,
-  updateMedicalRoomValidation,
-  timeSlotValidation,
-  bulkTimeSlotValidation
-} from '~/middlewares/validation/medicalValidation'
 
 const router = Router()
 
@@ -41,29 +35,15 @@ router.get('/time-slots/available', getAvailableTimeSlotsController)
 router.get('/time-slots', getTimeSlotsController)
 
 // Protected routes - Receptionist access
-router.post('/rooms', protect, isReceptionist, medicalRoomValidation, handleErrors, createMedicalRoomController)
-router.patch(
-  '/rooms/:id',
-  protect,
-  isReceptionist,
-  updateMedicalRoomValidation,
-  handleErrors,
-  updateMedicalRoomController
-)
-router.post('/time-slots', protect, isReceptionist, timeSlotValidation, handleErrors, createTimeSlotController)
-router.post(
-  '/time-slots/bulk',
-  protect,
-  isReceptionist,
-  bulkTimeSlotValidation,
-  handleErrors,
-  createBulkTimeSlotsController
-)
-router.delete('/time-slots/:id', protect, isReceptionist, deleteTimeSlotController)
+router.post('/rooms', protect, handleErrors, createMedicalRoomController)
+router.patch('/rooms/:id', protect, handleErrors, updateMedicalRoomController)
+router.post('/time-slots', protect, handleErrors, createTimeSlotController)
+router.post('/time-slots/bulk', protect, handleErrors, createBulkTimeSlotsController)
+router.delete('/time-slots/:id', protect, deleteTimeSlotController)
 router.get('/rooms/:id/schedule', getMedicalRoomScheduleController)
 router.get('/departments/:departmentId/schedule', getDepartmentScheduleController)
 router.post('/time-slots/check-availability', checkTimeSlotAvailabilityController)
-router.patch('/time-slots/:id', protect, isReceptionist, timeSlotValidation, handleErrors, updateTimeSlotController)
+router.patch('/time-slots/:id', protect, handleErrors, updateTimeSlotController)
 
 // Protected routes - Admin access
 router.delete('/rooms/:id', protect, deleteMedicalRoomController)

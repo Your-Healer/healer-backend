@@ -18,6 +18,12 @@ export interface CreateTimeSlotDto {
   toTime: Date
 }
 
+export interface UpdateTimeSlotDto {
+  roomId?: string
+  fromTime?: Date
+  toTime?: Date
+}
+
 export interface GetMedicalRoomsDto {
   filter: MedicalRoomFilter
   page: number
@@ -83,6 +89,7 @@ export interface MedicalRoomFilter {
 }
 
 export interface TimeSlotFilter {
+  id?: string
   roomId?: string
   departmentId?: string
   date?: Date

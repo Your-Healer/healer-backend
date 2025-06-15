@@ -162,9 +162,10 @@ export async function createBulkTimeSlotsController(req: Request, res: Response,
 
 export async function getTimeSlotsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { page = 1, limit = 10, roomId, departmentId, date, fromTime, toTime, available } = req.query
+    const { page = 1, limit = 10, id, roomId, departmentId, date, fromTime, toTime, available } = req.query
 
     const filter: any = {}
+    if (id) filter.id = id as string
     if (roomId) filter.roomId = roomId as string
     if (departmentId) filter.departmentId = departmentId as string
     if (date) filter.date = new Date(date as string)
@@ -494,10 +495,12 @@ export async function getMedicalRoomsByFloorController(req: Request, res: Respon
 export async function updateTimeSlotController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { id } = req.params
-    const { fromTime, toTime } = req.body
+    const { roomId, fromTime, toTime } = req.body
+
+    console.log(id)
 
     const existingSlot = await medicalService.getTimeSlots({
-      filter: { roomId: id },
+      filter: { id },
       page: 1,
       limit: 1
     })
@@ -513,12 +516,10 @@ export async function updateTimeSlotController(req: Request, res: Response, next
       return res.status(400).json({ error: 'Cannot update booked time slot' })
     }
 
-    await medicalService.deleteTimeSlot(id)
-
-    const newSlot = await medicalService.createTimeSlot({
-      roomId: slot.roomId,
-      fromTime: new Date(fromTime),
-      toTime: new Date(toTime)
+    const newSlot = await medicalService.updateTimeSlot(id, {
+      roomId: roomId || undefined,
+      fromTime: fromTime ? new Date(fromTime) : undefined,
+      toTime: toTime ? new Date(toTime) : undefined
     })
 
     return res.status(200).json({
