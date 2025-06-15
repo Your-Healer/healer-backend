@@ -46,12 +46,7 @@ export default class LocationService extends BaseService {
         prisma.location.count({ where })
       ])
 
-      return {
-        data: locations,
-        total,
-        page,
-        limit
-      }
+      return this.formatPaginationResult(locations, total, page, limit)
     } catch (error) {
       this.handleError(error, 'getLocations')
     }
