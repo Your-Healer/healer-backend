@@ -23,11 +23,11 @@ router.get('/', protect, getShiftsController)
 
 router.post('/', protect, handleErrors, createShiftController)
 
-router.post('/bulk', protect, isAdmin, handleErrors, createBulkShiftsController)
+router.post('/bulk', protect, handleErrors, createBulkShiftsController)
 
 router.get('/statistics', protect, getShiftStatisticsController)
 
-router.get('/date-range', protect, isDoctor, getShiftsByDateRangeController)
+router.get('/date-range', protect, getShiftsByDateRangeController)
 
 router.get('/department/:departmentId', protect, getShiftsByDepartmentController)
 

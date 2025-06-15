@@ -33,24 +33,24 @@ router.get('/all', getAllServicesController)
 router.get('/:id', getServiceByIdController)
 
 // Service management - Staff access required
-router.post('/', protect, isStaff, handleErrors, createServiceController)
-router.patch('/:id', protect, isStaff, handleErrors, updateServiceController)
-router.delete('/:id', protect, isStaff, deleteServiceController)
+router.post('/', protect, handleErrors, createServiceController)
+router.patch('/:id', protect, handleErrors, updateServiceController)
+router.delete('/:id', protect, deleteServiceController)
 
 // Service time slot management - Staff access required
-router.post('/:id/timeslots', protect, isStaff, handleErrors, createTimeSlotController)
-router.post('/:id/timeslots/bulk', protect, isStaff, handleErrors, createBulkTimeSlotsController)
-router.delete('/:id/timeslots/:timeSlotId', protect, isStaff, deleteTimeSlotController)
+router.post('/:id/timeslots', protect, handleErrors, createTimeSlotController)
+router.post('/:id/timeslots/bulk', protect, handleErrors, createBulkTimeSlotsController)
+router.delete('/:id/timeslots/:timeSlotId', protect, deleteTimeSlotController)
 
 // Medical rooms management through services
 router.get('/rooms', protect, getMedicalRoomsController)
-router.post('/rooms', protect, isStaff, handleErrors, createMedicalRoomController)
+router.post('/rooms', protect, handleErrors, createMedicalRoomController)
 router.get('/rooms/:id', protect, getMedicalRoomByIdController)
-router.put('/rooms/:id', protect, isStaff, handleErrors, updateMedicalRoomController)
-router.delete('/rooms/:id', protect, isStaff, deleteMedicalRoomController)
+router.put('/rooms/:id', protect, handleErrors, updateMedicalRoomController)
+router.delete('/rooms/:id', protect, deleteMedicalRoomController)
 
 // Room statistics - Staff access required
-router.get('/rooms/:id/statistics', protect, isStaff, getMedicalStatisticsController)
+router.get('/rooms/:id/statistics', protect, getMedicalStatisticsController)
 
 // Room time slots
 router.get('/rooms/:id/timeslots', protect, getTimeSlotsController)
