@@ -66,11 +66,11 @@ router.post('/time-slots/check-availability', checkTimeSlotAvailabilityControlle
 router.patch('/time-slots/:id', protect, isReceptionist, timeSlotValidation, handleErrors, updateTimeSlotController)
 
 // Protected routes - Admin access
-router.delete('/rooms/:id', protect, isAdmin, deleteMedicalRoomController)
-router.get('/statistics', protect, isAdmin, getMedicalStatisticsController)
-router.get('/rooms/:id/utilization', protect, isAdmin, getRoomUtilizationController)
-router.get('/services/popularity', protect, isAdmin, getServicePopularityController)
-router.delete('/time-slots/bulk', protect, isAdmin, bulkDeleteTimeSlotsController)
+router.delete('/rooms/:id', protect, deleteMedicalRoomController)
+router.get('/statistics', protect, getMedicalStatisticsController)
+router.get('/rooms/:id/utilization', protect, getRoomUtilizationController)
+router.get('/services/popularity', protect, getServicePopularityController)
+router.delete('/time-slots/bulk', protect, bulkDeleteTimeSlotsController)
 router.get('/room-types', getMedicalRoomTypesController)
 router.get('/departments/:departmentId/floors/:floor/rooms', getMedicalRoomsByFloorController)
 
