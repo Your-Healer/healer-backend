@@ -25,11 +25,11 @@ router.get('/', protect, getPatientsController)
 router.get('/search', protect, searchPatientsController)
 
 // Patient-specific routes
-router.get('/me', protect, isPatient, getCurrentPatientController)
-router.get('/profile', protect, isPatient, getPatientProfileController)
+router.get('/me', protect, getCurrentPatientController)
+router.get('/profile', protect, getPatientProfileController)
 
 // Patient management - Staff access required
-router.post('/', protect, isStaff, handleErrors, createPatientController)
+router.post('/', protect, handleErrors, createPatientController)
 
 // Get patients by user ID - Staff or own user
 router.get('/user/:userId', protect, getPatientsByUserIdController)
@@ -37,15 +37,15 @@ router.get('/user/:userId', protect, getPatientsByUserIdController)
 // Individual patient operations
 router.get('/:id', protect, getPatientByIdController)
 router.patch('/:id', protect, handleErrors, updatePatientController)
-router.delete('/:id', protect, isAdmin, deletePatientController)
+router.delete('/:id', protect, deletePatientController)
 
 // Patient appointment history - Staff or own patient
 router.get('/:id/appointments', protect, getPatientAppointmentHistoryController)
 
 // Patient statistics - Staff access required
-router.get('/:id/statistics', protect, isStaff, getPatientStatisticsController)
+router.get('/:id/statistics', protect, getPatientStatisticsController)
 
 // Patient medical history - Doctor access required
-router.get('/:id/medical-history', protect, isDoctor, getPatientMedicalHistoryController)
+router.get('/:id/medical-history', protect, getPatientMedicalHistoryController)
 
 export default router
