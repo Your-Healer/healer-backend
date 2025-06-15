@@ -142,6 +142,13 @@ export default class StaffService extends BaseService {
         where.educationLevel = data.educationLevel
       }
 
+      if (data.query) {
+        where.OR = [
+          { firstname: { contains: data.query, mode: 'insensitive' } },
+          { lastname: { contains: data.query, mode: 'insensitive' } }
+        ]
+      }
+
       const [staff, total] = await Promise.all([
         prisma.staff.findMany({
           skip,

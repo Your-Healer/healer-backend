@@ -25,6 +25,7 @@ export interface UpdateStaffDto {
 export interface GetStaffDto {
   page: number
   limit: number
+  query: string
   departmentId?: string
   positionId?: string
   educationLevel?: 'HIGHSCHOOL' | 'BACHELOR' | 'MASTER' | 'DOCTORATE'

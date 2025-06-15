@@ -85,13 +85,15 @@ export async function getAllStaffController(req: Request, res: Response, next: N
     const departmentId = req.query.departmentId as string
     const positionId = req.query.positionId as string
     const educationLevel = req.query.educationLevel as any
+    const query = req.query.query as string
 
     const result = await staffService.getAllStaff({
       page,
       limit,
       departmentId,
       positionId,
-      educationLevel
+      educationLevel,
+      query
     })
 
     return res.status(200).json(result)
