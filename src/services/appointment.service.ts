@@ -1,6 +1,7 @@
 import { Appointment, APPOINTMENTSTATUS, DiagnosisSuggestion, BookingTime, Prisma } from '@prisma/client'
 import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
+import { GetPatientAppointmentHistoryDto } from '../dtos/appointment.dto'
 
 export interface CreateAppointmentData {
   userId: string
@@ -92,11 +93,7 @@ export default class AppointmentService extends BaseService {
     }
   }
 
-  async updateAppointmentStatus(
-    appointmentId: string,
-    status: APPOINTMENTSTATUS,
-    reason?: string
-  ): Promise<Appointment> {
+  async updateAppointmentStatus(appointmentId: string, status: APPOINTMENTSTATUS): Promise<Appointment> {
     try {
       // Update appointment status
       const appointment = await prisma.appointment.update({
@@ -118,9 +115,9 @@ export default class AppointmentService extends BaseService {
     }
   }
 
-  async cancelAppointment(appointmentId: string, reason: string): Promise<Appointment> {
+  async cancelAppointment(appointmentId: string): Promise<Appointment> {
     try {
-      return await this.updateAppointmentStatus(appointmentId, APPOINTMENTSTATUS.CANCEL, reason)
+      return await this.updateAppointmentStatus(appointmentId, APPOINTMENTSTATUS.CANCEL)
     } catch (error) {
       this.handleError(error, 'cancelAppointment')
     }
@@ -315,22 +312,23 @@ export default class AppointmentService extends BaseService {
     }
   }
 
-  async getPatientAppointmentHistory(
-    patientId: string,
-    page: number = 1,
-    limit: number = 10,
-    status?: APPOINTMENTSTATUS
-  ) {
+  async getPatientAppointmentHistory(data: GetPatientAppointmentHistoryDto) {
     try {
-      const { skip, take } = this.calculatePagination(page, limit)
+      const { skip, take } = this.calculatePagination(data.page, data.limit)
 
-      const where = { patientId }
+      const where: { patientId: string; status?: APPOINTMENTSTATUS } = { patientId: data.patientId }
+
+      if (data.status) {
+        where.status = data.status
+      }
 
       const [appointments, total] = await Promise.all([
         prisma.appointment.findMany({
           skip,
           take,
-          where,
+          where: {
+            patientId: where.patientId
+          },
           include: {
             medicalRoom: {
               include: {
@@ -358,7 +356,7 @@ export default class AppointmentService extends BaseService {
         prisma.appointment.count({ where })
       ])
 
-      return this.formatPaginationResult(appointments, total, page, limit)
+      return this.formatPaginationResult(appointments, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getPatientAppointmentHistory')
     }

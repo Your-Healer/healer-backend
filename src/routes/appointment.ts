@@ -27,19 +27,19 @@ const router = Router()
 
 router.get('/check-availability/:medicalRoomTimeId', checkTimeSlotAvailabilityController)
 
-router.get('/statistics', protect, isAdmin, getAppointmentStatisticsController)
+router.get('/statistics', protect, getAppointmentStatisticsController)
 
 router.get('/staff', protect, getAppointmentsByStaffController)
 router.get('/upcoming', protect, getUpcomingAppointmentsController)
 router.get('/', protect, getAppointmentsController)
 
-router.post('/', protect, appointmentValidation, handleErrors, createAppointmentController)
-router.get('/patient/history', protect, getPatientAppointmentHistoryController)
+router.post('/', protect, handleErrors, createAppointmentController)
+router.get('/:patientId/history', protect, getPatientAppointmentHistoryController)
 router.patch('/:id/cancel', protect, cancelAppointmentController)
 
 router.patch('/:id/status', protect, statusUpdateValidation, handleErrors, updateAppointmentStatusController)
 
-router.post('/:appointmentId/diagnosis', protect, diagnosisValidation, handleErrors, addDiagnosisSuggestionController)
+router.post('/:appointmentId/diagnosis', protect, handleErrors, addDiagnosisSuggestionController)
 router.patch('/:id/complete', protect, completeAppointmentController)
 
 router.get('/:id', protect, getAppointmentByIdController)
