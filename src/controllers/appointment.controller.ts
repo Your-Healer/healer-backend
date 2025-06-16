@@ -33,13 +33,13 @@ export async function createAppointmentController(req: any, res: Response, next:
 export async function updateAppointmentStatusController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { id } = req.params
-    const { status, reason } = req.body
+    const { status } = req.body
 
     if (!Object.values(APPOINTMENTSTATUS).includes(status as APPOINTMENTSTATUS)) {
       return res.status(400).json({ error: 'Invalid status value' })
     }
 
-    const appointment = await appointmentService.updateAppointmentStatus(id, status as APPOINTMENTSTATUS, reason)
+    const appointment = await appointmentService.updateAppointmentStatus(id, status as APPOINTMENTSTATUS)
 
     return res.status(200).json({
       message: 'Appointment status updated successfully',
@@ -54,13 +54,8 @@ export async function updateAppointmentStatusController(req: Request, res: Respo
 export async function cancelAppointmentController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const { id } = req.params
-    const { reason } = req.body
 
-    if (!reason) {
-      return res.status(400).json({ error: 'Cancellation reason is required' })
-    }
-
-    const appointment = await appointmentService.cancelAppointment(id, reason)
+    const appointment = await appointmentService.cancelAppointment(id)
 
     return res.status(200).json({
       message: 'Appointment cancelled successfully',
@@ -238,11 +233,12 @@ export async function getPatientAppointmentHistoryController(
     const { patientId } = req.params
     const { page = 1, limit = 10, status } = req.query
 
-    const result = await appointmentService.getPatientAppointmentHistory(
+    const result = await appointmentService.getPatientAppointmentHistory({
       patientId,
-      parseInt(page as string),
-      parseInt(limit as string)
-    )
+      page: parseInt(page as string),
+      limit: parseInt(limit as string),
+      status: status as APPOINTMENTSTATUS | undefined
+    })
 
     return res.status(200).json(result)
   } catch (error: any) {
