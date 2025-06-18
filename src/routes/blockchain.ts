@@ -5,7 +5,9 @@ import {
   getAllQueriesController,
   setBalancesController,
   getPatientByIdController,
-  getPatientIdsByPatientName
+  getPatientIdsByPatientName,
+  updatePatientController,
+  deletePatientController
 } from '~/controllers/blockchain.controller'
 import { protect } from '../middlewares/auth/index'
 
@@ -22,5 +24,9 @@ router.get('/patients/:id', protect, getPatientByIdController)
 router.get('/patients/', protect, getPatientIdsByPatientName)
 
 router.post('/patients/', protect, createNewPatientController)
+
+router.patch('/patients/', protect, updatePatientController)
+
+router.delete('/patients/:patientId', protect, deletePatientController)
 
 export default router
