@@ -37,7 +37,7 @@ router.post('/:id/staffs', protect, bulkAssignStaffController)
 
 router.delete('/:id/staff/:staffId', protect, removeStaffFromDepartmentController)
 
-router.get('/:id/rooms', getDepartmentMedicalRoomsController)
+router.get('/:id/rooms', protect, getDepartmentMedicalRoomsController)
 
 router.get('/:id/statistics', protect, getDepartmentStatisticsController)
 

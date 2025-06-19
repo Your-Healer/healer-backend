@@ -5,9 +5,10 @@ import {
   getAllQueriesController,
   setBalancesController,
   getPatientByIdController,
-  getPatientIdsByPatientName,
   updatePatientController,
-  deletePatientController
+  deletePatientController,
+  getPatientIdsByPatientNameController,
+  getClinicalTestsController
 } from '~/controllers/blockchain.controller'
 import { protect } from '../middlewares/auth/index'
 
@@ -21,7 +22,9 @@ router.get('/get-all-extrinsics', getAllExtrinsicTransactionsController)
 
 router.get('/patients/:id', protect, getPatientByIdController)
 
-router.get('/patients/', protect, getPatientIdsByPatientName)
+router.get('/patients/', protect, getPatientIdsByPatientNameController)
+
+router.get('/clinical-tests/', protect, getClinicalTestsController)
 
 router.post('/patients/', protect, createNewPatientController)
 

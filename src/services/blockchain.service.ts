@@ -165,6 +165,30 @@ export default class BlockchainService extends BaseService {
     }
   }
 
+  async getClinicalTests(id: number) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const clinicalTests = (await api.query.medicalRecord.clinicalTests(id)).toHuman()
+
+      console.log(clinicalTests)
+      return clinicalTests
+    } catch (error) {
+      this.handleError(error, 'getClinicalTests')
+    }
+  }
+
+  async getDiseaseProgressions(id: number) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const diseaseProgressions = (await api.query.medicalRecord.diseaseProgressions(id)).toHuman()
+
+      console.log(diseaseProgressions)
+      return diseaseProgressions
+    } catch (error) {
+      this.handleError(error, 'getDiseaseProgressions')
+    }
+  }
+
   async createNewPatient(data: BlockchainCreatePatientDto) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })

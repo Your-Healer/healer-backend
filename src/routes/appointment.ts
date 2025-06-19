@@ -35,13 +35,13 @@ router.get('/', protect, getAppointmentsController)
 
 router.post('/', protect, handleErrors, createAppointmentController)
 router.get('/:patientId/history', protect, getPatientAppointmentHistoryController)
-router.patch('/:id/cancel', protect, cancelAppointmentController)
+router.patch('/:appointmentId/cancel', protect, cancelAppointmentController)
 
-router.patch('/:id/status', protect, statusUpdateValidation, handleErrors, updateAppointmentStatusController)
+router.patch('/:appointmentId/status', protect, statusUpdateValidation, updateAppointmentStatusController)
 
-router.post('/:appointmentId/diagnosis', protect, handleErrors, addDiagnosisSuggestionController)
-router.patch('/:id/complete', protect, completeAppointmentController)
+router.post('/:appointmentId/diagnosis', protect, addDiagnosisSuggestionController)
+router.patch('/:appointmentId/complete', protect, completeAppointmentController)
 
-router.get('/:id', protect, getAppointmentByIdController)
+router.get('/:appointmentId', protect, getAppointmentByIdController)
 
 export default router

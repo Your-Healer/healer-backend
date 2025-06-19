@@ -97,7 +97,11 @@ export async function getPatientByIdController(req: Request, res: Response, next
   }
 }
 
-export async function getPatientIdsByPatientName(req: Request, res: Response, next: NextFunction): Promise<any> {
+export async function getPatientIdsByPatientNameController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
   try {
     const { patientName } = req.query
     if (!patientName) {
@@ -118,6 +122,33 @@ export async function getPatientIdsByPatientName(req: Request, res: Response, ne
     return res.status(500).json({
       status: 'error',
       message: 'Failed to fetch patient IDs',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getClinicalTestsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { patientId } = req.query
+    if (!patientId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Patient ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const clinicalTests = await blockchainService.getClinicalTests(Number(patientId))
+    return res.status(200).json({
+      status: 'success',
+      data: clinicalTests,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching clinical tests:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch clinical tests',
       error: error.message,
       timestamp: new Date().toISOString()
     })
