@@ -1,13 +1,15 @@
+import { GENDER } from '~/utils/enum'
+
 export interface CreatePatientDto {
   userId: string
   firstname: string
   lastname: string
   phoneNumber?: string
   address?: string
+  gender: GENDER
   emergencyContact?: string
   medicalHistory?: string
   dateOfBirth?: Date
-  gender?: string
   bloodType?: string
   allergies?: string
   insurance?: string
@@ -21,7 +23,7 @@ export interface UpdatePatientDto {
   emergencyContact?: string
   medicalHistory?: string
   dateOfBirth?: Date
-  gender?: string
+  gender?: GENDER
   bloodType?: string
   allergies?: string
   insurance?: string

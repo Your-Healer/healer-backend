@@ -239,6 +239,65 @@ export interface PatientStatistics {
   attendanceRate: number
 }
 
+// Dashboard Statistics interfaces
+export interface AdminDashboardStats {
+  totalPatients: number
+  totalStaff: number
+  totalAppointments: number
+  todayAppointments: number
+  totalDepartments: number
+  totalMedicalRooms: number
+  monthlyRevenue: number
+  completedAppointments: number
+  pendingAppointments: number
+  cancelledAppointments: number
+  averageWaitTime: number
+  patientSatisfactionRate: number
+}
+
+export interface DoctorDashboardStats {
+  todayAppointments: number
+  upcomingAppointments: number
+  completedToday: number
+  totalPatients: number
+  averageConsultationTime: number
+  currentShifts: number
+  weeklyHours: number
+}
+
+// Enhanced statistics interfaces
+export interface MonthlyStats {
+  month: string
+  revenue: number
+  appointments: number
+  newPatients: number
+}
+
+export interface DepartmentStats {
+  departmentId: string
+  departmentName: string
+  totalAppointments: number
+  totalStaff: number
+  occupancyRate: number
+  averageWaitTime: number
+}
+
+export interface StaffPerformanceStats {
+  staffId: string
+  staffName: string
+  totalAppointments: number
+  completedAppointments: number
+  averageConsultationTime: number
+  patientSatisfactionRate: number
+}
+
+export interface TimeSlotUtilization {
+  timeSlot: string
+  totalSlots: number
+  bookedSlots: number
+  utilizationRate: number
+}
+
 // Error types
 export interface ValidationError {
   field: string
