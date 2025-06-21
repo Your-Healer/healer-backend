@@ -101,7 +101,19 @@ export async function getAppointmentByIdController(req: Request, res: Response, 
 
 export async function getAppointmentsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { userId, staffId, departmentId, status, date, fromDate, toDate, page = 1, limit = 10 } = req.query
+    const {
+      userId,
+      staffId,
+      departmentId,
+      status,
+      date,
+      fromDate,
+      toDate,
+      page = 1,
+      limit = 10,
+      orderByFromTime,
+      orderByToTime
+    } = req.query
 
     const filter: any = {
       userId: userId as string,
@@ -113,7 +125,13 @@ export async function getAppointmentsController(req: Request, res: Response, nex
       toDate: toDate ? new Date(toDate as string) : undefined
     }
 
-    const result = await appointmentService.getAppointments(filter, parseInt(page as string), parseInt(limit as string))
+    const result = await appointmentService.getAppointments(
+      filter,
+      parseInt(page as string),
+      parseInt(limit as string),
+      orderByFromTime,
+      orderByToTime
+    )
 
     return res.status(200).json(result)
   } catch (error: any) {

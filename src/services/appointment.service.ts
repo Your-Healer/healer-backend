@@ -1,24 +1,12 @@
 import { Appointment, APPOINTMENTSTATUS, DiagnosisSuggestion, BookingTime, Prisma } from '@prisma/client'
 import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
-import { GetPatientAppointmentHistoryDto } from '../dtos/appointment.dto'
-
-export interface CreateAppointmentData {
-  userId: string
-  patientId: string
-  medicalRoomTimeId: string
-  notes?: string
-}
-
-export interface AppointmentFilter {
-  userId?: string
-  staffId?: string
-  departmentId?: string
-  status?: APPOINTMENTSTATUS
-  date?: Date
-  fromDate?: Date
-  toDate?: Date
-}
+import {
+  AppointmentFilter,
+  CreateAppointmentData,
+  GetPatientAppointmentHistoryDto,
+  OrderBy
+} from '../dtos/appointment.dto'
 
 export default class AppointmentService extends BaseService {
   private static instance: AppointmentService
@@ -171,7 +159,13 @@ export default class AppointmentService extends BaseService {
     }
   }
 
-  async getAppointments(filter: AppointmentFilter = {}, page: number = 1, limit: number = 10) {
+  async getAppointments(
+    filter: AppointmentFilter = {},
+    page: number = 1,
+    limit: number = 10,
+    orderByFromTime?: 'asc' | 'desc',
+    orderByToTime?: 'asc' | 'desc'
+  ) {
     try {
       const { skip, take } = this.calculatePagination(page, limit)
 
@@ -220,9 +214,31 @@ export default class AppointmentService extends BaseService {
         }
       }
 
+      const orderBy: any = []
+
+      if (orderByFromTime) {
+        orderBy.push({
+          bookingTime: {
+            medicalRoomTime: {
+              fromTime: orderByFromTime
+            }
+          }
+        })
+      }
+
+      if (orderByToTime) {
+        orderBy.push({
+          bookingTime: {
+            medicalRoomTime: {
+              toTime: orderByToTime
+            }
+          }
+        })
+      }
+
       const [appointments, total] = await Promise.all([
         prisma.appointment.findMany({
-          skip,
+          orderBy,
           take,
           where,
           include: {
