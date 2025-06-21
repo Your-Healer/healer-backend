@@ -31,6 +31,7 @@ export default class AppointmentService extends BaseService {
     }
     return AppointmentService.instance
   }
+
   async createAppointment(data: CreateAppointmentData): Promise<Appointment> {
     try {
       // Check if time slot exists and is available
@@ -207,6 +208,16 @@ export default class AppointmentService extends BaseService {
         }
         if (filter.fromDate) where.bookingTime.medicalRoomTime.fromTime.gte = filter.fromDate
         if (filter.toDate) where.bookingTime.medicalRoomTime.fromTime.lte = filter.toDate
+      }
+
+      if (filter.staffId) {
+        where.medicalRoom = {
+          shifts: {
+            some: {
+              staffId: filter.staffId
+            }
+          }
+        }
       }
 
       const [appointments, total] = await Promise.all([

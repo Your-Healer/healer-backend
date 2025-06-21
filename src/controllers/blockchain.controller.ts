@@ -97,7 +97,11 @@ export async function getPatientByIdController(req: Request, res: Response, next
   }
 }
 
-export async function getPatientIdsByPatientName(req: Request, res: Response, next: NextFunction): Promise<any> {
+export async function getPatientIdsByPatientNameController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
   try {
     const { patientName } = req.query
     if (!patientName) {
@@ -124,10 +128,44 @@ export async function getPatientIdsByPatientName(req: Request, res: Response, ne
   }
 }
 
+export async function getClinicalTestsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { patientId } = req.query
+    if (!patientId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Patient ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const clinicalTests = await blockchainService.getClinicalTests(Number(patientId))
+    return res.status(200).json({
+      status: 'success',
+      data: clinicalTests,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching clinical tests:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch clinical tests',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
 export async function createNewPatientController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
     const patientData = req.body
     const { accountId } = req.user
+    if (!patientData || !accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Invalid request data',
+        timestamp: new Date().toISOString()
+      })
+    }
     const newPatient = await blockchainService.createNewPatient({
       accountId,
       ...patientData
@@ -142,6 +180,104 @@ export async function createNewPatientController(req: any, res: Response, next: 
     return res.status(500).json({
       status: 'error',
       message: 'Failed to create new patient',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function updatePatientController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const patientData = req.body
+    const updatedPatient = await blockchainService.updatePatient(accountId, patientData)
+    if (!updatedPatient) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Patient not found',
+        timestamp: new Date().toISOString()
+      })
+    }
+    return res.status(200).json({
+      status: 'success',
+      data: updatedPatient,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error updating patient:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to update patient',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function deletePatientController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const { patientId } = req.params
+    const deleted = await blockchainService.deletePatient(accountId, { patientId: Number(patientId) })
+    if (!deleted) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Patient not found',
+        timestamp: new Date().toISOString()
+      })
+    }
+    return res.status(200).json({
+      status: 'success',
+      message: 'Patient deleted successfully',
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error deleting patient:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete patient',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function createClinicalTestController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const clinicalTestData = req.body
+    const newClinicalTest = await blockchainService.createClinicalTest(accountId, clinicalTestData)
+    return res.status(201).json({
+      status: 'success',
+      data: newClinicalTest,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error creating clinical test:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to create clinical test',
       error: error.message,
       timestamp: new Date().toISOString()
     })

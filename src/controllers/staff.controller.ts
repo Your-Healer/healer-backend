@@ -22,7 +22,8 @@ export async function createStaffController(req: Request, res: Response, next: N
       positionIds,
       departmentIds,
       introduction,
-      educationLevel
+      educationLevel,
+      gender
     } = req.body
 
     const staffRole = await prisma.role.findFirst({
@@ -59,6 +60,7 @@ export async function createStaffController(req: Request, res: Response, next: N
       phoneNumber,
       introduction,
       educationLevel,
+      gender,
       positionIds,
       departmentIds
     })

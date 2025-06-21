@@ -3,8 +3,15 @@ import { cryptoWaitReady, mnemonicGenerate, mnemonicValidate } from '@polkadot/u
 import configs from '../configs/env/index'
 import {
   AllExtrinsics,
+  BlockchainCreateClinicalTestDto,
+  BlockchainCreateDiseaseProgressionDto,
+  BlockchainCreateMedicalRecordDto,
   BlockchainCreatePatientDto,
+  BlockchainDeleteClinicalTestDto,
+  BlockchainDeleteDiseaseProgressionDto,
   BlockchainDeletePatientDto,
+  BlockchainUpdateClinicalTestDto,
+  BlockchainUpdateDiseaseProgressionDto,
   BlockchainUpdatePatientDto
 } from '~/utils/types'
 import { SubmittableExtrinsicFunction } from '@polkadot/api/types'
@@ -158,6 +165,30 @@ export default class BlockchainService extends BaseService {
     }
   }
 
+  async getClinicalTests(id: number) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const clinicalTests = (await api.query.medicalRecord.clinicalTests(id)).toHuman()
+
+      console.log(clinicalTests)
+      return clinicalTests
+    } catch (error) {
+      this.handleError(error, 'getClinicalTests')
+    }
+  }
+
+  async getDiseaseProgressions(id: number) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const diseaseProgressions = (await api.query.medicalRecord.diseaseProgressions(id)).toHuman()
+
+      console.log(diseaseProgressions)
+      return diseaseProgressions
+    } catch (error) {
+      this.handleError(error, 'getDiseaseProgressions')
+    }
+  }
+
   async createNewPatient(data: BlockchainCreatePatientDto) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
@@ -205,11 +236,11 @@ export default class BlockchainService extends BaseService {
     }
   }
 
-  async updatePatient(data: BlockchainUpdatePatientDto) {
+  async updatePatient(accountId: string, data: BlockchainUpdatePatientDto) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
       const account = await prisma.account.findFirst({
-        where: { id: data.accountId },
+        where: { id: accountId },
         select: {
           walletMnemonic: true,
           walletAddress: true
@@ -254,11 +285,11 @@ export default class BlockchainService extends BaseService {
     }
   }
 
-  async deletePatient(data: BlockchainDeletePatientDto) {
+  async deletePatient(accountId: string, data: BlockchainDeletePatientDto) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
       const account = await prisma.account.findFirst({
-        where: { id: data.accountId },
+        where: { id: accountId },
         select: {
           walletMnemonic: true,
           walletAddress: true
@@ -292,6 +323,326 @@ export default class BlockchainService extends BaseService {
       return { status: 'success', message: 'Updated successfully.' }
     } catch (error) {
       this.handleError(error, 'deletePatient')
+    }
+  }
+
+  async createClinicalTest(accountId: string, data: BlockchainCreateClinicalTestDto) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const account = await prisma.account.findFirst({
+        where: { id: accountId },
+        select: {
+          walletMnemonic: true,
+          walletAddress: true
+        }
+      })
+      if (!account) {
+        throw new Error('Account not found')
+      }
+
+      const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
+
+      const pair = this.keyring.addFromMnemonic(walletMnemonic)
+
+      const unsub = await api.tx.medicalRecord
+        .createClinicalTest(
+          stringToHex(data.patientId.toString()),
+          stringToHex(data.testType),
+          stringToHex(data.testDate),
+          stringToHex(data.result),
+          stringToHex(data.notes)
+        )
+        .signAndSend(pair, (result) => {
+          console.log(`Current status is ${result.status}`)
+
+          if (result.status.isInBlock) {
+            console.log(`Transaction included at blockHash ${result.status.asInBlock}`)
+          } else if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`)
+            unsub()
+          }
+        })
+        .catch((error) => {
+          console.error('Error in createClinicalTest:', error)
+          throw new Error('Failed to create new patient. Please check the data and try again.')
+        })
+
+      return { status: 'success', message: 'Clinical Test created successfully.' }
+    } catch (error) {
+      this.handleError(error, 'createClinical')
+    }
+  }
+
+  async updateClinicalTest(accountId: string, data: BlockchainUpdateClinicalTestDto) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const account = await prisma.account.findFirst({
+        where: { id: accountId },
+        select: {
+          walletMnemonic: true,
+          walletAddress: true
+        }
+      })
+      if (!account) {
+        throw new Error('Account not found')
+      }
+
+      const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
+
+      const pair = this.keyring.addFromMnemonic(walletMnemonic)
+
+      const unsub = await api.tx.medicalRecord
+        .updateClinicalTest(
+          stringToHex(data.testId.toString()),
+          data.testType ? stringToHex(data.testType) : null,
+          data.testDate ? stringToHex(data.testDate) : null,
+          data.result ? stringToHex(data.result) : null,
+          data.notes ? stringToHex(data.notes) : null
+        )
+        .signAndSend(pair, (result) => {
+          console.log(`Current status is ${result.status}`)
+
+          if (result.status.isInBlock) {
+            console.log(`Transaction included at blockHash ${result.status.asInBlock}`)
+          } else if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`)
+            unsub()
+          }
+        })
+        .catch((error) => {
+          console.error('Error in updateClinicalTest:', error)
+          throw new Error('Failed to update the clinical test. Please check the data and try again.')
+        })
+
+      return { status: 'success', message: 'Clinical Test updated successfully.' }
+    } catch (error) {
+      this.handleError(error, 'updateClinicalTest')
+    }
+  }
+
+  async deleteClinicalTest(accountId: string, data: BlockchainDeleteClinicalTestDto) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const account = await prisma.account.findFirst({
+        where: { id: accountId },
+        select: {
+          walletMnemonic: true,
+          walletAddress: true
+        }
+      })
+      if (!account) {
+        throw new Error('Account not found')
+      }
+
+      const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
+
+      const pair = this.keyring.addFromMnemonic(walletMnemonic)
+
+      const unsub = await api.tx.medicalRecord
+        .deleteClinicalTest(data.testId)
+        .signAndSend(pair, (result) => {
+          console.log(`Current status is ${result.status}`)
+
+          if (result.status.isInBlock) {
+            console.log(`Transaction included at blockHash ${result.status.asInBlock}`)
+          } else if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`)
+            unsub()
+          }
+        })
+        .catch((error) => {
+          console.error('Error in deleteClinicalTest:', error)
+          throw new Error('Failed to delete the clinical test. Please check the data and try again.')
+        })
+
+      return { status: 'success', message: 'Clinical Test deleted successfully.' }
+    } catch (error) {
+      this.handleError(error, 'deleteClinicalTest')
+    }
+  }
+
+  async createDiseaseProgression(accountId: string, data: BlockchainCreateDiseaseProgressionDto) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const account = await prisma.account.findFirst({
+        where: { id: accountId },
+        select: {
+          walletMnemonic: true,
+          walletAddress: true
+        }
+      })
+      if (!account) {
+        throw new Error('Account not found')
+      }
+
+      const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
+
+      const pair = this.keyring.addFromMnemonic(walletMnemonic)
+
+      const unsub = await api.tx.medicalRecord
+        .createDiseaseProgression(
+          stringToHex(data.patientId.toString()),
+          stringToHex(data.visitDate),
+          stringToHex(data.symptoms),
+          stringToHex(data.diagnosis),
+          stringToHex(data.treatment),
+          stringToHex(data.prescription),
+          stringToHex(data.nextAppointment)
+        )
+        .signAndSend(pair, (result) => {
+          console.log(`Current status is ${result.status}`)
+
+          if (result.status.isInBlock) {
+            console.log(`Transaction included at blockHash ${result.status.asInBlock}`)
+          } else if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`)
+            unsub()
+          }
+        })
+        .catch((error) => {
+          console.error('Error in createDiseaseProgression:', error)
+          throw new Error('Failed to create disease progression. Please check the data and try again.')
+        })
+
+      return { status: 'success', message: 'Disease Progression created successfully.' }
+    } catch (error) {
+      this.handleError(error, 'createDiseaseProgression')
+    }
+  }
+
+  async updateDiseaseProgression(accountId: string, data: BlockchainUpdateDiseaseProgressionDto) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const account = await prisma.account.findFirst({
+        where: { id: accountId },
+        select: {
+          walletMnemonic: true,
+          walletAddress: true
+        }
+      })
+      if (!account) {
+        throw new Error('Account not found')
+      }
+
+      const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
+
+      const pair = this.keyring.addFromMnemonic(walletMnemonic)
+
+      const unsub = await api.tx.medicalRecord
+        .updateDiseaseProgression(
+          stringToHex(data.progressionId.toString()),
+          data.visitDate ? stringToHex(data.visitDate) : null,
+          data.symptoms ? stringToHex(data.symptoms) : null,
+          data.diagnosis ? stringToHex(data.diagnosis) : null,
+          data.treatment ? stringToHex(data.treatment) : null,
+          data.prescription ? stringToHex(data.prescription) : null,
+          data.nextAppointment ? stringToHex(data.nextAppointment) : null
+        )
+        .signAndSend(pair, (result) => {
+          console.log(`Current status is ${result.status}`)
+
+          if (result.status.isInBlock) {
+            console.log(`Transaction included at blockHash ${result.status.asInBlock}`)
+          } else if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`)
+            unsub()
+          }
+        })
+        .catch((error) => {
+          console.error('Error in updateDiseaseProgression:', error)
+          throw new Error('Failed to update the disease progression. Please check the data and try again.')
+        })
+
+      return { status: 'success', message: 'Disease Progression updated successfully.' }
+    } catch (error) {
+      this.handleError(error, 'updateDiseaseProgression')
+    }
+  }
+
+  async deleteDiseaseProgression(accountId: string, data: BlockchainDeleteDiseaseProgressionDto) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const account = await prisma.account.findFirst({
+        where: { id: accountId },
+        select: {
+          walletMnemonic: true,
+          walletAddress: true
+        }
+      })
+      if (!account) {
+        throw new Error('Account not found')
+      }
+
+      const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
+
+      const pair = this.keyring.addFromMnemonic(walletMnemonic)
+
+      const unsub = await api.tx.medicalRecord
+        .deleteDiseaseProgression(stringToHex(data.progressionId.toString()))
+        .signAndSend(pair, (result) => {
+          console.log(`Current status is ${result.status}`)
+
+          if (result.status.isInBlock) {
+            console.log(`Transaction included at blockHash ${result.status.asInBlock}`)
+          } else if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`)
+            unsub()
+          }
+        })
+        .catch((error) => {
+          console.error('Error in deleteDiseaseProgression:', error)
+          throw new Error('Failed to delete the disease progression. Please check the data and try again.')
+        })
+
+      return { status: 'success', message: 'Disease Progression deleted successfully.' }
+    } catch (error) {
+      this.handleError(error, 'deleteDiseaseProgression')
+    }
+  }
+
+  async createMedicalRecord(accountId: string, data: BlockchainCreateMedicalRecordDto) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const account = await prisma.account.findFirst({
+        where: { id: accountId },
+        select: {
+          walletMnemonic: true,
+          walletAddress: true
+        }
+      })
+      if (!account) {
+        throw new Error('Account not found')
+      }
+
+      const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
+
+      const pair = this.keyring.addFromMnemonic(walletMnemonic)
+
+      const unsub = await api.tx.medicalRecord
+        .createMedicalRecord(
+          stringToHex(data.patientId.toString()),
+          stringToHex(data.diagnosis),
+          stringToHex(data.treatment),
+          data.dataPointer ? stringToHex(data.dataPointer.toString()) : null
+        )
+        .signAndSend(pair, (result) => {
+          console.log(`Current status is ${result.status}`)
+
+          if (result.status.isInBlock) {
+            console.log(`Transaction included at blockHash ${result.status.asInBlock}`)
+          } else if (result.status.isFinalized) {
+            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`)
+            unsub()
+          }
+        })
+        .catch((error) => {
+          console.error('Error in createMedicalRecords:', error)
+          throw new Error('Failed to create the medical records. Please check the data and try again.')
+        })
+
+      return { status: 'success', message: 'Medical Record created successfully.' }
+    } catch (error) {
+      this.handleError(error, 'createMedicalRecords')
     }
   }
 

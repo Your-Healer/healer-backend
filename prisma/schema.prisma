@@ -157,6 +157,7 @@ model Patient {
   lastname    String
   phoneNumber String?
   address     String?
+  gender      GENDER?
 
   user        User          @relation(fields: [userId], references: [id])
   BookingTime BookingTime[]
@@ -170,6 +171,7 @@ model Staff {
   lastname       String
   introduction   String?
   educationLevel EDUCATIONLEVEL?
+  gender         GENDER?
 
   account     Account             @relation(fields: [accountId], references: [id])
   positions   PositionStaff[]
@@ -254,4 +256,9 @@ enum APPOINTMENTSTATUS {
   BOOKED
   PAID
   CANCEL
+}
+
+enum GENDER {
+  MALE
+  FEMALE
 }

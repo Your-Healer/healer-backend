@@ -15,6 +15,7 @@ import SwaggerRouter from './swagger'
 import PositionRouter from './position'
 import RoleRouter from './role'
 import LocationRouter from './location'
+import StatisticRouter from './statistic'
 
 export default function initializeRoutes(app: any) {
   app.use('/api/v1/ping', PingRouter)
@@ -32,6 +33,7 @@ export default function initializeRoutes(app: any) {
   app.use('/api/v1/positions', PositionRouter)
   app.use('/api/v1/roles', RoleRouter)
   app.use('/api/v1/locations', LocationRouter)
+  app.use('/api/v1/statistics', StatisticRouter)
   app.use('/api/v1/swagger', SwaggerRouter)
 
   return app.use(notFoundError)

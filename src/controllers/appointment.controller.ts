@@ -32,14 +32,14 @@ export async function createAppointmentController(req: any, res: Response, next:
 
 export async function updateAppointmentStatusController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.params
+    const { appointmentId } = req.params
     const { status } = req.body
 
     if (!Object.values(APPOINTMENTSTATUS).includes(status as APPOINTMENTSTATUS)) {
       return res.status(400).json({ error: 'Invalid status value' })
     }
 
-    const appointment = await appointmentService.updateAppointmentStatus(id, status as APPOINTMENTSTATUS)
+    const appointment = await appointmentService.updateAppointmentStatus(appointmentId, status as APPOINTMENTSTATUS)
 
     return res.status(200).json({
       message: 'Appointment status updated successfully',
@@ -53,9 +53,9 @@ export async function updateAppointmentStatusController(req: Request, res: Respo
 
 export async function cancelAppointmentController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.params
+    const { appointmentId } = req.params
 
-    const appointment = await appointmentService.cancelAppointment(id)
+    const appointment = await appointmentService.cancelAppointment(appointmentId)
 
     return res.status(200).json({
       message: 'Appointment cancelled successfully',
@@ -69,9 +69,9 @@ export async function cancelAppointmentController(req: Request, res: Response, n
 
 export async function completeAppointmentController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.params
+    const { appointmentId } = req.params
 
-    const appointment = await appointmentService.completeAppointment(id)
+    const appointment = await appointmentService.completeAppointment(appointmentId)
 
     return res.status(200).json({
       message: 'Appointment completed successfully',
@@ -85,8 +85,8 @@ export async function completeAppointmentController(req: Request, res: Response,
 
 export async function getAppointmentByIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { id } = req.params
-    const appointment = await appointmentService.getAppointmentById(id)
+    const { appointmentId } = req.params
+    const appointment = await appointmentService.getAppointmentById(appointmentId)
 
     if (!appointment) {
       return res.status(404).json({ error: 'Appointment not found' })
@@ -103,7 +103,7 @@ export async function getAppointmentsController(req: Request, res: Response, nex
   try {
     const { userId, staffId, departmentId, status, date, fromDate, toDate, page = 1, limit = 10 } = req.query
 
-    const filter = {
+    const filter: any = {
       userId: userId as string,
       staffId: staffId as string,
       departmentId: departmentId as string,

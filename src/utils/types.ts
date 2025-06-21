@@ -239,6 +239,65 @@ export interface PatientStatistics {
   attendanceRate: number
 }
 
+// Dashboard Statistics interfaces
+export interface AdminDashboardStats {
+  totalPatients: number
+  totalStaff: number
+  totalAppointments: number
+  todayAppointments: number
+  totalDepartments: number
+  totalMedicalRooms: number
+  monthlyRevenue: number
+  completedAppointments: number
+  pendingAppointments: number
+  cancelledAppointments: number
+  averageWaitTime: number
+  patientSatisfactionRate: number
+}
+
+export interface DoctorDashboardStats {
+  todayAppointments: number
+  upcomingAppointments: number
+  completedToday: number
+  totalPatients: number
+  averageConsultationTime: number
+  currentShifts: number
+  weeklyHours: number
+}
+
+// Enhanced statistics interfaces
+export interface MonthlyStats {
+  month: string
+  revenue: number
+  appointments: number
+  newPatients: number
+}
+
+export interface DepartmentStats {
+  departmentId: string
+  departmentName: string
+  totalAppointments: number
+  totalStaff: number
+  occupancyRate: number
+  averageWaitTime: number
+}
+
+export interface StaffPerformanceStats {
+  staffId: string
+  staffName: string
+  totalAppointments: number
+  completedAppointments: number
+  averageConsultationTime: number
+  patientSatisfactionRate: number
+}
+
+export interface TimeSlotUtilization {
+  timeSlot: string
+  totalSlots: number
+  bookedSlots: number
+  utilizationRate: number
+}
+
 // Error types
 export interface ValidationError {
   field: string
@@ -286,7 +345,7 @@ export interface BlockchainWalletDto {
   walletAddress: string
 }
 
-export interface BlockchainCreatePatientDto extends BlockchainWalletDto {
+export interface BlockchainCreatePatientDto {
   accountId: string
   patientName: string
   dateOfBirth: string
@@ -296,9 +355,8 @@ export interface BlockchainCreatePatientDto extends BlockchainWalletDto {
   emergencyContact?: string
 }
 
-export interface BlockchainUpdatePatientDto extends BlockchainWalletDto {
-  accountId: string
-  patientId: number
+export interface BlockchainUpdatePatientDto {
+  patientId?: number
   patientName?: string
   dateOfBirth?: string
   gender?: string
@@ -307,16 +365,15 @@ export interface BlockchainUpdatePatientDto extends BlockchainWalletDto {
   emergencyContact?: string
 }
 
-export interface BlockchainDeletePatientDto extends BlockchainWalletDto {
-  accountId: string
+export interface BlockchainDeletePatientDto {
   patientId: number
 }
 
-export interface BlockchainSearchPatientByNameDto extends BlockchainWalletDto {
+export interface BlockchainSearchPatientByNameDto {
   patientName: string
 }
 
-export interface BlockchainCreateClinicalTestDto extends BlockchainWalletDto {
+export interface BlockchainCreateClinicalTestDto {
   patientId: number
   testType: string
   testDate: string
@@ -324,7 +381,7 @@ export interface BlockchainCreateClinicalTestDto extends BlockchainWalletDto {
   notes: string
 }
 
-export interface BlockchainUpdateClinicalTestDto extends BlockchainWalletDto {
+export interface BlockchainUpdateClinicalTestDto {
   testId: number
   testType?: string
   testDate?: string
@@ -332,11 +389,11 @@ export interface BlockchainUpdateClinicalTestDto extends BlockchainWalletDto {
   notes?: string
 }
 
-export interface BlockchainDeleteClinicalTestDto extends BlockchainWalletDto {
+export interface BlockchainDeleteClinicalTestDto {
   testId: number
 }
 
-export interface BlockchainCreateDiseaseProgressionDto extends BlockchainWalletDto {
+export interface BlockchainCreateDiseaseProgressionDto {
   patientId: number
   visitDate: string
   symptoms: string
@@ -346,21 +403,21 @@ export interface BlockchainCreateDiseaseProgressionDto extends BlockchainWalletD
   nextAppointment: string
 }
 
-export interface BlockchainUpdateDiseaseProgressionDto extends BlockchainWalletDto {
+export interface BlockchainUpdateDiseaseProgressionDto {
   progressionId: number
-  visitDate?: Date
+  visitDate?: string // Timestamp in ISO format
   symptoms?: string
   diagnosis?: string
   treatment?: string
   prescription?: string
-  nextAppointment?: Date
+  nextAppointment?: string // Timestamp in ISO format
 }
 
-export interface BlockchainDeleteDiseaseProgressionDto extends BlockchainWalletDto {
+export interface BlockchainDeleteDiseaseProgressionDto {
   progressionId: number
 }
 
-export interface BlockchainCreateMedicalRecordDto extends BlockchainWalletDto {
+export interface BlockchainCreateMedicalRecordDto {
   patientId: number
   diagnosis: string
   treatment: string

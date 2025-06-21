@@ -1,3 +1,5 @@
+import { APPOINTMENTSTATUS, EDUCATIONLEVEL, GENDER } from '~/utils/enum'
+
 export interface CreateStaffDto {
   username: string
   password: string
@@ -8,7 +10,8 @@ export interface CreateStaffDto {
   walletAddress: string
   walletMnemonic: string
   introduction?: string
-  educationLevel: 'HIGHSCHOOL' | 'BACHELOR' | 'MASTER' | 'DOCTORATE'
+  educationLevel: EDUCATIONLEVEL
+  gender: GENDER
   positionIds?: string[]
   departmentIds?: string[]
 }
@@ -17,7 +20,8 @@ export interface UpdateStaffDto {
   firstname?: string
   lastname?: string
   introduction?: string
-  educationLevel?: 'HIGHSCHOOL' | 'BACHELOR' | 'MASTER' | 'DOCTORATE'
+  educationLevel?: EDUCATIONLEVEL
+  gender?: GENDER
   positionIds?: string[]
   departmentIds?: string[]
 }
@@ -28,14 +32,15 @@ export interface GetStaffDto {
   query: string
   departmentId?: string
   positionId?: string
-  educationLevel?: 'HIGHSCHOOL' | 'BACHELOR' | 'MASTER' | 'DOCTORATE'
+  educationLevel?: EDUCATIONLEVEL
+  gender?: GENDER
 }
 
 export interface StaffSearchDto {
   query: string
   departmentId?: string
   positionId?: string
-  educationLevel?: 'HIGHSCHOOL' | 'BACHELOR' | 'MASTER' | 'DOCTORATE'
+  educationLevel?: EDUCATIONLEVEL
   page: number
   limit: number
 }
@@ -74,7 +79,7 @@ export interface GetStaffAppointmentsDto {
   page: number
   limit: number
   date?: Date
-  status?: 'BOOKED' | 'PAID' | 'CANCEL'
+  status?: APPOINTMENTSTATUS
 }
 
 export interface GetStaffPatientsDto {
