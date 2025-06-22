@@ -389,8 +389,9 @@ export default class AppointmentService extends BaseService {
     }
   }
 
-  async getUpcomingAppointments(userId: string, limit: number = 5) {
+  async getUpcomingAppointments(userId: string, page: number, limit: number) {
     try {
+      const { skip, take } = this.calculatePagination(page, limit)
       const where = {
         patient: {
           userId: userId
@@ -426,11 +427,14 @@ export default class AppointmentService extends BaseService {
         }
       }
 
-      return await prisma.appointment.findMany({
+      const appointments = await prisma.appointment.findMany({
         where,
         include,
-        take: limit
+        take,
+        skip
       })
+
+      return this.formatPaginationResult(appointments, appointments.length, page, limit)
     } catch (error) {
       this.handleError(error, 'getUpcomingAppointments')
     }

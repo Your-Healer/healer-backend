@@ -150,11 +150,15 @@ export async function getAppointmentsController(req: Request, res: Response, nex
 export async function getUpcomingAppointmentsController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
     const { userId } = req.user
-    const { limit = 5 } = req.query
+    const { page = 1, limit = 10 } = req.query
 
     console.log(limit)
 
-    const appointments = await appointmentService.getUpcomingAppointments(userId, parseInt(limit as string))
+    const appointments = await appointmentService.getUpcomingAppointments(
+      userId,
+      parseInt(page as string),
+      parseInt(limit as string)
+    )
 
     return res.status(200).json(appointments)
   } catch (error: any) {
