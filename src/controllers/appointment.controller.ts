@@ -125,12 +125,19 @@ export async function getAppointmentsController(req: Request, res: Response, nex
       toDate: toDate ? new Date(toDate as string) : undefined
     }
 
+    if (typeof orderByFromTime === 'string' && orderByFromTime !== 'asc' && orderByFromTime !== 'desc') {
+      return res.status(400).json({ error: 'Invalid orderByFromTime value' })
+    }
+    if (typeof orderByToTime === 'string' && orderByToTime !== 'asc' && orderByToTime !== 'desc') {
+      return res.status(400).json({ error: 'Invalid orderByToTime value' })
+    }
+
     const result = await appointmentService.getAppointments(
       filter,
       parseInt(page as string),
       parseInt(limit as string),
-      orderByFromTime,
-      orderByToTime
+      orderByFromTime as 'asc' | 'desc' | undefined,
+      orderByToTime as 'asc' | 'desc' | undefined
     )
 
     return res.status(200).json(result)

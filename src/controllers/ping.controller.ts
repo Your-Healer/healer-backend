@@ -10,20 +10,6 @@ export async function checkHealerNetworkController(req: any, res: Response, next
     timestamp: new Date().toISOString()
   })
 }
-export function uploadSingleFileController(req: any, res: Response, next: NextFunction): any {
-  return {
-    message: 'Single file uploaded successfully',
-    file: req.file,
-    timestamp: new Date().toISOString()
-  }
-}
-export function uploadMultipleFilesController(req: any, res: Response, next: NextFunction): any {
-  return {
-    message: 'Multiple files uploaded successfully',
-    files: req.files,
-    timestamp: new Date().toISOString()
-  }
-}
 
 export const pingController = (req: Request, res: Response) => {
   res.status(200).send('Hello World!')

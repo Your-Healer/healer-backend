@@ -14,11 +14,14 @@ import {
   SearchDepartmentsDto,
   UpdateDepartmentDto
 } from '~/dtos/department.dto'
+import AttachmentService from './attachment.service'
 
 export default class DepartmentService extends BaseService {
   private static instance: DepartmentService
+  private attachmentService: AttachmentService
   private constructor() {
     super()
+    this.attachmentService = AttachmentService.getInstance()
   }
 
   static getInstance(): DepartmentService {
@@ -116,31 +119,47 @@ export default class DepartmentService extends BaseService {
 
   async getDepartmentById(id: string) {
     try {
-      return await prisma.department.findUnique({
-        where: { id },
-        include: {
-          location: true,
-          medicalRooms: {
-            include: {
-              service: true
-            }
-          },
-          staffAssignments: {
-            include: {
-              staff: {
-                include: {
-                  account: true,
-                  positions: {
-                    include: {
-                      position: true
+      return await prisma.department
+        .findUnique({
+          where: { id },
+          include: {
+            location: true,
+            medicalRooms: {
+              include: {
+                service: true
+              }
+            },
+            staffAssignments: {
+              include: {
+                staff: {
+                  include: {
+                    account: true,
+                    positions: {
+                      include: {
+                        position: true
+                      }
                     }
                   }
                 }
               }
-            }
+            },
+            icon: true
           }
-        }
-      })
+        })
+        .then((dept) => {
+          if (!dept) return null
+          const icon = dept.icon ? this.attachmentService.getAttachmentById(dept.icon.id) : null
+          const formattedIcon = dept.icon
+            ? {
+                ...dept.icon,
+                length: dept.icon.length.toString()
+              }
+            : null
+          return {
+            ...dept,
+            icon: formattedIcon ? this.attachmentService.extractFileToUrl(formattedIcon) : null
+          }
+        })
     } catch (error) {
       this.handleError(error, 'getDepartmentById')
     }
@@ -187,13 +206,25 @@ export default class DepartmentService extends BaseService {
                   }
                 }
               }
-            }
+            },
+            icon: true
           }
         }),
         prisma.department.count({ where })
       ])
 
-      return this.formatPaginationResult(departments, total, data.page, data.limit)
+      const formattedDepartments = await Promise.all(
+        departments.map(async (dept) => {
+          const icon = dept.icon ? await this.attachmentService.getAttachmentById(dept.icon.id) : null
+          const formattedIcon = icon ? this.attachmentService.extractFileToUrl(icon) : null
+          return {
+            ...dept,
+            icon: formattedIcon
+          }
+        })
+      )
+
+      return this.formatPaginationResult(formattedDepartments, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getDepartments')
     }

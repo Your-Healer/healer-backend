@@ -1,5 +1,5 @@
 import { SubmittableExtrinsicFunction } from '@polkadot/api/types'
-import { APPOINTMENTSTATUS, EDUCATIONLEVEL } from '@prisma/client'
+import { APPOINTMENTSTATUS, Attachment, EDUCATIONLEVEL } from '@prisma/client'
 import { GENDER } from './enum'
 
 // Common interfaces
@@ -423,3 +423,7 @@ export interface BlockchainCreateMedicalRecordDto {
   treatment: string
   dataPointer?: number
 }
+
+// Serialized
+
+export type SerializedAttachment = Omit<Attachment, 'length'> & { length: string }
