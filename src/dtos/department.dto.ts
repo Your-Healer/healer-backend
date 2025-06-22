@@ -1,8 +1,17 @@
+export interface CreateAttachmentDto {
+  fileName: string
+  directory: string
+  medicalType: string
+}
+
 export interface CreateDepartmentDto {
   locationId: string
   name: string
   symbol: string
   floor: number
+  icon?: Express.Multer.File
+  backgroundColor?: string
+  description?: string
 }
 
 export interface UpdateDepartmentDto {
@@ -10,6 +19,7 @@ export interface UpdateDepartmentDto {
   name?: string
   symbol?: string
   floor?: number
+  description?: string
 }
 
 export interface GetDepartmentsDto {

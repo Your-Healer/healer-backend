@@ -98,6 +98,7 @@ model Department {
   floor           Int     @default(0)
   iconId          String?
   backgroundColor String?
+  description     String?
 
   location         Location            @relation(fields: [locationId], references: [id])
   icon             Attachment?         @relation(fields: [iconId], references: [id])

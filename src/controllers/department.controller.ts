@@ -5,7 +5,7 @@ const departmentService = DepartmentService.getInstance()
 
 export async function createDepartmentController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { locationId, name, symbol, floor } = req.body
+    const { locationId, name, symbol, floor, description } = req.body
 
     if (!locationId || !name || !symbol || floor === undefined) {
       return res.status(400).json({ error: 'Missing required fields' })
@@ -15,7 +15,8 @@ export async function createDepartmentController(req: Request, res: Response, ne
       locationId,
       name,
       symbol,
-      floor
+      floor,
+      description
     })
 
     return res.status(201).json({
