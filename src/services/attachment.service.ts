@@ -52,11 +52,13 @@ export default class AttachmentService extends BaseService {
         }
       })
 
+      const formattedAttachment: SerializedAttachment = {
+        ...attachment,
+        length: fileLength.toString()
+      }
+
       return {
-        attachment: {
-          ...attachment,
-          length: fileLength.toString()
-        },
+        attachment: formattedAttachment,
         url: publicUrlData.publicUrl
       }
     } catch (error) {

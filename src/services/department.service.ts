@@ -15,13 +15,21 @@ import {
   UpdateDepartmentDto
 } from '~/dtos/department.dto'
 import AttachmentService from './attachment.service'
+import { SerializedAttachment } from '~/utils/types'
+import { SupabaseClient } from '@supabase/supabase-js'
+import supabaseConfig from '~/configs/supabase'
+import mime from 'mime-types'
+import { randomUUID } from 'crypto'
 
 export default class DepartmentService extends BaseService {
   private static instance: DepartmentService
   private attachmentService: AttachmentService
+  private supabase: SupabaseClient
+
   private constructor() {
     super()
     this.attachmentService = AttachmentService.getInstance()
+    this.supabase = supabaseConfig
   }
 
   static getInstance(): DepartmentService {
@@ -31,7 +39,7 @@ export default class DepartmentService extends BaseService {
     return this.instance
   }
 
-  async createDepartment(data: CreateDepartmentDto): Promise<Department> {
+  async createDepartment(iconFile: Express.Multer.File, data: CreateDepartmentDto): Promise<Department> {
     try {
       // Validate location exists
       const location = await prisma.location.findUnique({
@@ -41,7 +49,6 @@ export default class DepartmentService extends BaseService {
         throw new Error('Location not found')
       }
 
-      // Check if department symbol is unique within location
       const existingDept = await prisma.department.findFirst({
         where: {
           symbol: data.symbol,
@@ -52,16 +59,58 @@ export default class DepartmentService extends BaseService {
         throw new Error('Department symbol already exists in this location')
       }
 
-      const departmentData: Prisma.DepartmentCreateInput = {
-        location: { connect: { id: data.locationId } },
-        name: data.name,
-        symbol: data.symbol,
-        floor: data.floor
-      }
+      const [department, icon] = await prisma.$transaction(async (tx) => {
+        let icon: SerializedAttachment | null = null
+        if (iconFile) {
+          const directory = 'your-healer-bucket'
+          const fileName = iconFile.originalname
+          const mediaType = mime.lookup(fileName) || 'application/octet-stream'
+          const fileBuffer = iconFile.buffer
+          const fileLength = BigInt(iconFile.size)
+          const uniquePath = `${Date.now()}-${randomUUID()}-${fileName}`
 
-      return await prisma.department.create({
-        data: departmentData
+          const { error: uploadError } = await this.supabase.storage.from(directory).upload(uniquePath, fileBuffer, {
+            contentType: mediaType,
+            upsert: true
+          })
+
+          if (uploadError) {
+            throw new Error(`Supabase upload failed: ${uploadError.message}`)
+          }
+
+          const { data: publicUrlData } = this.supabase.storage.from(directory).getPublicUrl(uniquePath)
+
+          const attachment = await tx.attachment.create({
+            data: {
+              fileName,
+              directory,
+              length: fileLength,
+              mediaType
+            }
+          })
+
+          icon = {
+            ...attachment,
+            length: fileLength.toString()
+          }
+        }
+        const departmentData: Prisma.DepartmentCreateInput = {
+          location: { connect: { id: data.locationId } },
+          name: data.name,
+          symbol: data.symbol,
+          floor: data.floor,
+          backgroundColor: data.backgroundColor,
+          description: data.description,
+          icon: icon ? { connect: { id: icon.id } } : undefined
+        }
+        const createdDepartment = await tx.department.create({
+          data: departmentData
+        })
+
+        return [createdDepartment, icon]
       })
+
+      return department
     } catch (error) {
       this.handleError(error, 'createDepartment')
     }
