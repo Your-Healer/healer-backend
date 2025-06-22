@@ -17,7 +17,8 @@ model Attachment {
   mediaType String
   createdAt DateTime @default(now())
 
-  accounts Account[]
+  accounts    Account[]
+  departments Department[]
 }
 
 model Location {
@@ -90,13 +91,16 @@ model PositionStaff {
 }
 
 model Department {
-  id         String @id @default(uuid())
-  locationId String
-  name       String
-  symbol     String
-  floor      Int    @default(0)
+  id              String  @id @default(uuid())
+  locationId      String
+  name            String
+  symbol          String
+  floor           Int     @default(0)
+  iconId          String?
+  backgroundColor String?
 
   location         Location            @relation(fields: [locationId], references: [id])
+  icon             Attachment?         @relation(fields: [iconId], references: [id])
   medicalRooms     MedicalRoom[]
   staffAssignments StaffOnDepartment[]
 }
