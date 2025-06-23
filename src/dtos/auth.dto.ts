@@ -17,7 +17,13 @@ export interface LoginResponse {
     id: string
     firstname: string
     lastname: string
-    positions?: { positionId: string }[]
+    positions?: {
+      positionId: string
+      position: {
+        id: string
+        name: string
+      }
+    }[]
   }
   account: {
     id: string
