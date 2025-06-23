@@ -178,7 +178,13 @@ export default class AuthService extends BaseService {
             lastname: true,
             positions: {
               select: {
-                positionId: true
+                positionId: true,
+                position: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                }
               }
             }
           }
