@@ -111,7 +111,9 @@ export default class AccountService extends BaseService {
                 include: {
                   position: true
                 }
-              }
+              },
+              departments: true,
+              shifts: true
             }
           }
         }
