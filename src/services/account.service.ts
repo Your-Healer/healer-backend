@@ -118,12 +118,17 @@ export default class AccountService extends BaseService {
                 }
               },
               shifts: {
-                orderBy: {
-                  fromTime: 'desc',
-                  toTime: 'desc'
+                select: {
+                  id: true,
+                  fromTime: true,
+                  toTime: true,
+                  room: true,
+                  roomId: true,
+                  staffId: true,
+                  staff: true
                 },
-                include: {
-                  room: true
+                orderBy: {
+                  fromTime: 'desc'
                 }
               }
             }
