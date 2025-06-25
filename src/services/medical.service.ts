@@ -147,6 +147,9 @@ export default class MedicalService extends BaseService {
           times: {
             include: {
               bookings: true
+            },
+            orderBy: {
+              fromTime: 'desc'
             }
           }
         }
@@ -189,6 +192,9 @@ export default class MedicalService extends BaseService {
             times: {
               include: {
                 bookings: true
+              },
+              orderBy: {
+                fromTime: 'desc'
               }
             },
             _count: {
