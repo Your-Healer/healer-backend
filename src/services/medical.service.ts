@@ -143,7 +143,12 @@ export default class MedicalService extends BaseService {
               location: true
             }
           },
-          service: true
+          service: true,
+          times: {
+            include: {
+              bookings: true
+            }
+          }
         }
       })
     } catch (error) {
@@ -181,6 +186,11 @@ export default class MedicalService extends BaseService {
               }
             },
             service: true,
+            times: {
+              include: {
+                bookings: true
+              }
+            },
             _count: {
               select: {
                 times: true,
