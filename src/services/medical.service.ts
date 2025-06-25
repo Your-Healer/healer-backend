@@ -387,6 +387,9 @@ export default class MedicalService extends BaseService {
                 patient: true
               }
             }
+          },
+          orderBy: {
+            fromTime: 'desc'
           }
         }),
         prisma.medicalRoomTime.count({ where })
