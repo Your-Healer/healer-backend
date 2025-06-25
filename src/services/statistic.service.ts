@@ -70,6 +70,13 @@ export default class StatisticService extends BaseService {
                 }
               }
             }
+          },
+          orderBy: {
+            bookingTime: {
+              medicalRoomTime: {
+                fromTime: 'desc'
+              }
+            }
           }
         }),
 
