@@ -50,7 +50,7 @@ if (process.env.NODE_ENV !== 'development' && process.env.USE_STRICT_HEADERS ===
 app.use(morgan('combined'))
 app.use(bodyParser.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(apiLimiter)
+// app.use(apiLimiter)
 
 initializeRoutes(app)
 
