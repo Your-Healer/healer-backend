@@ -417,11 +417,15 @@ export default class MedicalService extends BaseService {
         fromTime: { gte: new Date() }
       }
 
+      console.log(data)
+
       if (data.date) {
         const startOfDay = new Date(data.date)
         startOfDay.setHours(0, 0, 0, 0)
+        console.log(startOfDay)
         const endOfDay = new Date(data.date)
         endOfDay.setHours(23, 59, 59, 999)
+        console.log(endOfDay)
 
         where.fromTime = {
           gte: startOfDay,

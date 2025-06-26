@@ -7,7 +7,7 @@ const appointmentService = AppointmentService.getInstance()
 export async function createAppointmentController(req: any, res: Response, next: NextFunction): Promise<any> {
   try {
     const { userId } = req.user
-    const { patientId, medicalRoomTimeId, notes } = req.body
+    const { patientId, medicalRoomTimeId, notes, totalPrice } = req.body
 
     if (!patientId || !medicalRoomTimeId) {
       return res.status(400).json({ error: 'Missing required fields' })
@@ -17,7 +17,8 @@ export async function createAppointmentController(req: any, res: Response, next:
       userId,
       patientId,
       medicalRoomTimeId,
-      notes
+      notes,
+      totalPrice
     })
 
     return res.status(201).json({

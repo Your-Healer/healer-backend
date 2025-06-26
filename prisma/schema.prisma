@@ -216,6 +216,7 @@ model Appointment {
   bookingTimeId String            @unique
   patientId     String
   status        APPOINTMENTSTATUS @default(IDLE)
+  totalPrice    Int               @default(0)
 
   medicalRoom MedicalRoom @relation(fields: [medicalRoomId], references: [id])
   user        User        @relation(fields: [userId], references: [id])
