@@ -6,13 +6,6 @@ export interface CreatePatientDto {
   lastname: string
   phoneNumber?: string
   address?: string
-  gender: GENDER
-  emergencyContact?: string
-  medicalHistory?: string
-  dateOfBirth?: Date
-  bloodType?: string
-  allergies?: string
-  insurance?: string
 }
 
 export interface UpdatePatientDto {

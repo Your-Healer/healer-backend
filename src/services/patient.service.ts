@@ -185,7 +185,14 @@ export default class PatientService extends BaseService {
       const patients = await prisma.patient.findMany({
         where: { userId: data.userId },
         skip,
-        take
+        take,
+        include: {
+          user: {
+            include: {
+              account: true
+            }
+          }
+        }
       })
       const total = await prisma.patient.count({ where: { userId: data.userId } })
 
