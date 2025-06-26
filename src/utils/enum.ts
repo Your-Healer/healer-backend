@@ -10,7 +10,8 @@ export enum APPOINTMENTSTATUS {
   IDLE = 'IDLE',
   BOOKED = 'BOOKED',
   PAID = 'PAID',
-  CANCEL = 'CANCEL'
+  CANCEL = 'CANCEL',
+  FINISHED = 'FINISHED'
 }
 
 export enum GENDER {

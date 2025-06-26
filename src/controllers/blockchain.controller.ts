@@ -283,3 +283,190 @@ export async function createClinicalTestController(req: any, res: Response, next
     })
   }
 }
+
+export async function updateClinicalTestController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const clinicalTestData = req.body
+    const updatedClinicalTest = await blockchainService.updateClinicalTest(accountId, clinicalTestData)
+    return res.status(200).json({
+      status: 'success',
+      data: updatedClinicalTest,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error updating clinical test:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to update clinical test',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function deleteClinicalTestController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const { testId } = req.params
+    const deleted = await blockchainService.deleteClinicalTest(accountId, { testId: Number(testId) })
+    if (!deleted) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Clinical test not found',
+        timestamp: new Date().toISOString()
+      })
+    }
+    return res.status(200).json({
+      status: 'success',
+      message: 'Clinical test deleted successfully',
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error deleting clinical test:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete clinical test',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function createDiseaseProgressionController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const diseaseProgressionData = req.body
+    const newDiseaseProgression = await blockchainService.createDiseaseProgression(accountId, diseaseProgressionData)
+    return res.status(201).json({
+      status: 'success',
+      data: newDiseaseProgression,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error creating disease progression:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to create disease progression',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function updateDiseaseProgressionController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const diseaseProgressionData = req.body
+    const updatedDiseaseProgression = await blockchainService.updateDiseaseProgression(
+      accountId,
+      diseaseProgressionData
+    )
+    return res.status(200).json({
+      status: 'success',
+      data: updatedDiseaseProgression,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error updating disease progression:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to update disease progression',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function deleteDiseaseProgressionController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const { progressionId } = req.params
+    const deleted = await blockchainService.deleteDiseaseProgression(accountId, {
+      progressionId: Number(progressionId)
+    })
+    if (!deleted) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Disease progression not found',
+        timestamp: new Date().toISOString()
+      })
+    }
+    return res.status(200).json({
+      status: 'success',
+      message: 'Disease progression deleted successfully',
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error deleting disease progression:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete disease progression',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function createMedicalRecordController(req: any, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { accountId } = req.user
+    if (!accountId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Account ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const medicalRecordData = req.body
+    const newMedicalRecord = await blockchainService.createMedicalRecord(accountId, medicalRecordData)
+    return res.status(201).json({
+      status: 'success',
+      data: newMedicalRecord,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error creating medical record:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to create medical record',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
