@@ -454,11 +454,23 @@ export default class MedicalService extends BaseService {
         include: {
           room: {
             include: {
-              department: true,
+              department: {
+                include: {
+                  location: true
+                }
+              },
               service: true
             }
           },
-          bookings: true
+          bookings: {
+            include: {
+              user: true,
+              patient: true
+            }
+          }
+        },
+        orderBy: {
+          fromTime: 'desc'
         }
       })
 
