@@ -5,20 +5,7 @@ const patientService = PatientService.getInstance()
 
 export async function createPatientController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const {
-      userId,
-      firstname,
-      lastname,
-      phoneNumber,
-      address,
-      emergencyContact,
-      medicalHistory,
-      dateOfBirth,
-      gender,
-      bloodType,
-      allergies,
-      insurance
-    } = req.body
+    const { userId, firstname, lastname, phoneNumber, address } = req.body
 
     if (!userId || !firstname || !lastname) {
       return res.status(400).json({ error: 'UserId, firstname, and lastname are required' })
@@ -29,14 +16,7 @@ export async function createPatientController(req: Request, res: Response, next:
       firstname,
       lastname,
       phoneNumber,
-      address,
-      emergencyContact,
-      medicalHistory,
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-      gender,
-      bloodType,
-      allergies,
-      insurance
+      address
     })
 
     return res.status(201).json({
