@@ -128,9 +128,112 @@ export async function getPatientIdsByPatientNameController(
   }
 }
 
+export async function getDiseaseProgressionsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { progressionId } = req.params
+    if (!progressionId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Progression ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const diseaseProgressions = await blockchainService.getDiseaseProgressions(Number(progressionId))
+    return res.status(200).json({
+      status: 'success',
+      data: diseaseProgressions,
+      timestamp: new Date().toISOString()
+    })
+  } catch {}
+}
+
+export async function getAllDiseaseProgressionsController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  try {
+    const diseaseProgressions = await blockchainService.getAllPatientDiseaseProgressions()
+    return res.status(200).json({
+      status: 'success',
+      data: diseaseProgressions,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching all disease progressions:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch all disease progressions',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getAllPatientsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const patients = await blockchainService.getAllPatients()
+    return res.status(200).json({
+      status: 'success',
+      data: patients,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching all patients:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch all patients',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getAllHistoryChangesController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const historyChanges = await blockchainService.getAllHistoryChanges()
+    return res.status(200).json({
+      status: 'success',
+      data: historyChanges,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching history changes:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch history changes',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getAllPatientClinicalTestsController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  try {
+    const clinicalTests = await blockchainService.getAllPatientClinicalTests()
+    return res.status(200).json({
+      status: 'success',
+      data: clinicalTests,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching all patient clinical tests:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch all patient clinical tests',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
 export async function getClinicalTestsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { patientId } = req.query
+    const { patientId } = req.params
     if (!patientId) {
       return res.status(400).json({
         status: 'error',

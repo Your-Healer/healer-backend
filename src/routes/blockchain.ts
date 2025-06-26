@@ -15,7 +15,12 @@ import {
   createDiseaseProgressionController,
   updateDiseaseProgressionController,
   deleteDiseaseProgressionController,
-  createMedicalRecordController
+  createMedicalRecordController,
+  getDiseaseProgressionsController,
+  getAllHistoryChangesController,
+  getAllPatientsController,
+  getAllPatientClinicalTestsController,
+  getAllDiseaseProgressionsController
 } from '~/controllers/blockchain.controller'
 import { protect } from '../middlewares/auth/index'
 
@@ -29,9 +34,21 @@ router.get('/get-all-extrinsics', getAllExtrinsicTransactionsController)
 
 router.get('/patients/:id', protect, getPatientByIdController)
 
-router.get('/patients/', protect, getPatientIdsByPatientNameController)
+router.get('/patients/name', protect, getPatientIdsByPatientNameController)
 
-router.get('/clinical-tests/', protect, getClinicalTestsController)
+router.get('/patients/', protect, getAllPatientsController)
+
+router.get('/clinical-tests/', protect, getAllPatientClinicalTestsController)
+
+router.get('/clinical-tests/:patientId', protect, getClinicalTestsController)
+
+router.get('/disease-progressions/', protect, getAllDiseaseProgressionsController)
+
+router.get('/disease-progressions/:progressionId', protect, getDiseaseProgressionsController)
+
+router.get('/disease-progressions/:patientId', protect, getDiseaseProgressionsController)
+
+router.get('/changes', protect, getAllHistoryChangesController)
 
 router.post('/patients/', protect, createNewPatientController)
 
