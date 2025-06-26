@@ -259,14 +259,14 @@ export async function getCurrentPatientController(req: Request, res: Response, n
     const result = await patientService.getPatientsByUserId({
       userId,
       page: 1,
-      limit: 1
+      limit: 10000
     })
 
     if (result.data.length === 0) {
       return res.status(404).json({ error: 'Patient profile not found' })
     }
 
-    return res.status(200).json(result.data[0])
+    return res.status(200).json(result)
   } catch (error: any) {
     console.error('Error fetching current patient:', error)
     return res.status(500).json({ error: error.message || 'Internal server error' })

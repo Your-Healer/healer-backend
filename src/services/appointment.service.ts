@@ -120,9 +120,47 @@ export default class AppointmentService extends BaseService {
     }
   }
 
+  private async getAppointmentsWithStaff(appointments: any[]) {
+    return await Promise.all(
+      appointments.map(async (appointment) => {
+        const shifts = await prisma.shiftWorking.findMany({
+          where: {
+            roomId: appointment.medicalRoomId,
+            fromTime: {
+              lte: appointment.bookingTime.medicalRoomTime.fromTime
+            },
+            toTime: {
+              gte: appointment.bookingTime.medicalRoomTime.toTime
+            }
+          },
+          include: {
+            staff: {
+              include: {
+                account: true,
+                positions: {
+                  include: {
+                    position: true
+                  }
+                }
+              }
+            }
+          }
+        })
+
+        return {
+          ...appointment,
+          medicalRoom: {
+            ...appointment.medicalRoom,
+            shifts
+          }
+        }
+      })
+    )
+  }
+
   async getAppointmentById(id: string) {
     try {
-      return await prisma.appointment.findUnique({
+      const appointment = await prisma.appointment.findUnique({
         where: { id },
         include: {
           user: {
@@ -154,6 +192,11 @@ export default class AppointmentService extends BaseService {
           }
         }
       })
+
+      if (!appointment) return null
+
+      const appointmentsWithStaff = await this.getAppointmentsWithStaff([appointment])
+      return appointmentsWithStaff[0]
     } catch (error) {
       this.handleError(error, 'getAppointmentById')
     }
@@ -251,7 +294,11 @@ export default class AppointmentService extends BaseService {
             medicalRoom: {
               include: {
                 service: true,
-                department: true
+                department: {
+                  include: {
+                    location: true
+                  }
+                }
               }
             },
             bookingTime: {
@@ -264,7 +311,8 @@ export default class AppointmentService extends BaseService {
         prisma.appointment.count({ where })
       ])
 
-      return this.formatPaginationResult(appointments, total, page, limit)
+      const appointmentsWithStaff = await this.getAppointmentsWithStaff(appointments)
+      return this.formatPaginationResult(appointmentsWithStaff, total, page, limit)
     } catch (error) {
       this.handleError(error, 'getAppointments')
     }
@@ -279,7 +327,7 @@ export default class AppointmentService extends BaseService {
         medicalRoom: {
           shifts: {
             some: {
-              doctorId: staffId
+              staffId: staffId
             }
           }
         }
@@ -333,7 +381,8 @@ export default class AppointmentService extends BaseService {
         prisma.appointment.count({ where })
       ])
 
-      return this.formatPaginationResult(appointments, total, page, limit)
+      const appointmentsWithStaff = await this.getAppointmentsWithStaff(appointments)
+      return this.formatPaginationResult(appointmentsWithStaff, total, page, limit)
     } catch (error) {
       this.handleError(error, 'getAppointmentsByStaff')
     }
@@ -383,7 +432,8 @@ export default class AppointmentService extends BaseService {
         prisma.appointment.count({ where })
       ])
 
-      return this.formatPaginationResult(appointments, total, data.page, data.limit)
+      const appointmentsWithStaff = await this.getAppointmentsWithStaff(appointments)
+      return this.formatPaginationResult(appointmentsWithStaff, total, data.page, data.limit)
     } catch (error) {
       this.handleError(error, 'getPatientAppointmentHistory')
     }
@@ -408,33 +458,32 @@ export default class AppointmentService extends BaseService {
         }
       }
 
-      const include = {
-        patient: true,
-        medicalRoom: {
-          include: {
-            service: true,
-            department: {
-              include: {
-                location: true
+      const appointments = await prisma.appointment.findMany({
+        where,
+        include: {
+          patient: true,
+          medicalRoom: {
+            include: {
+              service: true,
+              department: {
+                include: {
+                  location: true
+                }
               }
+            }
+          },
+          bookingTime: {
+            include: {
+              medicalRoomTime: true
             }
           }
         },
-        bookingTime: {
-          include: {
-            medicalRoomTime: true
-          }
-        }
-      }
-
-      const appointments = await prisma.appointment.findMany({
-        where,
-        include,
         take,
         skip
       })
 
-      return this.formatPaginationResult(appointments, appointments.length, page, limit)
+      const appointmentsWithStaff = await this.getAppointmentsWithStaff(appointments)
+      return this.formatPaginationResult(appointmentsWithStaff, appointmentsWithStaff.length, page, limit)
     } catch (error) {
       this.handleError(error, 'getUpcomingAppointments')
     }
