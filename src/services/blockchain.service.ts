@@ -132,9 +132,9 @@ export default class BlockchainService extends BaseService {
     const api = await ApiPromise.create({ provider: this.provider })
     const patient = (await api.query.medicalRecord.patients(id)).toHuman()
 
-    console.log(patient)
+    console.log('Patient: ', patient)
 
-    const parsedPatient = await this.parsePatientData(patient)
+    const parsedPatient = patient ? await this.parsePatientData(patient) : null
 
     return parsedPatient
   }
@@ -165,6 +165,53 @@ export default class BlockchainService extends BaseService {
     }
   }
 
+  async getAllPatients() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextPatientId()).toHuman() as number
+
+      const patients: any[] = []
+      for (let i = 0; i < nextId; i++) {
+        const patient = (await api.query.medicalRecord.patients(i)).toHuman() as any
+        if (!patient) {
+          continue
+        }
+        const parsedPatient = patient ? await this.parsePatientData(patient) : null
+        patients.push(parsedPatient)
+      }
+      return patients
+    } catch (error) {
+      this.handleError(error, 'getAllHistoryChanges')
+    }
+  }
+
+  async getAllPatientClinicalTests() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextPatientId()).toHuman() as number
+
+      const tests: any[] = []
+      for (let i = 0; i < nextId; i++) {
+        const patient = (await api.query.medicalRecord.patients(i)).toHuman() as any
+        if (!patient) {
+          continue
+        }
+        const parsedPatient = patient ? await this.parsePatientData(patient) : null
+        if (!parsedPatient) {
+          continue
+        }
+        const test = (await api.query.medicalRecord.patientClinicalTests(i)).toHuman() as any
+        tests.push({
+          ...parsedPatient,
+          test
+        })
+      }
+      return tests
+    } catch (error) {
+      this.handleError(error, 'getAllPatientClinicalTests')
+    }
+  }
+
   async getClinicalTests(id: number) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
@@ -189,6 +236,54 @@ export default class BlockchainService extends BaseService {
     }
   }
 
+  async getAllPatientDiseaseProgressions() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextPatientId()).toHuman() as number
+
+      const progressions: any[] = []
+      for (let i = 0; i < nextId; i++) {
+        const patient = (await api.query.medicalRecord.patients(i)).toHuman() as any
+        if (!patient) {
+          continue
+        }
+        const parsedPatient = patient ? await this.parsePatientData(patient) : null
+        if (!parsedPatient) {
+          continue
+        }
+        const progression = (await api.query.medicalRecord.patientDiseaseProgressions(i)).toHuman() as any
+        progressions.push({
+          ...parsedPatient,
+          progression
+        })
+      }
+      return progressions
+    } catch (error) {
+      this.handleError(error, 'getAllPatientClinicalTests')
+    }
+  }
+
+  async getAllHistoryChanges() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextChangeId()).toHuman() as number
+
+      const historyChanges: any[] = []
+      for (let i = 0; i < nextId; i++) {
+        const historyChange = (await api.query.medicalRecord.changeHistories(i)).toHuman() as any
+        if (!historyChange) {
+          continue
+        }
+        historyChange.oldValue = historyChange.oldValue ? hexToString(historyChange.oldValue as string) : null
+        historyChange.newValue = historyChange.newValue ? hexToString(historyChange.newValue as string) : null
+        historyChanges.push(historyChange)
+      }
+      return historyChanges
+    } catch (error) {
+      this.handleError(error, 'getAllHistoryChanges')
+    }
+  }
+
   async createNewPatient(data: BlockchainCreatePatientDto) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
@@ -206,6 +301,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
+      // // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .createPatient(
           stringToHex(data.patientName),
@@ -253,7 +349,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .updatePatient(
           data.patientId,
@@ -302,7 +398,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .deletePatient(data.patientId)
         .signAndSend(pair, (result) => {
@@ -343,7 +439,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .createClinicalTest(
           stringToHex(data.patientId.toString()),
@@ -390,7 +486,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .updateClinicalTest(
           stringToHex(data.testId.toString()),
@@ -437,7 +533,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .deleteClinicalTest(data.testId)
         .signAndSend(pair, (result) => {
@@ -478,7 +574,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .createDiseaseProgression(
           stringToHex(data.patientId.toString()),
@@ -527,7 +623,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .updateDiseaseProgression(
           stringToHex(data.progressionId.toString()),
@@ -576,7 +672,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .deleteDiseaseProgression(stringToHex(data.progressionId.toString()))
         .signAndSend(pair, (result) => {
@@ -617,7 +713,7 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-
+      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .createMedicalRecord(
           stringToHex(data.patientId.toString()),
