@@ -19,6 +19,7 @@ export interface CreateAppointmentData {
   userId: string
   patientId: string
   medicalRoomTimeId: string
+  totalPrice: number
   notes?: string
 }
 

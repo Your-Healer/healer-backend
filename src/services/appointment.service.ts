@@ -61,6 +61,7 @@ export default class AppointmentService extends BaseService {
         user: { connect: { id: data.userId } },
         bookingTime: { connect: { id: booking.id } },
         patient: { connect: { id: data.patientId } },
+        totalPrice: data.totalPrice,
         status: APPOINTMENTSTATUS.BOOKED
       }
 
