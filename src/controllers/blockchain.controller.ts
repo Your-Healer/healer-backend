@@ -130,15 +130,15 @@ export async function getPatientIdsByPatientNameController(
 
 export async function getDiseaseProgressionsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { progressionId } = req.params
-    if (!progressionId) {
+    const { id } = req.params
+    if (!id) {
       return res.status(400).json({
         status: 'error',
         message: 'Progression ID is required',
         timestamp: new Date().toISOString()
       })
     }
-    const diseaseProgressions = await blockchainService.getDiseaseProgressions(Number(progressionId))
+    const diseaseProgressions = await blockchainService.getDiseaseProgressions(Number(id))
     return res.status(200).json({
       status: 'success',
       data: diseaseProgressions,
@@ -233,15 +233,15 @@ export async function getAllPatientClinicalTestsController(
 
 export async function getClinicalTestsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { patientId } = req.params
-    if (!patientId) {
+    const { id } = req.params
+    if (!id) {
       return res.status(400).json({
         status: 'error',
         message: 'Patient ID is required',
         timestamp: new Date().toISOString()
       })
     }
-    const clinicalTests = await blockchainService.getClinicalTests(Number(patientId))
+    const clinicalTests = await blockchainService.getClinicalTests(Number(id))
     return res.status(200).json({
       status: 'success',
       data: clinicalTests,
@@ -252,6 +252,82 @@ export async function getClinicalTestsController(req: Request, res: Response, ne
     return res.status(500).json({
       status: 'error',
       message: 'Failed to fetch clinical tests',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getNextPatientIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const nextId = await blockchainService.getNextPatientId()
+    return res.status(200).json({
+      status: 'success',
+      data: nextId,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching next patient ID:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch next patient ID',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getNextTestIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const nextId = await blockchainService.getNextTestId()
+    return res.status(200).json({
+      status: 'success',
+      data: nextId,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching next test ID:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch next test ID',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getNextProgressionIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const nextId = await blockchainService.getNextProgressionId()
+    return res.status(200).json({
+      status: 'success',
+      data: nextId,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching next progression ID:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch next progression ID',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getNextRecordIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const nextId = await blockchainService.getNextRecordId()
+    return res.status(200).json({
+      status: 'success',
+      data: nextId,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching next medical record ID:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch next medical record ID',
       error: error.message,
       timestamp: new Date().toISOString()
     })
