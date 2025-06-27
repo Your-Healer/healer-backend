@@ -20,7 +20,11 @@ import {
   getAllHistoryChangesController,
   getAllPatientsController,
   getAllPatientClinicalTestsController,
-  getAllDiseaseProgressionsController
+  getAllDiseaseProgressionsController,
+  getNextPatientIdController,
+  getNextTestIdController,
+  getNextProgressionIdController,
+  getNextRecordIdController
 } from '~/controllers/blockchain.controller'
 import { protect } from '../middlewares/auth/index'
 
@@ -38,17 +42,25 @@ router.get('/patients/name', protect, getPatientIdsByPatientNameController)
 
 router.get('/patients/', protect, getAllPatientsController)
 
-router.get('/clinical-tests/', protect, getAllPatientClinicalTestsController)
+router.get('/clinical-tests/all', protect, getAllPatientClinicalTestsController)
 
-router.get('/clinical-tests/:patientId', protect, getClinicalTestsController)
+router.get('/clinical-tests/:id', protect, getClinicalTestsController)
 
-router.get('/disease-progressions/', protect, getAllDiseaseProgressionsController)
+router.get('/disease-progressions/all', protect, getAllDiseaseProgressionsController)
 
-router.get('/disease-progressions/:progressionId', protect, getDiseaseProgressionsController)
+router.get('/disease-progressions/:id', protect, getDiseaseProgressionsController)
 
-router.get('/disease-progressions/:patientId', protect, getDiseaseProgressionsController)
+// router.get('/disease-progressions/:patientId', protect, getDiseaseProgressionsController)
 
 router.get('/changes', protect, getAllHistoryChangesController)
+
+router.get('/next-patient-id', protect, getNextPatientIdController)
+
+router.get('/next-test-id', protect, getNextTestIdController)
+
+router.get('/next-progression-id', protect, getNextProgressionIdController)
+
+router.get('/next-record-id', protect, getNextRecordIdController)
 
 router.post('/patients/', protect, createNewPatientController)
 

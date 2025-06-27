@@ -132,8 +132,6 @@ export default class BlockchainService extends BaseService {
     const api = await ApiPromise.create({ provider: this.provider })
     const patient = (await api.query.medicalRecord.patients(id)).toHuman()
 
-    console.log('Patient: ', patient)
-
     const parsedPatient = patient ? await this.parsePatientData(patient) : null
 
     return parsedPatient
@@ -162,6 +160,16 @@ export default class BlockchainService extends BaseService {
       return await Promise.all((patientIds as string[]).map(async (id: any) => this.getPatientById(parseInt(id, 10))))
     } catch (error) {
       this.handleError(error, 'getPatientsByPatientName')
+    }
+  }
+
+  async getNextPatientId() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextPatientId()).toHuman() as number
+      return nextId
+    } catch (error) {
+      this.handleError(error, 'getNextPatientId')
     }
   }
 
@@ -200,10 +208,10 @@ export default class BlockchainService extends BaseService {
         if (!parsedPatient) {
           continue
         }
-        const test = (await api.query.medicalRecord.patientClinicalTests(i)).toHuman() as any
+        const tests = (await api.query.medicalRecord.patientClinicalTests(i)).toHuman() as any
         tests.push({
           ...parsedPatient,
-          test
+          tests
         })
       }
       return tests
@@ -212,25 +220,45 @@ export default class BlockchainService extends BaseService {
     }
   }
 
+  async getNextTestId() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextTestId()).toHuman() as number
+      return nextId
+    } catch (error) {
+      this.handleError(error, 'getNextTestId')
+    }
+  }
+
   async getClinicalTests(id: number) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
-      const clinicalTests = (await api.query.medicalRecord.clinicalTests(id)).toHuman()
+      const clinicalTest = (await api.query.medicalRecord.clinicalTests(id)).toHuman()
 
-      console.log(clinicalTests)
-      return clinicalTests
+      const parsedTest = await this.parseClinicalTestData(clinicalTest)
+      return parsedTest
     } catch (error) {
       this.handleError(error, 'getClinicalTests')
+    }
+  }
+
+  async getNextProgressionId() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextProgressionId()).toHuman() as number
+      return nextId
+    } catch (error) {
+      this.handleError(error, 'getNextProgressionId')
     }
   }
 
   async getDiseaseProgressions(id: number) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
-      const diseaseProgressions = (await api.query.medicalRecord.diseaseProgressions(id)).toHuman()
+      const diseaseProgression = (await api.query.medicalRecord.diseaseProgressions(id)).toHuman()
 
-      console.log(diseaseProgressions)
-      return diseaseProgressions
+      const parsedDiseaseProgression = await this.parseDiseaseProgressionData(diseaseProgression)
+      return parsedDiseaseProgression
     } catch (error) {
       this.handleError(error, 'getDiseaseProgressions')
     }
@@ -284,6 +312,45 @@ export default class BlockchainService extends BaseService {
     }
   }
 
+  async getNextRecordId() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextRecordId()).toHuman() as number
+      return nextId
+    } catch (error) {
+      this.handleError(error, 'getNextRecordId')
+    }
+  }
+
+  async getMedicalRecord(id: number) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const medicalRecord = (await api.query.medicalRecord.medicalRecords(id)).toHuman()
+
+      if (!medicalRecord) {
+        return null
+      }
+
+      return medicalRecord
+    } catch (error) {
+      this.handleError(error, 'getMedicalRecord')
+    }
+  }
+
+  async getPatientMedicalRecords(id: number) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const medicalRecords = (await api.query.medicalRecord.patientMedicalRecords(id)).toHuman()
+
+      if (!medicalRecords) {
+        return null
+      }
+      return medicalRecords
+    } catch (error) {
+      this.handleError(error, 'getPatientMedicalRecords')
+    }
+  }
+
   async createNewPatient(data: BlockchainCreatePatientDto) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
@@ -301,7 +368,6 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-      // // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .createPatient(
           stringToHex(data.patientName),
@@ -398,7 +464,6 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .deletePatient(data.patientId)
         .signAndSend(pair, (result) => {
@@ -439,10 +504,9 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .createClinicalTest(
-          stringToHex(data.patientId.toString()),
+          data.patientId.toString(),
           stringToHex(data.testType),
           stringToHex(data.testDate),
           stringToHex(data.result),
@@ -486,10 +550,9 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .updateClinicalTest(
-          stringToHex(data.testId.toString()),
+          data.testId.toString(),
           data.testType ? stringToHex(data.testType) : null,
           data.testDate ? stringToHex(data.testDate) : null,
           data.result ? stringToHex(data.result) : null,
@@ -533,9 +596,8 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
-        .deleteClinicalTest(data.testId)
+        .deleteClinicalTest(data.testId.toString())
         .signAndSend(pair, (result) => {
           console.log(`Current status is ${result.status}`)
 
@@ -574,10 +636,9 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .createDiseaseProgression(
-          stringToHex(data.patientId.toString()),
+          data.patientId.toString(),
           stringToHex(data.visitDate),
           stringToHex(data.symptoms),
           stringToHex(data.diagnosis),
@@ -713,10 +774,9 @@ export default class BlockchainService extends BaseService {
       const walletMnemonic = decryptString(account.walletMnemonic, configs.secrets.secretKey)
 
       const pair = this.keyring.addFromMnemonic(walletMnemonic)
-      // this.forceSetBalance(account.walletAddress, BigInt(1000000000000000))
       const unsub = await api.tx.medicalRecord
         .createMedicalRecord(
-          stringToHex(data.patientId.toString()),
+          data.patientId.toString(),
           stringToHex(data.diagnosis),
           stringToHex(data.treatment),
           data.dataPointer ? stringToHex(data.dataPointer.toString()) : null
@@ -743,94 +803,8 @@ export default class BlockchainService extends BaseService {
   }
 
   private async parsePatientData(patient: any) {
-    console.log(patient.phone)
-    const lastModifiedByAccount = await prisma.account.findFirst({
-      where: {
-        walletAddress: patient.lastModifiedBy
-      },
-      select: {
-        id: true,
-        walletAddress: true,
-        email: true,
-        avatar: {
-          select: {
-            id: true
-          }
-        },
-        role: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true
-          }
-        },
-        staff: {
-          select: {
-            id: true,
-            positions: {
-              include: {
-                position: {
-                  select: {
-                    id: true,
-                    name: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
-
-    const createdByAccount = await prisma.account.findFirst({
-      where: {
-        walletAddress: patient.createdBy
-      },
-      select: {
-        id: true,
-        walletAddress: true,
-        email: true,
-        avatar: {
-          select: {
-            id: true
-          }
-        },
-        role: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        user: {
-          select: {
-            id: true,
-            firstname: true,
-            lastname: true
-          }
-        },
-        staff: {
-          select: {
-            id: true,
-            positions: {
-              include: {
-                position: {
-                  select: {
-                    id: true,
-                    name: true
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    })
+    const lastModifiedByAccount = this.findAccountByWalletAddress(patient.lastModifiedBy)
+    const createdByAccount = this.findAccountByWalletAddress(patient.createdBy)
 
     return {
       patientId: patient.id,
@@ -847,5 +821,99 @@ export default class BlockchainService extends BaseService {
       lastModifiedBy: patient.lastModifiedBy,
       lastModifiedByAccount: lastModifiedByAccount
     }
+  }
+
+  private async parseClinicalTestData(test: any) {
+    const lastModifiedByAccount = await this.findAccountByWalletAddress(test.lastModifiedBy)
+    const createdByAccount = await this.findAccountByWalletAddress(test.createdBy)
+    const doctorAccount = await this.findAccountByWalletAddress(test.doctorId)
+
+    return {
+      testId: test.id,
+      patientId: test.patientId,
+      doctorId: test.doctorId,
+      doctorAccount,
+      testType: hexToString(test.testType as string),
+      testDate: hexToDate(test.testDate as string),
+      result: hexToString(test.result as string),
+      notes: hexToString(test.notes as string),
+      createdAt: test.createdAt,
+      createdBy: test.createdBy,
+      createByAccount: createdByAccount,
+      lastModifiedAt: test.lastModifiedAt,
+      lastModifiedBy: test.lastModifiedBy,
+      lastModifiedByAccount: lastModifiedByAccount
+    }
+  }
+
+  private async parseDiseaseProgressionData(progression: any) {
+    const lastModifiedByAccount = await this.findAccountByWalletAddress(progression.lastModifiedBy)
+    const createdByAccount = await this.findAccountByWalletAddress(progression.createdBy)
+    const doctorAccount = await this.findAccountByWalletAddress(progression.doctorId)
+
+    return {
+      progressionId: progression.id,
+      patientId: progression.patientId,
+      doctorId: progression.doctorId,
+      doctorAccount,
+      visitDate: hexToDate(progression.visitDate as string),
+      symptoms: hexToString(progression.symptoms as string),
+      diagnosis: hexToString(progression.diagnosis as string),
+      treatment: hexToString(progression.treatment as string),
+      prescription: hexToString(progression.prescription as string),
+      nextAppointment: hexToDate(progression.nextAppointment as string),
+      createdAt: progression.createdAt,
+      createdBy: progression.createdBy,
+      createByAccount: createdByAccount,
+      lastModifiedAt: progression.lastModifiedAt,
+      lastModifiedBy: progression.lastModifiedBy,
+      lastModifiedByAccount: lastModifiedByAccount
+    }
+  }
+
+  private async findAccountByWalletAddress(walletAddress: string) {
+    return await prisma.account.findFirst({
+      where: {
+        walletAddress
+      },
+      select: {
+        id: true,
+        walletAddress: true,
+        email: true,
+        avatar: {
+          select: {
+            id: true
+          }
+        },
+        role: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        user: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true
+          }
+        },
+        staff: {
+          select: {
+            id: true,
+            positions: {
+              include: {
+                position: {
+                  select: {
+                    id: true,
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
   }
 }
