@@ -306,7 +306,9 @@ export default class AppointmentService extends BaseService {
               include: {
                 medicalRoomTime: true
               }
-            }
+            },
+            statusLogs: true,
+            suggestions: true
           }
         }),
         prisma.appointment.count({ where })
