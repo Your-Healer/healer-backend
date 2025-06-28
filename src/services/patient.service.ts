@@ -161,6 +161,8 @@ export default class PatientService extends BaseService {
                 account: true
               }
             },
+            BookingTime: true,
+            Appointment: true,
             _count: {
               select: {
                 Appointment: true,
