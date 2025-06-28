@@ -130,9 +130,9 @@ export default class BlockchainService extends BaseService {
 
   async getPatientById(id: number) {
     const api = await ApiPromise.create({ provider: this.provider })
-    const patient = (await api.query.medicalRecord.patients(id)).toHuman()
+    const patient = (await api.query.medicalRecord.patients(id)).toHuman() as object | null
 
-    const parsedPatient = patient ? await this.parsePatientData(patient) : null
+    const parsedPatient = patient ? await this.parsePatientData({ patientId: id, ...patient }) : null
 
     return parsedPatient
   }
@@ -193,33 +193,6 @@ export default class BlockchainService extends BaseService {
     }
   }
 
-  async getAllPatientClinicalTests() {
-    try {
-      const api = await ApiPromise.create({ provider: this.provider })
-      const nextId = (await api.query.medicalRecord.nextPatientId()).toHuman() as number
-
-      const tests: any[] = []
-      for (let i = 0; i < nextId; i++) {
-        const patient = (await api.query.medicalRecord.patients(i)).toHuman() as any
-        if (!patient) {
-          continue
-        }
-        const parsedPatient = patient ? await this.parsePatientData(patient) : null
-        if (!parsedPatient) {
-          continue
-        }
-        const tests = (await api.query.medicalRecord.patientClinicalTests(i)).toHuman() as any
-        tests.push({
-          ...parsedPatient,
-          tests
-        })
-      }
-      return tests
-    } catch (error) {
-      this.handleError(error, 'getAllPatientClinicalTests')
-    }
-  }
-
   async getNextTestId() {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
@@ -233,12 +206,54 @@ export default class BlockchainService extends BaseService {
   async getClinicalTests(id: number) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
-      const clinicalTest = (await api.query.medicalRecord.clinicalTests(id)).toHuman()
+      const clinicalTest = (await api.query.medicalRecord.clinicalTests(id)).toHuman() as object | null
 
-      const parsedTest = await this.parseClinicalTestData(clinicalTest)
+      const parsedTest = clinicalTest
+        ? await this.parseClinicalTestData({
+            testId: id,
+            ...clinicalTest
+          })
+        : null
       return parsedTest
     } catch (error) {
       this.handleError(error, 'getClinicalTests')
+    }
+  }
+
+  async getPatientClinicalTests(patientId: number) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const clinicalTestIds = (await api.query.medicalRecord.patientClinicalTests(patientId)).toHuman() as number[]
+
+      const clinicalTests: any[] = []
+      for (const clinicalTestId in clinicalTestIds) {
+        const clinicalTest = await this.getClinicalTests(Number(clinicalTestId))
+        clinicalTests.push(clinicalTest)
+      }
+
+      return clinicalTests
+    } catch (error) {
+      this.handleError(error, 'getPatientClinicalTests')
+    }
+  }
+
+  async getAllPatientClinicalTests() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextPatientId()).toHuman() as number
+
+      const allPatientsClinicalTests: any[] = []
+      for (let i = 0; i < nextId; i++) {
+        const patient = await this.getPatientById(i)
+        const tests = await this.getPatientClinicalTests(i)
+        allPatientsClinicalTests.push({
+          ...patient,
+          tests
+        })
+      }
+      return allPatientsClinicalTests
+    } catch (error) {
+      this.handleError(error, 'getAllPatientClinicalTests')
     }
   }
 
@@ -255,12 +270,35 @@ export default class BlockchainService extends BaseService {
   async getDiseaseProgressions(id: number) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
-      const diseaseProgression = (await api.query.medicalRecord.diseaseProgressions(id)).toHuman()
+      const diseaseProgression = (await api.query.medicalRecord.diseaseProgressions(id)).toHuman() as object | null
 
-      const parsedDiseaseProgression = await this.parseDiseaseProgressionData(diseaseProgression)
+      const parsedDiseaseProgression = diseaseProgression
+        ? await this.parseDiseaseProgressionData({
+            progressionId: id,
+            ...diseaseProgression
+          })
+        : null
       return parsedDiseaseProgression
     } catch (error) {
       this.handleError(error, 'getDiseaseProgressions')
+    }
+  }
+
+  async getPatientDiseaseProgressions(patientId: number) {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+
+      const progressions: any[] = []
+      const progressionIds = (await api.query.medicalRecord.patientDiseaseProgressions(patientId)).toHuman() as number[]
+
+      for (const progressionId of progressionIds) {
+        const progression = await this.getDiseaseProgressions(progressionId)
+        progressions.push(progression)
+      }
+
+      return progressions
+    } catch (error) {
+      this.handleError(error, 'getPatientDiseaseProgressions')
     }
   }
 
@@ -269,25 +307,29 @@ export default class BlockchainService extends BaseService {
       const api = await ApiPromise.create({ provider: this.provider })
       const nextId = (await api.query.medicalRecord.nextPatientId()).toHuman() as number
 
-      const progressions: any[] = []
+      const allPatientDiseaseProgression: any[] = []
       for (let i = 0; i < nextId; i++) {
-        const patient = (await api.query.medicalRecord.patients(i)).toHuman() as any
-        if (!patient) {
-          continue
-        }
-        const parsedPatient = patient ? await this.parsePatientData(patient) : null
-        if (!parsedPatient) {
-          continue
-        }
-        const progression = (await api.query.medicalRecord.patientDiseaseProgressions(i)).toHuman() as any
-        progressions.push({
-          ...parsedPatient,
-          progression
+        const patient = await this.getPatientById(i)
+        const progressions = await this.getPatientDiseaseProgressions(i)
+        allPatientDiseaseProgression.push({
+          ...patient,
+          progressions
         })
       }
-      return progressions
+      return allPatientDiseaseProgression
     } catch (error) {
       this.handleError(error, 'getAllPatientClinicalTests')
+    }
+  }
+
+  async getNextChangeId() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextChangeId()).toHuman() as number
+
+      return nextId
+    } catch (error) {
+      this.handleError(error, 'getNextChangeId')
     }
   }
 
@@ -304,7 +346,11 @@ export default class BlockchainService extends BaseService {
         }
         historyChange.oldValue = historyChange.oldValue ? hexToString(historyChange.oldValue as string) : null
         historyChange.newValue = historyChange.newValue ? hexToString(historyChange.newValue as string) : null
-        historyChanges.push(historyChange)
+        const changeByAccount = await this.findAccountByWalletAddress(historyChange.changedBy)
+        historyChanges.push({
+          ...historyChange,
+          changeByAccount
+        })
       }
       return historyChanges
     } catch (error) {
@@ -327,25 +373,49 @@ export default class BlockchainService extends BaseService {
       const api = await ApiPromise.create({ provider: this.provider })
       const medicalRecord = (await api.query.medicalRecord.medicalRecords(id)).toHuman()
 
-      if (!medicalRecord) {
-        return null
-      }
+      const parsedMedicalRecord = medicalRecord ? this.parseMedicalRecordData(medicalRecord) : null
 
-      return medicalRecord
+      return parsedMedicalRecord
     } catch (error) {
       this.handleError(error, 'getMedicalRecord')
     }
   }
 
-  async getPatientMedicalRecords(id: number) {
+  async getPatientMedicalRecords(patientId: number) {
     try {
       const api = await ApiPromise.create({ provider: this.provider })
-      const medicalRecords = (await api.query.medicalRecord.patientMedicalRecords(id)).toHuman()
+      const patientMedicalRecordIds = (
+        await api.query.medicalRecord.patientMedicalRecords(patientId)
+      ).toHuman() as number[]
 
-      if (!medicalRecords) {
-        return null
+      const medicalRecords: any[] = []
+      for (const recordId of patientMedicalRecordIds) {
+        const medicalRecord = await this.getMedicalRecord(recordId)
+        if (medicalRecord) {
+          medicalRecords.push(medicalRecord)
+        }
       }
       return medicalRecords
+    } catch (error) {
+      this.handleError(error, 'getPatientMedicalRecord')
+    }
+  }
+
+  async getAllPatientMedicalRecords() {
+    try {
+      const api = await ApiPromise.create({ provider: this.provider })
+      const nextId = (await api.query.medicalRecord.nextPatientId()).toHuman() as number
+
+      const allPatientMedicalRecords: any[] = []
+      for (let i = 0; i < nextId; i++) {
+        const patient = await this.getPatientById(i)
+        const medicalRecords = await this.getPatientMedicalRecords(i)
+        allPatientMedicalRecords.push({
+          ...patient,
+          medicalRecords
+        })
+      }
+      return allPatientMedicalRecords
     } catch (error) {
       this.handleError(error, 'getPatientMedicalRecords')
     }
@@ -829,7 +899,7 @@ export default class BlockchainService extends BaseService {
     const doctorAccount = await this.findAccountByWalletAddress(test.doctorId)
 
     return {
-      testId: test.id,
+      testId: test.testId,
       patientId: test.patientId,
       doctorId: test.doctorId,
       doctorAccount,
@@ -852,7 +922,7 @@ export default class BlockchainService extends BaseService {
     const doctorAccount = await this.findAccountByWalletAddress(progression.doctorId)
 
     return {
-      progressionId: progression.id,
+      progressionId: progression.progressionId,
       patientId: progression.patientId,
       doctorId: progression.doctorId,
       doctorAccount,
@@ -867,6 +937,29 @@ export default class BlockchainService extends BaseService {
       createByAccount: createdByAccount,
       lastModifiedAt: progression.lastModifiedAt,
       lastModifiedBy: progression.lastModifiedBy,
+      lastModifiedByAccount: lastModifiedByAccount
+    }
+  }
+
+  private async parseMedicalRecordData(record: any) {
+    const lastModifiedByAccount = await this.findAccountByWalletAddress(record.lastModifiedBy)
+    const createdByAccount = await this.findAccountByWalletAddress(record.createdBy)
+    const doctorAccount = await this.findAccountByWalletAddress(record.doctorId)
+
+    return {
+      recordId: record.recordId,
+      patientId: record.patientId,
+      doctorId: record.doctorId,
+      doctorAccount,
+      recordHash: record.recordHash,
+      dataPointer: record.dataPointer ? parseInt(record.dataPointer, 10) : null,
+      diagnosis: hexToString(record.diagnosis as string),
+      treatment: hexToString(record.treatment as string),
+      createdAt: record.createdAt,
+      createdBy: record.createdBy,
+      createByAccount: createdByAccount,
+      lastModifiedAt: record.lastModifiedAt,
+      lastModifiedBy: record.lastModifiedBy,
       lastModifiedByAccount: lastModifiedByAccount
     }
   }

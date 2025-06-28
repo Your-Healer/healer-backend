@@ -144,10 +144,41 @@ export async function getDiseaseProgressionsController(req: Request, res: Respon
       data: diseaseProgressions,
       timestamp: new Date().toISOString()
     })
-  } catch {}
+  } catch (error: any) {
+    console.error('Error fetching disease progressions:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch disease progressions',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
 }
 
-export async function getAllDiseaseProgressionsController(
+export async function getPatientDiseaseProgressionsController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  try {
+    const { patientId } = req.params
+    if (!patientId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Patient ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const diseaseProgressions = await blockchainService.getPatientDiseaseProgressions(Number(patientId))
+    return res.status(200).json({
+      status: 'success',
+      data: diseaseProgressions,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {}
+}
+
+export async function getAllPatientDiseaseProgressionsController(
   req: Request,
   res: Response,
   next: NextFunction
@@ -258,6 +289,34 @@ export async function getClinicalTestsController(req: Request, res: Response, ne
   }
 }
 
+export async function getPatientClinicalTestsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { patientId } = req.params
+    const patientClinicalTests = await blockchainService.getPatientClinicalTests(Number(patientId))
+
+    if (!patientClinicalTests) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Patient clinical tests not found',
+
+        timestamp: new Date().toISOString()
+      })
+    }
+    return res.status(200).json({
+      status: 'success',
+      data: patientClinicalTests,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching patient clinical tests:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch patient clinical tests',
+      error: error.message
+    })
+  }
+}
+
 export async function getNextPatientIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
     const nextId = await blockchainService.getNextPatientId()
@@ -328,6 +387,122 @@ export async function getNextRecordIdController(req: Request, res: Response, nex
     return res.status(500).json({
       status: 'error',
       message: 'Failed to fetch next medical record ID',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getNextChangeIdController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const nextId = await blockchainService.getNextChangeId()
+    return res.status(200).json({
+      status: 'success',
+      data: nextId,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching next change ID:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch next change ID',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getMedicalRecordsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+  try {
+    const { id } = req.params
+    if (!id) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Medical Record ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+    const record = await blockchainService.getMedicalRecord(Number(id))
+    if (!record) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Medical Record not found',
+        timestamp: new Date().toISOString()
+      })
+    }
+    return res.status(200).json({
+      status: 'success',
+      data: record,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching medical record:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch medical record',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getPatientMedicalRecordsController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  try {
+    const { patientId } = req.params
+
+    if (!patientId) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Patient ID is required',
+        timestamp: new Date().toISOString()
+      })
+    }
+
+    const medicalRecords = await blockchainService.getPatientMedicalRecords(Number(patientId))
+    if (!medicalRecords) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Patient medical records not found',
+        timestamp: new Date().toISOString()
+      })
+    }
+    return res.status(200).json({
+      status: 'success',
+      data: medicalRecords,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching patient medical records:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch patient medical records',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    })
+  }
+}
+
+export async function getAllPatientMedicalRecordsController(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> {
+  try {
+    const medicalRecords = await blockchainService.getAllPatientMedicalRecords()
+    return res.status(200).json({
+      status: 'success',
+      data: medicalRecords,
+      timestamp: new Date().toISOString()
+    })
+  } catch (error: any) {
+    console.error('Error fetching all patient medical records:', error)
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch all patient medical records',
       error: error.message,
       timestamp: new Date().toISOString()
     })
