@@ -877,7 +877,7 @@ export default class BlockchainService extends BaseService {
     const createdByAccount = await this.findAccountByWalletAddress(patient.createdBy)
 
     return {
-      patientId: patient.id,
+      patientId: patient.patientId,
       patientName: hexToString(patient.patientName as string),
       dateOfBirth: hexToDate(patient.dateOfBirth as string),
       gender: hexToString(patient.gender as string),
