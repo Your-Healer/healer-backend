@@ -1003,7 +1003,9 @@ export default class BlockchainService extends BaseService {
                   }
                 }
               }
-            }
+            },
+            firstname: true,
+            lastname: true
           }
         }
       }
