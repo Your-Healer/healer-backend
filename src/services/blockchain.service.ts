@@ -873,8 +873,8 @@ export default class BlockchainService extends BaseService {
   }
 
   private async parsePatientData(patient: any) {
-    const lastModifiedByAccount = this.findAccountByWalletAddress(patient.lastModifiedBy)
-    const createdByAccount = this.findAccountByWalletAddress(patient.createdBy)
+    const lastModifiedByAccount = await this.findAccountByWalletAddress(patient.lastModifiedBy)
+    const createdByAccount = await this.findAccountByWalletAddress(patient.createdBy)
 
     return {
       patientId: patient.id,
