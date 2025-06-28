@@ -421,7 +421,7 @@ export interface BlockchainCreateMedicalRecordDto {
   patientId: number
   diagnosis: string
   treatment: string
-  dataPointer?: number
+  dataPointer?: string
 }
 
 // Serialized
