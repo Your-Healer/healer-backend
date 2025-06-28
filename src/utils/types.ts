@@ -114,8 +114,8 @@ export interface UpdateServiceRequest {
   durationTime?: number
 }
 
-// Appointment types
-export interface CreateAppointmentRequest {
+export // Appointment types
+interface CreateAppointmentRequest {
   userId: string
   patientId: string
   medicalRoomTimeId: string
@@ -129,8 +129,8 @@ export interface UpdateAppointmentStatusRequest {
 
 export interface CreateDiagnosisSuggestionRequest {
   appointmentId: string
-  suggestedByAI: boolean
-  disease: string
+  suggestedByAI?: string
+  disease?: string
   confidence: number
   description?: string
 }
@@ -165,6 +165,12 @@ export interface BulkCreateShiftRequest {
 }
 
 // Filter types
+
+export interface DiagnosisSuggestionFilter {
+  id?: string
+  appointmentId?: string
+}
+
 export interface AppointmentFilter {
   userId?: string
   staffId?: string
