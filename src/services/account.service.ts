@@ -102,7 +102,7 @@ export default class AccountService extends BaseService {
 
   async getAccountById(id: string) {
     try {
-      return await prisma.account.findUnique({
+      const account = await prisma.account.findUnique({
         where: { id },
         include: {
           role: true,
@@ -138,6 +138,12 @@ export default class AccountService extends BaseService {
           }
         }
       })
+
+      const avatar = account?.avatar ? await this.attachmentService.getAttachmentById(account.avatar.id) : null
+      return {
+        ...account,
+        avatar
+      }
     } catch (error) {
       this.handleError(error, 'getAccountById')
     }
@@ -145,7 +151,7 @@ export default class AccountService extends BaseService {
 
   async getAccountByUsername(data: GetAccountByUsernameDto) {
     try {
-      return await prisma.account.findUnique({
+      const account = await prisma.account.findUnique({
         where: { username: data.username },
         include: {
           role: true,
@@ -162,6 +168,11 @@ export default class AccountService extends BaseService {
           }
         }
       })
+      const avatar = account?.avatar ? await this.attachmentService.getAttachmentById(account.avatar.id) : null
+      return {
+        ...account,
+        avatar
+      }
     } catch (error) {
       this.handleError(error, 'getAccountByUsername')
     }
@@ -169,7 +180,7 @@ export default class AccountService extends BaseService {
 
   async getAccountByEmail(data: GetAccountByEmailDto) {
     try {
-      return await prisma.account.findUnique({
+      const account = await prisma.account.findUnique({
         where: { email: data.email },
         include: {
           role: true,
@@ -186,6 +197,11 @@ export default class AccountService extends BaseService {
           }
         }
       })
+      const avatar = account?.avatar ? await this.attachmentService.getAttachmentById(account.avatar.id) : null
+      return {
+        ...account,
+        avatar
+      }
     } catch (error) {
       this.handleError(error, 'getAccountByEmail')
     }
@@ -328,7 +344,7 @@ export default class AccountService extends BaseService {
 
       const include = {
         role: true,
-        avatar: true,
+        // avatar: true,
         user: true,
         staff: {
           include: {

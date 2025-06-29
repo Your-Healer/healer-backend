@@ -1,6 +1,7 @@
 import { User, Prisma, APPOINTMENTSTATUS } from '@prisma/client'
 import BaseService from './base.service'
 import prisma from '~/libs/prisma/init'
+import AttachmentService from './attachment.service'
 
 export interface CreateUserData {
   accountId: string
@@ -42,8 +43,10 @@ export interface UserPreferences {
 
 export default class UserService extends BaseService {
   private static instance: UserService
+  private attachmentService: AttachmentService
   private constructor() {
     super()
+    this.attachmentService = AttachmentService.getInstance()
   }
   static getInstance(): UserService {
     if (!UserService.instance) {
@@ -132,7 +135,7 @@ export default class UserService extends BaseService {
 
   async getUserById(id: string) {
     try {
-      return await prisma.user.findUnique({
+      let user: any = await prisma.user.findUnique({
         where: { id },
         include: {
           account: {
@@ -152,6 +155,14 @@ export default class UserService extends BaseService {
           }
         }
       })
+      const avatar = user?.account.avatar
+        ? await this.attachmentService.getAttachmentById(user.account.avatar.id)
+        : null
+      if (user && user.account) {
+        user.account.avatar = avatar
+      }
+
+      return user
     } catch (error) {
       this.handleError(error, 'getUserById')
     }
@@ -159,17 +170,34 @@ export default class UserService extends BaseService {
 
   async getUserByAccountId(accountId: string) {
     try {
-      return await prisma.user.findUnique({
+      let user: any = await prisma.user.findUnique({
         where: { accountId },
         include: {
           account: {
             include: {
-              role: true
+              role: true,
+              avatar: true
             }
           },
-          Patient: true
+          Patient: {
+            include: {
+              _count: {
+                select: {
+                  Appointment: true
+                }
+              }
+            }
+          }
         }
       })
+      const avatar = user?.account.avatar
+        ? await this.attachmentService.getAttachmentById(user.account.avatar.id)
+        : null
+      if (user && user.account) {
+        user.account.avatar = avatar
+      }
+
+      return user
     } catch (error) {
       this.handleError(error, 'getUserByAccountId')
     }
@@ -245,7 +273,20 @@ export default class UserService extends BaseService {
         prisma.user.count({ where })
       ])
 
-      return this.formatPaginationResult(users, total, page, limit)
+      // Process avatars for all users
+      const processedUsers = await Promise.all(
+        users.map(async (user: any) => {
+          const avatar = user?.account?.avatar
+            ? await this.attachmentService.getAttachmentById(user.account.avatar.id)
+            : null
+          if (user && user.account) {
+            user.account.avatar = avatar
+          }
+          return user
+        })
+      )
+
+      return this.formatPaginationResult(processedUsers, total, page, limit)
     } catch (error) {
       this.handleError(error, 'getUsers')
     }
@@ -503,7 +544,7 @@ export default class UserService extends BaseService {
 
   async getUserProfile(userId: string) {
     try {
-      const user = await prisma.user.findUnique({
+      let user: any = await prisma.user.findUnique({
         where: { id: userId },
         include: {
           account: {
@@ -525,6 +566,13 @@ export default class UserService extends BaseService {
       })
       if (!user) {
         throw new Error('User not found')
+      }
+
+      const avatar = user?.account.avatar
+        ? await this.attachmentService.getAttachmentById(user.account.avatar.id)
+        : null
+      if (user && user.account) {
+        user.account.avatar = avatar
       }
 
       const statistics = await this.getUserStatistics(userId)
