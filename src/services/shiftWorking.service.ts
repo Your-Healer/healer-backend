@@ -210,7 +210,7 @@ export default class ShiftWorkingService extends BaseService {
             }
           },
           orderBy: {
-            fromTime: 'asc'
+            fromTime: 'desc'
           }
         }),
         prisma.shiftWorking.count({ where })
