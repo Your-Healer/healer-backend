@@ -107,7 +107,7 @@ export default class AuthService extends BaseService {
                   name: true
                 }
               },
-              avatar: true,
+              // avatar: true,
               password: true,
               emailIsVerified: true
             }
@@ -124,7 +124,7 @@ export default class AuthService extends BaseService {
                   name: true
                 }
               },
-              avatar: true,
+              // avatar: true,
               password: true,
               emailIsVerified: true
             }

@@ -157,8 +157,8 @@ export default class StaffService extends BaseService {
           include: {
             account: {
               include: {
-                role: true,
-                avatar: true
+                role: true
+                // avatar: true
               }
             },
             positions: {
@@ -193,8 +193,8 @@ export default class StaffService extends BaseService {
         include: {
           account: {
             include: {
-              role: true,
-              avatar: true
+              role: true
+              // avatar: true
             }
           },
           positions: {
@@ -362,8 +362,8 @@ export default class StaffService extends BaseService {
           include: {
             account: {
               include: {
-                role: true,
-                avatar: true
+                role: true
+                // avatar: true
               }
             },
             positions: {
@@ -398,8 +398,8 @@ export default class StaffService extends BaseService {
         include: {
           account: {
             include: {
-              role: true,
-              avatar: true
+              role: true
+              // avatar: true
             }
           },
           positions: {
@@ -818,8 +818,8 @@ export default class StaffService extends BaseService {
           include: {
             account: {
               include: {
-                role: true,
-                avatar: true
+                role: true
+                // avatar: true
               }
             },
             positions: {
@@ -871,8 +871,8 @@ export default class StaffService extends BaseService {
           include: {
             account: {
               include: {
-                role: true,
-                avatar: true
+                role: true
+                // avatar: true
               }
             },
             positions: {
