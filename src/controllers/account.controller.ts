@@ -74,12 +74,13 @@ export async function changeMyPasswordController(req: Request, res: Response, ne
 
 export async function updateMyAvatarController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
+    if (!req.file || Array.isArray(req.file)) {
+      return res.status(400).json({ error: 'Expected a single file' })
+    }
     const { accountId } = (req as any).user
-    const { avatarId } = req.body
-    await accountService.updateAvatar(accountId, avatarId)
+    await accountService.updateAvatar(accountId, req.file)
     return res.status(200).json({
-      message: 'Avatar updated successfully',
-      avatarId
+      message: 'Avatar updated successfully'
     })
   } catch (error) {
     next(error)
