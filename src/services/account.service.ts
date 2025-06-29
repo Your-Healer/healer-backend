@@ -1,4 +1,4 @@
-import { Account, Prisma } from '@prisma/client'
+import { Account, Attachment, Prisma } from '@prisma/client'
 import BaseService from './base.service'
 import { createHashedPassword, compareHashedPassword } from '~/middlewares/auth/index'
 import BlockchainService from './blockchain.service'
@@ -16,11 +16,13 @@ import {
 } from '~/dtos/account.dto'
 import { decryptString, encryptString } from '~/utils/helpers'
 import config from '~/configs/env/index'
+import AttachmentService from './attachment.service'
 
 const SECRET_KEY = config.secrets.secretKey
 
 export default class AccountService extends BaseService {
   private static blockchainService: BlockchainService
+  private attachmentService: AttachmentService
   private static instance: AccountService
 
   static getInstance(): AccountService {
@@ -33,6 +35,7 @@ export default class AccountService extends BaseService {
   private constructor(private blockchainService: BlockchainService) {
     super()
     this.blockchainService = blockchainService
+    this.attachmentService = AttachmentService.getInstance()
   }
 
   async createAccount(data: CreateAccountDto): Promise<Account> {
@@ -441,10 +444,11 @@ export default class AccountService extends BaseService {
     }
   }
 
-  async updateAvatar(id: string, avatarId: string): Promise<Account> {
+  async updateAvatar(id: string, file: Express.Multer.File): Promise<Account> {
     try {
+      const attachment = await this.attachmentService.uploadSingleFile(file)
       const updateData: Prisma.AccountUpdateInput = {
-        avatar: { connect: { id: avatarId } }
+        avatar: { connect: { id: attachment.attachment.id } }
       }
       return await prisma.account.update({
         where: { id },
