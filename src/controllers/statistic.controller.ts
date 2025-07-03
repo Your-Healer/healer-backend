@@ -22,7 +22,7 @@ export async function getAdminDashboardStatsController(req: Request, res: Respon
 
 export async function getDoctorDashboardStatsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { staffId } = req.params
+    const { staffId } = (req as any).user
 
     if (!staffId) {
       return res.status(StatusCodes.BAD_REQUEST).json({
@@ -68,30 +68,30 @@ export async function getMyDoctorStatsController(req: Request, res: Response, ne
   }
 }
 
-export async function getMonthlyStatsController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { year } = req.query
-    const targetYear = year ? parseInt(year as string) : new Date().getFullYear()
+// export async function getMonthlyStatsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+//   try {
+//     const { year } = req.query
+//     const targetYear = year ? parseInt(year as string) : new Date().getFullYear()
 
-    if (isNaN(targetYear) || targetYear < 2000 || targetYear > 2100) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        success: false,
-        message: 'Invalid year parameter'
-      })
-    }
+//     if (isNaN(targetYear) || targetYear < 2000 || targetYear > 2100) {
+//       return res.status(StatusCodes.BAD_REQUEST).json({
+//         success: false,
+//         message: 'Invalid year parameter'
+//       })
+//     }
 
-    const stats = await statisticService.getMonthlyStats(targetYear)
+//     const stats = await statisticService.getMonthlyStats(targetYear)
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'Monthly statistics retrieved successfully',
-      data: stats
-    })
-  } catch (error) {
-    console.error('Error getting monthly stats:', error)
-    next(error)
-  }
-}
+//     return res.status(StatusCodes.OK).json({
+//       success: true,
+//       message: 'Monthly statistics retrieved successfully',
+//       data: stats
+//     })
+//   } catch (error) {
+//     console.error('Error getting monthly stats:', error)
+//     next(error)
+//   }
+// }
 
 export async function getDepartmentStatsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
@@ -198,52 +198,52 @@ export async function getTimeSlotUtilizationController(req: Request, res: Respon
   }
 }
 
-export async function getSystemStatisticsController(req: Request, res: Response, next: NextFunction): Promise<any> {
-  try {
-    const { period = 'month', year } = req.query
-    const targetYear = year ? parseInt(year as string) : new Date().getFullYear()
+// export async function getSystemStatisticsController(req: Request, res: Response, next: NextFunction): Promise<any> {
+//   try {
+//     const { period = 'month', year } = req.query
+//     const targetYear = year ? parseInt(year as string) : new Date().getFullYear()
 
-    if (isNaN(targetYear) || targetYear < 2000 || targetYear > 2100) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        success: false,
-        message: 'Invalid year parameter'
-      })
-    }
+//     if (isNaN(targetYear) || targetYear < 2000 || targetYear > 2100) {
+//       return res.status(StatusCodes.BAD_REQUEST).json({
+//         success: false,
+//         message: 'Invalid year parameter'
+//       })
+//     }
 
-    const validPeriods = ['week', 'month', 'quarter', 'year']
-    if (!validPeriods.includes(period as string)) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        success: false,
-        message: 'Invalid period parameter. Must be one of: week, month, quarter, year'
-      })
-    }
+//     const validPeriods = ['week', 'month', 'quarter', 'year']
+//     if (!validPeriods.includes(period as string)) {
+//       return res.status(StatusCodes.BAD_REQUEST).json({
+//         success: false,
+//         message: 'Invalid period parameter. Must be one of: week, month, quarter, year'
+//       })
+//     }
 
-    // Get comprehensive system statistics
-    const [adminStats, monthlyStats, departmentStats] = await Promise.all([
-      statisticService.getAdminDashboardStats(),
-      statisticService.getMonthlyStats(targetYear),
-      statisticService.getDepartmentStats()
-    ])
+//     // Get comprehensive system statistics
+//     const [adminStats, monthlyStats, departmentStats] = await Promise.all([
+//       statisticService.getAdminDashboardStats(),
+//       statisticService.getMonthlyStats(targetYear),
+//       statisticService.getDepartmentStats()
+//     ])
 
-    const systemStats = {
-      overview: adminStats,
-      monthly: monthlyStats,
-      departments: departmentStats,
-      period: period as string,
-      year: targetYear,
-      generatedAt: new Date().toISOString()
-    }
+//     const systemStats = {
+//       overview: adminStats,
+//       monthly: monthlyStats,
+//       departments: departmentStats,
+//       period: period as string,
+//       year: targetYear,
+//       generatedAt: new Date().toISOString()
+//     }
 
-    return res.status(StatusCodes.OK).json({
-      success: true,
-      message: 'System statistics retrieved successfully',
-      data: systemStats
-    })
-  } catch (error) {
-    console.error('Error getting system statistics:', error)
-    next(error)
-  }
-}
+//     return res.status(StatusCodes.OK).json({
+//       success: true,
+//       message: 'System statistics retrieved successfully',
+//       data: systemStats
+//     })
+//   } catch (error) {
+//     console.error('Error getting system statistics:', error)
+//     next(error)
+//   }
+// }
 
 export async function getStaffDashboardStatsController(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
