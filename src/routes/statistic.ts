@@ -8,23 +8,23 @@ import {
   getDepartmentStatsController,
   getDoctorDashboardStatsController,
   getMyDoctorStatsController,
-  getMonthlyStatsController,
+  // getMonthlyStatsController,
   getRevenueAnalyticsController,
   getStaffPerformanceStatsController,
   getTimeSlotUtilizationController,
-  getStaffDashboardStatsController,
-  getSystemStatisticsController
+  getStaffDashboardStatsController
+  // getSystemStatisticsController
 } from '../controllers/statistic.controller'
 
 const router = Router()
 
 router.get('/admin/dashboard', protect, getAdminDashboardStatsController)
 
-router.get('/doctor/dashboard/:staffId', protect, getDoctorDashboardStatsController)
+router.get('/doctor/dashboard', protect, getDoctorDashboardStatsController)
 
 router.get('/doctor/my-dashboard', protect, getMyDoctorStatsController)
 
-router.get('/monthly', protect, getMonthlyStatsController)
+// router.get('/monthly', protect, getMonthlyStatsController)
 
 router.get('/departments', protect, getDepartmentStatsController)
 
