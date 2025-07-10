@@ -905,7 +905,7 @@ export default class BlockchainService extends BaseService {
       patientId: test.patientId,
       doctorId: test.doctorId,
       doctorAccount,
-      testType: hexToString(test.testType as string),
+      testType: test.testType ? hexToString(test.testType as string) : '',
       testDate: hexToDate(test.testDate as string),
       result: hexToString(test.result as string),
       notes: hexToString(test.notes as string),
