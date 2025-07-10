@@ -9,7 +9,10 @@ export function stringToHex(str: string): string {
     .join('')
 }
 
-export function hexToString(hex: string): string {
+export function hexToString(hex?: string): string {
+  if (!hex) {
+    return ''
+  }
   if (hex.length % 2 !== 0) {
     throw new Error('Hex string length must be even')
   }
