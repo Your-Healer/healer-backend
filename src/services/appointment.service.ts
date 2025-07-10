@@ -494,7 +494,7 @@ export default class AppointmentService extends BaseService {
 
   async addDiagnosisSuggestion(data: {
     appointmentId: string
-    suggestedByAI: boolean
+    suggestedByAI?: string
     disease: string
     confidence: number
     description?: string
@@ -502,7 +502,7 @@ export default class AppointmentService extends BaseService {
     try {
       const suggestionData: Prisma.DiagnosisSuggestionCreateInput = {
         appointment: { connect: { id: data.appointmentId } },
-        suggestedByAI: data.suggestedByAI ? 'TRUE' : 'FALSE',
+        suggestedByAI: data.suggestedByAI,
         disease: data.disease,
         confidence: data.confidence,
         description: data.description
