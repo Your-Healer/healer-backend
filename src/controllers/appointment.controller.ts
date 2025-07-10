@@ -179,7 +179,7 @@ export async function addDiagnosisSuggestionController(req: Request, res: Respon
 
     const suggestion = await appointmentService.addDiagnosisSuggestion({
       appointmentId,
-      suggestedByAI: Boolean(suggestedByAI),
+      suggestedByAI,
       disease,
       confidence: parseFloat(confidence),
       description
