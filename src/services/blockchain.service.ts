@@ -272,6 +272,8 @@ export default class BlockchainService extends BaseService {
       const api = await ApiPromise.create({ provider: this.provider })
       const diseaseProgression = (await api.query.medicalRecord.diseaseProgressions(id)).toHuman() as object | null
 
+      console.log(diseaseProgression)
+
       const parsedDiseaseProgression = diseaseProgression
         ? await this.parseDiseaseProgressionData({
             progressionId: id,
@@ -927,11 +929,11 @@ export default class BlockchainService extends BaseService {
       doctorId: progression.doctorId,
       doctorAccount,
       visitDate: hexToDate(progression.visitDate as string),
-      symptoms: hexToString(progression.symptoms as string),
-      diagnosis: hexToString(progression.diagnosis as string),
-      treatment: hexToString(progression.treatment as string),
-      prescription: hexToString(progression.prescription as string),
-      nextAppointment: hexToDate(progression.nextAppointment as string),
+      symptoms: progression.symptoms ? hexToString(progression.symptoms as string) : '',
+      diagnosis: progression.diagnosis ? hexToString(progression.diagnosis as string) : '',
+      treatment: progression.treatment ? hexToString(progression.treatment as string) : '',
+      prescription: progression.prescription ? hexToString(progression.prescription as string) : '',
+      nextAppointment: progression.nextAppointment ? hexToDate(progression.nextAppointment as string) : '',
       createdAt: progression.createdAt,
       createdBy: progression.createdBy,
       createByAccount: createdByAccount,
